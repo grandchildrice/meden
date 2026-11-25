@@ -78,6 +78,18 @@ reuse after restart. Neutral source retention/projection tests use their own
 source types, independently of Lean. These are adapter/type checks, not new
 verification evidence or a filesystem refinement proof.
 
+Saved-only source publications contain complete frozen view bytes and original
+plain source, never an assessment backend input. Native file opening must show
+the original declaration before a held real Lake input query, then preserve the
+same graph DOM, camera and bytes through successful validation. Both motion
+settings also change an imported definition during the hold: the real compiler
+failure retires all saved aliases, keeps source/lexical inspection and logs,
+and supports visible Retry and a valid dependency's cached restart without a
+model request or restored approval. The old executable must fail declaration
+visibility after successful cold preparation. Full input validation still runs;
+a saved presentation is not current evidence. See the
+[saved-view measurement](performance/saved-graph-display.md).
+
 Compiler/search/render cache contexts retain their original bare digests and
 complete parent/body checks. The actual body's type selects its storage role;
 decoded identity spelling does not grant ownership. Public source preparation,

@@ -1,0 +1,5034 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "663367fb62735e9a86e5b017abffb35e24eb3a36",
+  "scope": "Complete saved presentation before unchanged current-input preparation; no backend input/evidence authority from saved-only bytes. Public source/graph/failure/retry/restart and actual-project latency observations. No local inference, live-model, cold-install, atomic-filesystem or new kernel-refinement claim.",
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2/meden",
+    "sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2"
+  },
+  "diagnostic": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/cf5690f55eb4cf31fa9e83c7d5558b3ce869bcd33c575be0b97d1acb82be6ef5/profile-source-selection",
+    "sha256": "cf5690f55eb4cf31fa9e83c7d5558b3ce869bcd33c575be0b97d1acb82be6ef5"
+  },
+  "assets": {
+    "count": 88,
+    "sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b"
+  },
+  "sources": [
+    {
+      "path": "apps/web/e2e/launcher-gate.ts",
+      "bytes": 2881,
+      "sha256": "c83174aca1ad944d2b7c94f803fda0e90471d6b32d0fab02b0cd88cdbb4df9c0"
+    },
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 331989,
+      "sha256": "38e24bf80f967aa187e5f8f51abc63c4f8ee05e22714a63149d0c66b19f26e3c"
+    },
+    {
+      "path": "apps/web/src/features/native/NativeFileWorkspace.tsx",
+      "bytes": 15172,
+      "sha256": "5c9075a97df538006eeb4fe5a0a5e0406f017ffa8cdee8bdbaf108c052621aa7"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "bytes": 306,
+      "sha256": "bc1092b5c779a4e153fc3636b3fb35264887337a92e689f8565ecfcdd38f3366"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/cache.rs",
+      "bytes": 18070,
+      "sha256": "5e93110a0297672c43535161cf1fa33ff7cb355b9e2a1eb7018bde6bea919039"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/saved.rs",
+      "bytes": 2715,
+      "sha256": "519532152df5f8126b9f2557e394015aa70ad82040af22e356f22b2787792213"
+    },
+    {
+      "path": "crates/meden-app/src/view/sources.rs",
+      "bytes": 22247,
+      "sha256": "87399e7c7c0bb3f9492ae8f7b80046c388f4873c8649db33955a43587d490191"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/sources.rs",
+      "bytes": 7870,
+      "sha256": "3e18378d75b8b3099e73abdb10efbf32979997747bdb50b87c0a2dde43389a98"
+    }
+  ],
+  "validation": {
+    "rust_unit_and_doc": 293,
+    "architecture": 45,
+    "source_selection_and_lake": 12,
+    "tui": 36,
+    "decoded_tui_journeys": 8,
+    "gui": 79,
+    "gui_validation": {
+      "stats": {
+        "total": 79,
+        "expected": 79,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "initial_stats": {
+        "total": 79,
+        "expected": 78,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "corrected_stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "corrected_title": "IDE map keeps one camera while revealing cached declarations, opens large source files and selects models from chat",
+      "scope": "79 distinct successful cases across the initial 78 successes and one corrected existing test. Not a second whole-suite pass. Initial failure retained: visible saved graph deliberately has no prepared backend; corrected test waits for actual completed preparation before reading backend input. Same sealed executable and unchanged product assets."
+    },
+    "native_saved_view_journeys": [
+      {
+        "title": "saved graph appears before input validation (reduce) and retires after failure",
+        "motion": "reduce",
+        "first_graph_ms": 2000.518981000001,
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "model_requests": 0,
+        "scope": "Complete saved source/graph before a held actual offline Lake query; original input validation subsequently runs. No skipped freshness, new evidence or model request."
+      },
+      {
+        "title": "saved graph appears before input validation (no-preference) and retires after failure",
+        "motion": "no-preference",
+        "first_graph_ms": 2013.2707930000033,
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "model_requests": 0,
+        "scope": "Complete saved source/graph before a held actual offline Lake query; original input validation subsequently runs. No skipped freshness, new evidence or model request."
+      }
+    ],
+    "gui_skipped": 0,
+    "gui_flaky": 0,
+    "clippy": true,
+    "schema": true,
+    "format": true,
+    "rust_format": true,
+    "python_lint": true,
+    "actual_native_update_conformance": [
+      {
+        "kind": "metadata",
+        "title": "metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+        "ok": true,
+        "variants": {
+          "original": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/09678d94a485fb265ca1da6ec1d523538dfb8141eac05e1ec463c603410a9466/meden",
+            "sha256": "09678d94a485fb265ca1da6ec1d523538dfb8141eac05e1ec463c603410a9466",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/atlas/project-atlas.py",
+                "sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+              }
+            ],
+            "implementation_sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+          },
+          "updated": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/6e4aa1be48ead4a7f8629ad69c09ba669636c05f98a783c6bbbc64bc2d19d12e/meden",
+            "sha256": "6e4aa1be48ead4a7f8629ad69c09ba669636c05f98a783c6bbbc64bc2d19d12e",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/atlas/project-atlas.py",
+                "sha256": "71e9a1d4d27a874fb512e0b4be7645a501410c26cccf107e167357b677ffd9bd"
+              }
+            ],
+            "implementation_sha256": "71e9a1d4d27a874fb512e0b4be7645a501410c26cccf107e167357b677ffd9bd"
+          },
+          "source": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/source-UvlIAw",
+          "kind": "metadata"
+        },
+        "original_artifacts": {
+          "observations/8b2b99b05a7f4074d82fe26c38f37ae258bdb3f3ee480e5d0e3eec19a6e57f2d.json": "8b2b99b05a7f4074d82fe26c38f37ae258bdb3f3ee480e5d0e3eec19a6e57f2d",
+          "observations-index.json": "a944e48d241d5d24acecc1cc704ad93e84e913aafd164cc7c973d220ce9541f4",
+          "renderings/4b3a49fd4167b1c4a3f50e0805efe472d1e0b7f236f75169b573c5353ae34a09.json": "4b3a49fd4167b1c4a3f50e0805efe472d1e0b7f236f75169b573c5353ae34a09",
+          "renderings-index.json": "0514652072829ce3ce4b08c265fc24a0ba15630b607b4f0c97dca0abf1753465",
+          "searches/a2992d1125120ff69d952ed2e5afadc0f2ceafc18fb7b020c3bcdca9febc4026.json": "a2992d1125120ff69d952ed2e5afadc0f2ceafc18fb7b020c3bcdca9febc4026",
+          "searches-index.json": "acff63a60e2560e56c03f38687154a5a8c9511221ece58b41e98b08dd95e2444"
+        },
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "source_and_all_artifact_bytes_equal": true,
+        "prepared_lake_input_ownership_asserted": true,
+        "model_requests": 0,
+        "scope": "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim."
+      },
+      {
+        "kind": "repair",
+        "title": "repair and composition updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+        "ok": true,
+        "variants": {
+          "original": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/repair/6016fb35b9c20001f15980a3eea2981dbfcf76026ba00140babf352dff1d81f2/meden",
+            "sha256": "6016fb35b9c20001f15980a3eea2981dbfcf76026ba00140babf352dff1d81f2",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/adapters/lean/repair.rs",
+                "sha256": "07c57d67ad07a9a941645f8dcbed8aa9101dc8c72d85b45658cfcde74c8738dd"
+              },
+              {
+                "path": "crates/meden-app/src/adapters/lean.rs",
+                "sha256": "bc1092b5c779a4e153fc3636b3fb35264887337a92e689f8565ecfcdd38f3366"
+              }
+            ],
+            "implementation_sha256": "07c57d67ad07a9a941645f8dcbed8aa9101dc8c72d85b45658cfcde74c8738dd"
+          },
+          "updated": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/repair/babd3ab302bebfd797984fb88576e2274e59654ab32345bb7d25128a65282098/meden",
+            "sha256": "babd3ab302bebfd797984fb88576e2274e59654ab32345bb7d25128a65282098",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/adapters/lean/repair.rs",
+                "sha256": "884e8fa1abf3fe7c750fbd0ce9e368baf918dcb0c9a5289852c7f598261d57dd"
+              },
+              {
+                "path": "crates/meden-app/src/adapters/lean.rs",
+                "sha256": "b73b130cd8c5ea34ceaac7efd6e5ef71ffb99f130d8a3b4566f2bc5950c0a23a"
+              }
+            ],
+            "implementation_sha256": "884e8fa1abf3fe7c750fbd0ce9e368baf918dcb0c9a5289852c7f598261d57dd"
+          },
+          "source": "/home/gohan/workspace/meden/target/gui-native-variants/repair/source-Qxbi38",
+          "kind": "repair"
+        },
+        "original_artifacts": {
+          "observations/8b2b99b05a7f4074d82fe26c38f37ae258bdb3f3ee480e5d0e3eec19a6e57f2d.json": "8b2b99b05a7f4074d82fe26c38f37ae258bdb3f3ee480e5d0e3eec19a6e57f2d",
+          "observations-index.json": "a944e48d241d5d24acecc1cc704ad93e84e913aafd164cc7c973d220ce9541f4",
+          "renderings/4b3a49fd4167b1c4a3f50e0805efe472d1e0b7f236f75169b573c5353ae34a09.json": "4b3a49fd4167b1c4a3f50e0805efe472d1e0b7f236f75169b573c5353ae34a09",
+          "renderings-index.json": "0514652072829ce3ce4b08c265fc24a0ba15630b607b4f0c97dca0abf1753465",
+          "searches/a2992d1125120ff69d952ed2e5afadc0f2ceafc18fb7b020c3bcdca9febc4026.json": "a2992d1125120ff69d952ed2e5afadc0f2ceafc18fb7b020c3bcdca9febc4026",
+          "searches-index.json": "acff63a60e2560e56c03f38687154a5a8c9511221ece58b41e98b08dd95e2444"
+        },
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "source_and_all_artifact_bytes_equal": true,
+        "prepared_lake_input_ownership_asserted": true,
+        "model_requests": 0,
+        "scope": "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim."
+      }
+    ],
+    "old_binary_control": "Original sealed executable completes real cold preparation and fails original declaration visibility while next real Lake query is held; no startup/prerequisite failure.",
+    "initial_pilot": "An overly broad failure selector also matched the intentionally retained lexical fallback. Test narrowed to compiled graph; no product rescue.",
+    "measurement_driver_failures": "The first baseline artifact reader still expected the preceding old backend shape; switched the private diagnostic to the current compiled-input reader. The first latency driver expected file commands without the actual directory:false field/folder inspections; it now observes those original commands and requires exactly one selected-file inspection. Incomplete baseline view files and the failed command-assertion log were retained; complete comparisons restart each host afresh.",
+    "files": [
+      {
+        "path": "/tmp/meden-saved-view-gates-state.json",
+        "bytes": 1340,
+        "sha256": "c20876560585d2792323ad6381b245e5e84a842d1d1ff102423c8aceda95dc0a"
+      },
+      {
+        "path": "/tmp/meden-saved-view-browser-report.json",
+        "bytes": 894,
+        "sha256": "f63932bd1db08bcd69936ed9f191f1ea1bf1540702d0f693b1bc9160388e4af8"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gui-corrected.log",
+        "bytes": 2442,
+        "sha256": "f1dcb7f4d498388df6d8cda3dab9e2a92417988bad9d62b3432d8fd515756a4e"
+      },
+      {
+        "path": "/tmp/meden-saved-view-test-fix-format.log",
+        "bytes": 66,
+        "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+      },
+      {
+        "path": "/tmp/meden-saved-view-test-fix-typecheck.log",
+        "bytes": 29,
+        "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+      },
+      {
+        "path": "/tmp/meden-saved-view-native-saved.json",
+        "bytes": 925,
+        "sha256": "33445dedc63b642fae18d3ad17cb9d1d8f814614f3c6f2ab60db6d0764ad7598"
+      },
+      {
+        "path": "/tmp/meden-saved-view-reviewed-validation.json",
+        "bytes": 1576,
+        "sha256": "3ba19af2b5ec5fed254d24329eaae1240e733666316e095009064e34a3a72567"
+      },
+      {
+        "path": "/tmp/meden-saved-view-decoded-screens.json",
+        "bytes": 7324,
+        "sha256": "8b48ab44eab48eaaee539ec8082034546c986589718d8fba611af305f2ec7913"
+      },
+      {
+        "path": "/tmp/meden-saved-view-reviewed-browser-screens.json",
+        "bytes": 3166,
+        "sha256": "1968a9557caca6400f883f1221dffeb89605a7d64fb94f89043aa1cd92fa6329"
+      },
+      {
+        "path": "/tmp/meden-saved-view-native-updates.json",
+        "bytes": 5887,
+        "sha256": "1183afeaba032fe7d6ba309db97072cd3c9e5ec4857450f6d55d9f664e386d2c"
+      },
+      {
+        "path": "/tmp/meden-saved-view-latency-before.json",
+        "bytes": 818361,
+        "sha256": "ed2c90374e83225ed9467d95fd9f1a481236302fa73d59f987a7537498220ba2"
+      },
+      {
+        "path": "/tmp/meden-saved-view-latency-after.json",
+        "bytes": 829498,
+        "sha256": "7766b75c66a1fc447df28df672b76ec31f4e72d440a39d981036a60502f9e470"
+      },
+      {
+        "path": "/tmp/meden-saved-view-before.log",
+        "bytes": 89,
+        "sha256": "a3c42f159e8900b0523ffde83a09f18e803cfeb1482bc03ceb75695c27f3effd"
+      },
+      {
+        "path": "/tmp/meden-saved-view-control.log",
+        "bytes": 5368,
+        "sha256": "5c57bc7b07e4932e134656097f71ea8e177390f2fe632f3b6d832322639d64d3"
+      },
+      {
+        "path": "/tmp/meden-saved-view-pilot.log",
+        "bytes": 5209,
+        "sha256": "aba3bab77a37bd071769aa6cd4a7aa309bdf86f28e94aa5f36636c3867353534"
+      },
+      {
+        "path": "/tmp/meden-saved-view-pilot2.log",
+        "bytes": 2398,
+        "sha256": "c298b31642279befc5d42548a08b0d6655f5b993416ca0d94c4f2cd9a02f1907"
+      },
+      {
+        "path": "/tmp/meden-saved-view-latency-before-driver-command-shape-failure.log",
+        "bytes": 2128,
+        "sha256": "568c19a80b4b5c0ae242ec514c0db78b364975762aaede823834c2273e3e8ed7"
+      },
+      {
+        "path": "/tmp/meden-saved-view-final-fidelity.json",
+        "bytes": 2171,
+        "sha256": "a9603d6524e8b601758437045f429fe667e1f8f786c7a1e28671b0346e57741f"
+      },
+      {
+        "path": "/tmp/meden-saved-view-final-host-fidelity.json",
+        "bytes": 2171,
+        "sha256": "a9603d6524e8b601758437045f429fe667e1f8f786c7a1e28671b0346e57741f"
+      },
+      {
+        "path": "/tmp/meden-saved-view-final-host-audit.log",
+        "bytes": 134,
+        "sha256": "415516bc3a442b6e34b3d8b32ae649b20f408f08eebdcfa2c4c96f9a1f702fd6"
+      },
+      {
+        "path": "/tmp/meden-saved-view-post-state.json",
+        "bytes": 601,
+        "sha256": "19bec9380369291093141468dca3318a7bf29f8503356952575c55999e6c05aa"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-rust.log",
+        "bytes": 30577,
+        "sha256": "af1aa993efd0a11231f6ede70e1836d05d5eaaa2f848a74025a50fd1e417dee4"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-clippy.log",
+        "bytes": 303,
+        "sha256": "c6be7ea6adee3b39b9c1ce0b0529944316aa615881812a79223f960d3977765a"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-architecture.log",
+        "bytes": 9503,
+        "sha256": "9bd43c77f4a4c3dc82cc19c546d24079f687def16fa1390c1cf3a9ef0c0868cb"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-schema.log",
+        "bytes": 199,
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-rust-format.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-python-lint.log",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-selection-and-lake.log",
+        "bytes": 111,
+        "sha256": "3c2812aa32d74d98198af7aecb5c156189892e2e1585af1e97a9a3ece5e83367"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-tui.log",
+        "bytes": 186,
+        "sha256": "28aa7d4a3f73615eb486011595951f66e735b3812f52035c15d8e5b8f03718a6"
+      },
+      {
+        "path": "/tmp/meden-saved-view-gate-gui.log",
+        "bytes": 19023,
+        "sha256": "80a81ae42766e80895fa3868b51109af1c7c88fadddc2b722e0ab53306bd1391"
+      },
+      {
+        "path": "target/gui-saved-view-report/index.html",
+        "bytes": 1049214,
+        "sha256": "7db88cfbca5621ea7fca76416398ee79d2d53fd7bad47c27228516caec2e088c"
+      },
+      {
+        "path": "target/gui-saved-view-corrected-report/index.html",
+        "bytes": 527134,
+        "sha256": "2bddbabb70a7d9fd4fa481e0742440f508353f5994f01b9d9b016a30dd1797d5"
+      },
+      {
+        "path": "target/saved-view-latency.mjs",
+        "bytes": 6925,
+        "sha256": "5879d5990c181e269b1fbd12d8803b9b08f096c646e38808b28dcd95b7958f5c"
+      },
+      {
+        "path": "target/saved-view-before.mjs",
+        "bytes": 2292,
+        "sha256": "eb005cbb565ebb40306b837ad9e1cee225b2ea8a41314b27a9b588bbd3cd471f"
+      },
+      {
+        "path": "target/saved-view-smoke.mjs",
+        "bytes": 11574,
+        "sha256": "84b26b1c21e324985b74fa93f491985afca7bd2502f25d3fe832e72f76d4a7c2"
+      },
+      {
+        "path": "target/compiled-input-cache.mjs",
+        "bytes": 2395,
+        "sha256": "3771d455cfbed655abfed517fbee3a4a5dbf4599490a17a2cda9a979b9a0cd5b"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "samples": [
+        {
+          "stage": "before",
+          "rep": 0,
+          "motion": "reduce",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 12772.058984000001,
+          "file_click_to_completed_preparation_ms": 13362.747508999999,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 190,
+              "wall_median_ms": 0.304,
+              "wall_max_ms": 1.301,
+              "current_thread_cpu_total_ms": 57.506999999999984
+            },
+            "gui.state": {
+              "count": 182,
+              "wall_median_ms": 0.5934999999999999,
+              "wall_max_ms": 1.92,
+              "current_thread_cpu_total_ms": 111.73500000000003
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.002,
+              "current_thread_cpu_total_ms": 0.007
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.029,
+              "wall_max_ms": 0.067,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.238,
+              "wall_max_ms": 0.285,
+              "current_thread_cpu_total_ms": 1.48
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.122,
+              "wall_max_ms": 0.122,
+              "current_thread_cpu_total_ms": 0.101
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.112,
+              "wall_max_ms": 0.112,
+              "current_thread_cpu_total_ms": 0.088
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.084,
+              "wall_max_ms": 0.084,
+              "current_thread_cpu_total_ms": 0.075
+            },
+            "process.run": {
+              "count": 43,
+              "wall_median_ms": 40.978,
+              "wall_max_ms": 4162.65,
+              "current_thread_cpu_total_ms": 76.035
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 48.125,
+              "wall_max_ms": 64.906,
+              "current_thread_cpu_total_ms": 32.374
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.012,
+              "wall_max_ms": 0.039,
+              "current_thread_cpu_total_ms": 0.12
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 52.679,
+              "wall_max_ms": 12939.15,
+              "current_thread_cpu_total_ms": 2344.872
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 111.661,
+              "wall_max_ms": 111.661,
+              "current_thread_cpu_total_ms": 18.041
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.0945,
+              "wall_max_ms": 0.121,
+              "current_thread_cpu_total_ms": 0.486
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.111,
+              "wall_max_ms": 0.111,
+              "current_thread_cpu_total_ms": 0.086
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 51.719,
+              "wall_max_ms": 51.719,
+              "current_thread_cpu_total_ms": 1.289
+            },
+            "atlas.resources.select": {
+              "count": 25,
+              "wall_median_ms": 9.404,
+              "wall_max_ms": 16.466,
+              "current_thread_cpu_total_ms": 261.619
+            },
+            "atlas.resources.validate": {
+              "count": 38,
+              "wall_median_ms": 20.9805,
+              "wall_max_ms": 30.863,
+              "current_thread_cpu_total_ms": 824.4690000000004
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.11,
+              "wall_max_ms": 0.11,
+              "current_thread_cpu_total_ms": 0.09
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.88,
+              "wall_max_ms": 52.213,
+              "current_thread_cpu_total_ms": 4.547000000000001
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.765500000000003,
+              "wall_max_ms": 22.341,
+              "current_thread_cpu_total_ms": 251.71900000000005
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 52.5,
+              "wall_max_ms": 62.116,
+              "current_thread_cpu_total_ms": 652.752
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 41.700500000000005,
+              "wall_max_ms": 71.985,
+              "current_thread_cpu_total_ms": 20.749999999999996
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 46.676500000000004,
+              "wall_max_ms": 53.21,
+              "current_thread_cpu_total_ms": 9.031
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1322.825,
+              "wall_max_ms": 1322.825,
+              "current_thread_cpu_total_ms": 671.028
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1406.743,
+              "wall_max_ms": 1406.743,
+              "current_thread_cpu_total_ms": 674.047
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 314.07500000000005,
+              "wall_max_ms": 325.785,
+              "current_thread_cpu_total_ms": 21.174
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 73.91900000000001,
+              "wall_max_ms": 78.965,
+              "current_thread_cpu_total_ms": 8.436
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 53.13849999999999,
+              "wall_max_ms": 69.928,
+              "current_thread_cpu_total_ms": 9.725999999999999
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 68.83449999999999,
+              "wall_max_ms": 88.02,
+              "current_thread_cpu_total_ms": 1.6909999999999998
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 597.137,
+              "wall_max_ms": 630.621,
+              "current_thread_cpu_total_ms": 87.343
+            },
+            "view.preparation_log.materialize": {
+              "count": 15,
+              "wall_median_ms": 0.378,
+              "wall_max_ms": 0.631,
+              "current_thread_cpu_total_ms": 5.300000000000001
+            },
+            "gui.preparation_log_respond": {
+              "count": 15,
+              "wall_median_ms": 0.155,
+              "wall_max_ms": 0.277,
+              "current_thread_cpu_total_ms": 2.098
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 4554.798,
+              "wall_max_ms": 4554.798,
+              "current_thread_cpu_total_ms": 87.201
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 4729.38,
+              "wall_max_ms": 4729.38,
+              "current_thread_cpu_total_ms": 59.475
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 195.601,
+              "wall_max_ms": 391.063,
+              "current_thread_cpu_total_ms": 47.061
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 9.207,
+              "wall_max_ms": 9.207,
+              "current_thread_cpu_total_ms": 9.161
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 65.288,
+              "wall_max_ms": 65.288,
+              "current_thread_cpu_total_ms": 64.981
+            },
+            "analysis.cache.load_rendering": {
+              "count": 1,
+              "wall_median_ms": 1.069,
+              "wall_max_ms": 1.069,
+              "current_thread_cpu_total_ms": 1.064
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 11824.704,
+              "wall_max_ms": 11824.704,
+              "current_thread_cpu_total_ms": 1294.181
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.187,
+              "wall_max_ms": 2.187,
+              "current_thread_cpu_total_ms": 2.179
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.237,
+              "wall_max_ms": 0.288,
+              "current_thread_cpu_total_ms": 0.40800000000000003
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 787.343,
+              "wall_max_ms": 787.343,
+              "current_thread_cpu_total_ms": 784.295
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 0,
+          "motion": "no-preference",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 12337.163703999991,
+          "file_click_to_completed_preparation_ms": 12928.307046999995,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 185,
+              "wall_median_ms": 0.284,
+              "wall_max_ms": 0.78,
+              "current_thread_cpu_total_ms": 50.86200000000004
+            },
+            "gui.state": {
+              "count": 177,
+              "wall_median_ms": 0.574,
+              "wall_max_ms": 1.35,
+              "current_thread_cpu_total_ms": 99.31099999999998
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.007
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.031,
+              "wall_max_ms": 0.086,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.239,
+              "wall_max_ms": 0.472,
+              "current_thread_cpu_total_ms": 1.652
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.11,
+              "wall_max_ms": 0.11,
+              "current_thread_cpu_total_ms": 0.096
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.095,
+              "wall_max_ms": 0.095,
+              "current_thread_cpu_total_ms": 0.081
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.093,
+              "wall_max_ms": 0.093,
+              "current_thread_cpu_total_ms": 0.071
+            },
+            "process.run": {
+              "count": 43,
+              "wall_median_ms": 41.032,
+              "wall_max_ms": 4142.699,
+              "current_thread_cpu_total_ms": 60.949
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 53.6815,
+              "wall_max_ms": 70.428,
+              "current_thread_cpu_total_ms": 41.244
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.015,
+              "wall_max_ms": 0.031,
+              "current_thread_cpu_total_ms": 0.131
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 54.96,
+              "wall_max_ms": 12512.981,
+              "current_thread_cpu_total_ms": 2335.0029999999997
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 125.396,
+              "wall_max_ms": 125.396,
+              "current_thread_cpu_total_ms": 14.471
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.1005,
+              "wall_max_ms": 0.179,
+              "current_thread_cpu_total_ms": 0.576
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.101,
+              "wall_max_ms": 0.101,
+              "current_thread_cpu_total_ms": 0.085
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 42.232,
+              "wall_max_ms": 42.232,
+              "current_thread_cpu_total_ms": 1.798
+            },
+            "atlas.resources.select": {
+              "count": 25,
+              "wall_median_ms": 10.058,
+              "wall_max_ms": 18.501,
+              "current_thread_cpu_total_ms": 256.60699999999997
+            },
+            "atlas.resources.validate": {
+              "count": 38,
+              "wall_median_ms": 22.128999999999998,
+              "wall_max_ms": 29.72,
+              "current_thread_cpu_total_ms": 848.8879999999999
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.128,
+              "wall_max_ms": 0.128,
+              "current_thread_cpu_total_ms": 0.108
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.649,
+              "wall_max_ms": 41.87,
+              "current_thread_cpu_total_ms": 3.616
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 22.430500000000002,
+              "wall_max_ms": 24.297,
+              "current_thread_cpu_total_ms": 269.85600000000005
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 56.4845,
+              "wall_max_ms": 65.571,
+              "current_thread_cpu_total_ms": 676.3950000000002
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 42.112,
+              "wall_max_ms": 52.219,
+              "current_thread_cpu_total_ms": 20.198999999999998
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 41.587500000000006,
+              "wall_max_ms": 72.892,
+              "current_thread_cpu_total_ms": 8.61
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1294.918,
+              "wall_max_ms": 1294.918,
+              "current_thread_cpu_total_ms": 692.743
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1378.498,
+              "wall_max_ms": 1378.498,
+              "current_thread_cpu_total_ms": 695.373
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 344.4975,
+              "wall_max_ms": 375.445,
+              "current_thread_cpu_total_ms": 21.314999999999998
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 52.82899999999999,
+              "wall_max_ms": 57.117,
+              "current_thread_cpu_total_ms": 7.506
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 47.1135,
+              "wall_max_ms": 61,
+              "current_thread_cpu_total_ms": 9.104
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 38.7315,
+              "wall_max_ms": 40.918,
+              "current_thread_cpu_total_ms": 2.1879999999999997
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 584.7495,
+              "wall_max_ms": 587.361,
+              "current_thread_cpu_total_ms": 75.675
+            },
+            "view.preparation_log.materialize": {
+              "count": 15,
+              "wall_median_ms": 0.49,
+              "wall_max_ms": 1.237,
+              "current_thread_cpu_total_ms": 6.101999999999999
+            },
+            "gui.preparation_log_respond": {
+              "count": 13,
+              "wall_median_ms": 0.121,
+              "wall_max_ms": 0.245,
+              "current_thread_cpu_total_ms": 1.344
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 4131.007,
+              "wall_max_ms": 4131.007,
+              "current_thread_cpu_total_ms": 57.037
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 4728.235,
+              "wall_max_ms": 4728.235,
+              "current_thread_cpu_total_ms": 62.637
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 227.12949999999998,
+              "wall_max_ms": 454.116,
+              "current_thread_cpu_total_ms": 49.137
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 9.326,
+              "wall_max_ms": 9.326,
+              "current_thread_cpu_total_ms": 9.295
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 66.036,
+              "wall_max_ms": 66.036,
+              "current_thread_cpu_total_ms": 65.675
+            },
+            "analysis.cache.load_rendering": {
+              "count": 1,
+              "wall_median_ms": 1.08,
+              "wall_max_ms": 1.08,
+              "current_thread_cpu_total_ms": 1.075
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 11417.168,
+              "wall_max_ms": 11417.168,
+              "current_thread_cpu_total_ms": 1283.488
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.186,
+              "wall_max_ms": 2.186,
+              "current_thread_cpu_total_ms": 2.179
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.14400000000000002,
+              "wall_max_ms": 0.149,
+              "current_thread_cpu_total_ms": 0.24
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 772.61,
+              "wall_max_ms": 772.61,
+              "current_thread_cpu_total_ms": 769.933
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 1,
+          "motion": "reduce",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 12325.526123000003,
+          "file_click_to_completed_preparation_ms": 12746.906612000006,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 183,
+              "wall_median_ms": 0.284,
+              "wall_max_ms": 0.812,
+              "current_thread_cpu_total_ms": 49.57400000000003
+            },
+            "gui.state": {
+              "count": 175,
+              "wall_median_ms": 0.572,
+              "wall_max_ms": 1.378,
+              "current_thread_cpu_total_ms": 96.23699999999997
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.008
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.026,
+              "wall_max_ms": 0.034,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.283,
+              "wall_max_ms": 0.31,
+              "current_thread_cpu_total_ms": 1.7020000000000002
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.16,
+              "wall_max_ms": 0.16,
+              "current_thread_cpu_total_ms": 0.133
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.166,
+              "wall_max_ms": 0.166,
+              "current_thread_cpu_total_ms": 0.135
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.255,
+              "wall_max_ms": 0.255,
+              "current_thread_cpu_total_ms": 0.189
+            },
+            "process.run": {
+              "count": 43,
+              "wall_median_ms": 40.939,
+              "wall_max_ms": 3951.684,
+              "current_thread_cpu_total_ms": 62.354
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 52.7185,
+              "wall_max_ms": 70.599,
+              "current_thread_cpu_total_ms": 32.068
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.014,
+              "wall_max_ms": 0.04,
+              "current_thread_cpu_total_ms": 0.12
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 53.806,
+              "wall_max_ms": 12276.03,
+              "current_thread_cpu_total_ms": 2265.245
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 105.968,
+              "wall_max_ms": 105.968,
+              "current_thread_cpu_total_ms": 12.237
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.113,
+              "wall_max_ms": 0.319,
+              "current_thread_cpu_total_ms": 0.855
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.17,
+              "wall_max_ms": 0.17,
+              "current_thread_cpu_total_ms": 0.124
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 72.598,
+              "wall_max_ms": 72.598,
+              "current_thread_cpu_total_ms": 1.967
+            },
+            "atlas.resources.select": {
+              "count": 25,
+              "wall_median_ms": 9.415,
+              "wall_max_ms": 14.316,
+              "current_thread_cpu_total_ms": 245.16600000000003
+            },
+            "atlas.resources.validate": {
+              "count": 38,
+              "wall_median_ms": 20.7455,
+              "wall_max_ms": 28.188,
+              "current_thread_cpu_total_ms": 812.2629999999999
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.091,
+              "wall_max_ms": 0.091,
+              "current_thread_cpu_total_ms": 0.078
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.667,
+              "wall_max_ms": 51.819,
+              "current_thread_cpu_total_ms": 3.373
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 21.0455,
+              "wall_max_ms": 21.907,
+              "current_thread_cpu_total_ms": 251.826
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 52.0625,
+              "wall_max_ms": 60.46,
+              "current_thread_cpu_total_ms": 635.8270000000001
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 41.457,
+              "wall_max_ms": 61.96,
+              "current_thread_cpu_total_ms": 17.778999999999996
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 41.817,
+              "wall_max_ms": 52.994,
+              "current_thread_cpu_total_ms": 7.627000000000001
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1232.35,
+              "wall_max_ms": 1232.35,
+              "current_thread_cpu_total_ms": 652.095
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1315.617,
+              "wall_max_ms": 1315.617,
+              "current_thread_cpu_total_ms": 654.436
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 322.5135,
+              "wall_max_ms": 332.665,
+              "current_thread_cpu_total_ms": 17.5
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 43.5775,
+              "wall_max_ms": 44.328,
+              "current_thread_cpu_total_ms": 6.582
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 39.4375,
+              "wall_max_ms": 49.464,
+              "current_thread_cpu_total_ms": 7.164
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 36.873999999999995,
+              "wall_max_ms": 37.93,
+              "current_thread_cpu_total_ms": 1.621
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 510.499,
+              "wall_max_ms": 512.383,
+              "current_thread_cpu_total_ms": 71.18
+            },
+            "view.preparation_log.materialize": {
+              "count": 15,
+              "wall_median_ms": 0.308,
+              "wall_max_ms": 0.719,
+              "current_thread_cpu_total_ms": 5.625
+            },
+            "gui.preparation_log_respond": {
+              "count": 14,
+              "wall_median_ms": 0.1215,
+              "wall_max_ms": 0.166,
+              "current_thread_cpu_total_ms": 1.286
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 4239.456,
+              "wall_max_ms": 4239.456,
+              "current_thread_cpu_total_ms": 60.046
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 4463.684,
+              "wall_max_ms": 4463.684,
+              "current_thread_cpu_total_ms": 57.426
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 209.8145,
+              "wall_max_ms": 419.44,
+              "current_thread_cpu_total_ms": 45.391
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 9.2,
+              "wall_max_ms": 9.2,
+              "current_thread_cpu_total_ms": 9.165
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 64.32,
+              "wall_max_ms": 64.32,
+              "current_thread_cpu_total_ms": 64.057
+            },
+            "analysis.cache.load_rendering": {
+              "count": 1,
+              "wall_median_ms": 1.08,
+              "wall_max_ms": 1.08,
+              "current_thread_cpu_total_ms": 1.075
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 11155.183,
+              "wall_max_ms": 11155.183,
+              "current_thread_cpu_total_ms": 1228.046
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.187,
+              "wall_max_ms": 2.187,
+              "current_thread_cpu_total_ms": 2.173
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.22199999999999998,
+              "wall_max_ms": 0.297,
+              "current_thread_cpu_total_ms": 0.37
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 775.004,
+              "wall_max_ms": 775.004,
+              "current_thread_cpu_total_ms": 772.125
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 1,
+          "motion": "no-preference",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 11988.103098000021,
+          "file_click_to_completed_preparation_ms": 12409.35856600001,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 177,
+              "wall_median_ms": 0.304,
+              "wall_max_ms": 0.838,
+              "current_thread_cpu_total_ms": 49.55399999999998
+            },
+            "gui.state": {
+              "count": 169,
+              "wall_median_ms": 0.592,
+              "wall_max_ms": 1.58,
+              "current_thread_cpu_total_ms": 96.14699999999996
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.002,
+              "current_thread_cpu_total_ms": 0.005
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.035,
+              "wall_max_ms": 0.072,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.224,
+              "wall_max_ms": 0.378,
+              "current_thread_cpu_total_ms": 1.5670000000000002
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.086,
+              "wall_max_ms": 0.086,
+              "current_thread_cpu_total_ms": 0.072
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.088,
+              "wall_max_ms": 0.088,
+              "current_thread_cpu_total_ms": 0.073
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.072,
+              "wall_max_ms": 0.072,
+              "current_thread_cpu_total_ms": 0.056
+            },
+            "process.run": {
+              "count": 43,
+              "wall_median_ms": 40.965,
+              "wall_max_ms": 3738.427,
+              "current_thread_cpu_total_ms": 60.335999999999984
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 56.1275,
+              "wall_max_ms": 70.933,
+              "current_thread_cpu_total_ms": 36.509
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.015,
+              "wall_max_ms": 0.033,
+              "current_thread_cpu_total_ms": 0.124
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 57.09,
+              "wall_max_ms": 12031.082,
+              "current_thread_cpu_total_ms": 2300.112
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 121.642,
+              "wall_max_ms": 121.642,
+              "current_thread_cpu_total_ms": 19.543
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.11499999999999999,
+              "wall_max_ms": 0.191,
+              "current_thread_cpu_total_ms": 0.677
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.112,
+              "wall_max_ms": 0.112,
+              "current_thread_cpu_total_ms": 0.091
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 62.388,
+              "wall_max_ms": 62.388,
+              "current_thread_cpu_total_ms": 1.754
+            },
+            "atlas.resources.select": {
+              "count": 25,
+              "wall_median_ms": 9.197,
+              "wall_max_ms": 14.121,
+              "current_thread_cpu_total_ms": 251.09300000000002
+            },
+            "atlas.resources.validate": {
+              "count": 38,
+              "wall_median_ms": 20.762999999999998,
+              "wall_max_ms": 29.08,
+              "current_thread_cpu_total_ms": 810.1089999999999
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.099,
+              "wall_max_ms": 0.099,
+              "current_thread_cpu_total_ms": 0.085
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.76,
+              "wall_max_ms": 62.021,
+              "current_thread_cpu_total_ms": 3.7319999999999998
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.8985,
+              "wall_max_ms": 23.477,
+              "current_thread_cpu_total_ms": 255.813
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 53.1575,
+              "wall_max_ms": 59.908,
+              "current_thread_cpu_total_ms": 646.6750000000001
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 41.4965,
+              "wall_max_ms": 61.516,
+              "current_thread_cpu_total_ms": 18.255000000000003
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 41.8455,
+              "wall_max_ms": 71.904,
+              "current_thread_cpu_total_ms": 7.659
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1273.399,
+              "wall_max_ms": 1273.399,
+              "current_thread_cpu_total_ms": 662.16
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1377.345,
+              "wall_max_ms": 1377.345,
+              "current_thread_cpu_total_ms": 664.852
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 318.226,
+              "wall_max_ms": 321.551,
+              "current_thread_cpu_total_ms": 19.147
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 58.218,
+              "wall_max_ms": 65.9,
+              "current_thread_cpu_total_ms": 7.2219999999999995
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 44.657,
+              "wall_max_ms": 45.999,
+              "current_thread_cpu_total_ms": 9.454
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 41.2455,
+              "wall_max_ms": 42.202,
+              "current_thread_cpu_total_ms": 2.261
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 569.6610000000001,
+              "wall_max_ms": 613.855,
+              "current_thread_cpu_total_ms": 94.375
+            },
+            "view.preparation_log.materialize": {
+              "count": 15,
+              "wall_median_ms": 0.484,
+              "wall_max_ms": 0.702,
+              "current_thread_cpu_total_ms": 5.741
+            },
+            "gui.preparation_log_respond": {
+              "count": 13,
+              "wall_median_ms": 0.117,
+              "wall_max_ms": 0.22,
+              "current_thread_cpu_total_ms": 1.3609999999999998
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 4159.602,
+              "wall_max_ms": 4159.602,
+              "current_thread_cpu_total_ms": 62.61
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 4267.746,
+              "wall_max_ms": 4267.746,
+              "current_thread_cpu_total_ms": 76.299
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 199.9815,
+              "wall_max_ms": 399.827,
+              "current_thread_cpu_total_ms": 45.835
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 9.03,
+              "wall_max_ms": 9.03,
+              "current_thread_cpu_total_ms": 9
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 66.087,
+              "wall_max_ms": 66.087,
+              "current_thread_cpu_total_ms": 65.831
+            },
+            "analysis.cache.load_rendering": {
+              "count": 1,
+              "wall_median_ms": 1.066,
+              "wall_max_ms": 1.066,
+              "current_thread_cpu_total_ms": 1.063
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 10914.183,
+              "wall_max_ms": 10914.183,
+              "current_thread_cpu_total_ms": 1252.968
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.136,
+              "wall_max_ms": 2.136,
+              "current_thread_cpu_total_ms": 2.126
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.134,
+              "wall_max_ms": 0.139,
+              "current_thread_cpu_total_ms": 0.22999999999999998
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 785.15,
+              "wall_max_ms": 785.15,
+              "current_thread_cpu_total_ms": 782.263
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 0,
+          "motion": "reduce",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1361.5624599999992,
+          "file_click_to_completed_preparation_ms": 12006.950507000001,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 175,
+              "wall_median_ms": 0.309,
+              "wall_max_ms": 0.686,
+              "current_thread_cpu_total_ms": 50.36
+            },
+            "gui.state": {
+              "count": 167,
+              "wall_median_ms": 0.595,
+              "wall_max_ms": 1.317,
+              "current_thread_cpu_total_ms": 97.28599999999997
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.003,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.012
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.056,
+              "wall_max_ms": 0.097,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.33,
+              "wall_max_ms": 0.439,
+              "current_thread_cpu_total_ms": 2.03
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.111,
+              "wall_max_ms": 0.111,
+              "current_thread_cpu_total_ms": 0.092
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.158,
+              "wall_max_ms": 0.158,
+              "current_thread_cpu_total_ms": 0.119
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.136,
+              "wall_max_ms": 0.136,
+              "current_thread_cpu_total_ms": 0.107
+            },
+            "process.run": {
+              "count": 44,
+              "wall_median_ms": 50.865,
+              "wall_max_ms": 3567.623,
+              "current_thread_cpu_total_ms": 54.65
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 54.812,
+              "wall_max_ms": 57.301,
+              "current_thread_cpu_total_ms": 34.625
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.02,
+              "wall_max_ms": 0.031,
+              "current_thread_cpu_total_ms": 0.138
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 56.439,
+              "wall_max_ms": 11701.284,
+              "current_thread_cpu_total_ms": 2424.545
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 96.49,
+              "wall_max_ms": 96.49,
+              "current_thread_cpu_total_ms": 17.614
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.10600000000000001,
+              "wall_max_ms": 0.184,
+              "current_thread_cpu_total_ms": 0.6009999999999999
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.125,
+              "wall_max_ms": 0.125,
+              "current_thread_cpu_total_ms": 0.093
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 52.259,
+              "wall_max_ms": 52.259,
+              "current_thread_cpu_total_ms": 1.589
+            },
+            "atlas.resources.select": {
+              "count": 31,
+              "wall_median_ms": 8.81,
+              "wall_max_ms": 15.198,
+              "current_thread_cpu_total_ms": 291.2229999999999
+            },
+            "atlas.resources.validate": {
+              "count": 44,
+              "wall_median_ms": 19.981,
+              "wall_max_ms": 21.611,
+              "current_thread_cpu_total_ms": 879.5279999999999
+            },
+            "analysis.capture_sources": {
+              "count": 4,
+              "wall_median_ms": 41.911500000000004,
+              "wall_max_ms": 51.556,
+              "current_thread_cpu_total_ms": 4.644
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.074,
+              "wall_max_ms": 0.074,
+              "current_thread_cpu_total_ms": 0.063
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 1.006,
+              "wall_max_ms": 1.006,
+              "current_thread_cpu_total_ms": 2.001
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 266.572,
+              "wall_max_ms": 266.572,
+              "current_thread_cpu_total_ms": 224.655
+            },
+            "view.preparation_log.materialize": {
+              "count": 16,
+              "wall_median_ms": 0.4175,
+              "wall_max_ms": 0.554,
+              "current_thread_cpu_total_ms": 5.499999999999999
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.1725,
+              "wall_max_ms": 0.226,
+              "current_thread_cpu_total_ms": 0.294
+            },
+            "gui.preparation_log_respond": {
+              "count": 14,
+              "wall_median_ms": 0.0985,
+              "wall_max_ms": 0.187,
+              "current_thread_cpu_total_ms": 1.2479999999999998
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.075,
+              "wall_max_ms": 20.728,
+              "current_thread_cpu_total_ms": 241.57
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 49.7215,
+              "wall_max_ms": 56.628,
+              "current_thread_cpu_total_ms": 608.2470000000001
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 51.374,
+              "wall_max_ms": 61.576,
+              "current_thread_cpu_total_ms": 16.285999999999998
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 51.294,
+              "wall_max_ms": 52.136,
+              "current_thread_cpu_total_ms": 6.321
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1283.115,
+              "wall_max_ms": 1283.115,
+              "current_thread_cpu_total_ms": 622.308
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1367.093,
+              "wall_max_ms": 1367.093,
+              "current_thread_cpu_total_ms": 624.909
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 341.966,
+              "wall_max_ms": 353.015,
+              "current_thread_cpu_total_ms": 16.166999999999998
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 65.9525,
+              "wall_max_ms": 67.089,
+              "current_thread_cpu_total_ms": 8
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 51.571,
+              "wall_max_ms": 52.333,
+              "current_thread_cpu_total_ms": 8.954
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 43.3055,
+              "wall_max_ms": 45.737,
+              "current_thread_cpu_total_ms": 2.294
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 561.6845,
+              "wall_max_ms": 611.573,
+              "current_thread_cpu_total_ms": 85.111
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 4180.251,
+              "wall_max_ms": 4180.251,
+              "current_thread_cpu_total_ms": 68.368
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 3657.241,
+              "wall_max_ms": 3657.241,
+              "current_thread_cpu_total_ms": 57.107
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 219.423,
+              "wall_max_ms": 438.712,
+              "current_thread_cpu_total_ms": 44.232
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 8.889,
+              "wall_max_ms": 8.889,
+              "current_thread_cpu_total_ms": 8.862
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 62.749,
+              "wall_max_ms": 62.749,
+              "current_thread_cpu_total_ms": 62.513
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 10340.854,
+              "wall_max_ms": 10340.854,
+              "current_thread_cpu_total_ms": 1166.742
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.136,
+              "wall_max_ms": 2.136,
+              "current_thread_cpu_total_ms": 2.129
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 774.074,
+              "wall_max_ms": 774.074,
+              "current_thread_cpu_total_ms": 771.76
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 0,
+          "motion": "no-preference",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1340.7675869999948,
+          "file_click_to_completed_preparation_ms": 11854.681514999997,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 173,
+              "wall_median_ms": 0.263,
+              "wall_max_ms": 0.644,
+              "current_thread_cpu_total_ms": 44.55699999999998
+            },
+            "gui.state": {
+              "count": 165,
+              "wall_median_ms": 0.545,
+              "wall_max_ms": 1.211,
+              "current_thread_cpu_total_ms": 87.85199999999995
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.007
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.046,
+              "wall_max_ms": 0.084,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.252,
+              "wall_max_ms": 0.337,
+              "current_thread_cpu_total_ms": 1.675
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.101,
+              "wall_max_ms": 0.101,
+              "current_thread_cpu_total_ms": 0.083
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.099,
+              "wall_max_ms": 0.099,
+              "current_thread_cpu_total_ms": 0.083
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.076,
+              "wall_max_ms": 0.076,
+              "current_thread_cpu_total_ms": 0.059
+            },
+            "process.run": {
+              "count": 44,
+              "wall_median_ms": 50.8745,
+              "wall_max_ms": 3291.099,
+              "current_thread_cpu_total_ms": 48.749
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 54.959,
+              "wall_max_ms": 64.896,
+              "current_thread_cpu_total_ms": 31.601
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.013,
+              "wall_max_ms": 0.032,
+              "current_thread_cpu_total_ms": 0.10799999999999998
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 56.989,
+              "wall_max_ms": 11403.831,
+              "current_thread_cpu_total_ms": 2443.602
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 73.009,
+              "wall_max_ms": 73.009,
+              "current_thread_cpu_total_ms": 17.32
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.1475,
+              "wall_max_ms": 0.163,
+              "current_thread_cpu_total_ms": 0.704
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.064,
+              "wall_max_ms": 0.064,
+              "current_thread_cpu_total_ms": 0.052
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 42.026,
+              "wall_max_ms": 42.026,
+              "current_thread_cpu_total_ms": 1.594
+            },
+            "atlas.resources.select": {
+              "count": 31,
+              "wall_median_ms": 9.103,
+              "wall_max_ms": 16.927,
+              "current_thread_cpu_total_ms": 321.74299999999994
+            },
+            "atlas.resources.validate": {
+              "count": 44,
+              "wall_median_ms": 20.195,
+              "wall_max_ms": 27.95,
+              "current_thread_cpu_total_ms": 891.7849999999999
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.082,
+              "wall_max_ms": 0.082,
+              "current_thread_cpu_total_ms": 0.07
+            },
+            "analysis.capture_sources": {
+              "count": 4,
+              "wall_median_ms": 41.8885,
+              "wall_max_ms": 52.53,
+              "current_thread_cpu_total_ms": 5.714
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 1.029,
+              "wall_max_ms": 1.032,
+              "current_thread_cpu_total_ms": 2.0460000000000003
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 267.35,
+              "wall_max_ms": 267.35,
+              "current_thread_cpu_total_ms": 225.912
+            },
+            "view.preparation_log.materialize": {
+              "count": 16,
+              "wall_median_ms": 0.4235,
+              "wall_max_ms": 0.505,
+              "current_thread_cpu_total_ms": 5.641
+            },
+            "gui.preparation_log_respond": {
+              "count": 13,
+              "wall_median_ms": 0.092,
+              "wall_max_ms": 0.146,
+              "current_thread_cpu_total_ms": 1.0819999999999999
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.22299999999999998,
+              "wall_max_ms": 0.239,
+              "current_thread_cpu_total_ms": 0.373
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.1595,
+              "wall_max_ms": 20.732,
+              "current_thread_cpu_total_ms": 241.643
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 49.971,
+              "wall_max_ms": 58.769,
+              "current_thread_cpu_total_ms": 628.6429999999999
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 51.429500000000004,
+              "wall_max_ms": 62.532,
+              "current_thread_cpu_total_ms": 17.499000000000002
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 46.488,
+              "wall_max_ms": 52.652,
+              "current_thread_cpu_total_ms": 6.799
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1294.2,
+              "wall_max_ms": 1294.2,
+              "current_thread_cpu_total_ms": 643.29
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1378.146,
+              "wall_max_ms": 1378.146,
+              "current_thread_cpu_total_ms": 646.124
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 352.9945,
+              "wall_max_ms": 374.32,
+              "current_thread_cpu_total_ms": 17.517
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 53.372,
+              "wall_max_ms": 59.576,
+              "current_thread_cpu_total_ms": 6.913
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 54.421,
+              "wall_max_ms": 56.562,
+              "current_thread_cpu_total_ms": 9.062000000000001
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 43.176,
+              "wall_max_ms": 49.438,
+              "current_thread_cpu_total_ms": 2.102
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 567.8475,
+              "wall_max_ms": 624.265,
+              "current_thread_cpu_total_ms": 76.282
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 3803.502,
+              "wall_max_ms": 3803.502,
+              "current_thread_cpu_total_ms": 51.435
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 3698.315,
+              "wall_max_ms": 3698.315,
+              "current_thread_cpu_total_ms": 59.242
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 209.4365,
+              "wall_max_ms": 418.738,
+              "current_thread_cpu_total_ms": 44.357
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 8.958,
+              "wall_max_ms": 8.958,
+              "current_thread_cpu_total_ms": 8.927
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 64.664,
+              "wall_max_ms": 64.664,
+              "current_thread_cpu_total_ms": 64.362
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 10062.062,
+              "wall_max_ms": 10062.062,
+              "current_thread_cpu_total_ms": 1197.028
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.131,
+              "wall_max_ms": 2.131,
+              "current_thread_cpu_total_ms": 2.119
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 768.459,
+              "wall_max_ms": 768.459,
+              "current_thread_cpu_total_ms": 765.99
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 1,
+          "motion": "reduce",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1368.1150049999997,
+          "file_click_to_completed_preparation_ms": 12047.324185000005,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 175,
+              "wall_median_ms": 0.306,
+              "wall_max_ms": 0.712,
+              "current_thread_cpu_total_ms": 49.621999999999986
+            },
+            "gui.state": {
+              "count": 167,
+              "wall_median_ms": 0.593,
+              "wall_max_ms": 1.397,
+              "current_thread_cpu_total_ms": 96.65500000000002
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.012000000000000002
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.039,
+              "wall_max_ms": 0.102,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.335,
+              "wall_max_ms": 0.406,
+              "current_thread_cpu_total_ms": 2.009
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.098,
+              "wall_max_ms": 0.098,
+              "current_thread_cpu_total_ms": 0.084
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.084,
+              "wall_max_ms": 0.084,
+              "current_thread_cpu_total_ms": 0.067
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.079,
+              "wall_max_ms": 0.079,
+              "current_thread_cpu_total_ms": 0.064
+            },
+            "process.run": {
+              "count": 44,
+              "wall_median_ms": 50.935500000000005,
+              "wall_max_ms": 3234.532,
+              "current_thread_cpu_total_ms": 57.72100000000001
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 53.2455,
+              "wall_max_ms": 70.315,
+              "current_thread_cpu_total_ms": 30.873
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.013,
+              "wall_max_ms": 0.034,
+              "current_thread_cpu_total_ms": 0.11199999999999999
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 54.035,
+              "wall_max_ms": 11570.606,
+              "current_thread_cpu_total_ms": 2445.733
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 88.133,
+              "wall_max_ms": 88.133,
+              "current_thread_cpu_total_ms": 10.561
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.175,
+              "wall_max_ms": 0.204,
+              "current_thread_cpu_total_ms": 0.778
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.12,
+              "wall_max_ms": 0.12,
+              "current_thread_cpu_total_ms": 0.09
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 42.053,
+              "wall_max_ms": 42.053,
+              "current_thread_cpu_total_ms": 1.51
+            },
+            "atlas.resources.select": {
+              "count": 31,
+              "wall_median_ms": 8.879,
+              "wall_max_ms": 20.137,
+              "current_thread_cpu_total_ms": 309.693
+            },
+            "atlas.resources.validate": {
+              "count": 44,
+              "wall_median_ms": 19.9225,
+              "wall_max_ms": 31.899,
+              "current_thread_cpu_total_ms": 897.0290000000002
+            },
+            "analysis.capture_sources": {
+              "count": 4,
+              "wall_median_ms": 41.920500000000004,
+              "wall_max_ms": 42.632,
+              "current_thread_cpu_total_ms": 5.908
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.116,
+              "wall_max_ms": 0.116,
+              "current_thread_cpu_total_ms": 0.099
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 1.0099999999999998,
+              "wall_max_ms": 1.015,
+              "current_thread_cpu_total_ms": 2.011
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 276.543,
+              "wall_max_ms": 276.543,
+              "current_thread_cpu_total_ms": 234.647
+            },
+            "view.preparation_log.materialize": {
+              "count": 16,
+              "wall_median_ms": 0.4915,
+              "wall_max_ms": 0.606,
+              "current_thread_cpu_total_ms": 6.4079999999999995
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.201,
+              "wall_max_ms": 0.228,
+              "current_thread_cpu_total_ms": 0.33499999999999996
+            },
+            "gui.preparation_log_respond": {
+              "count": 13,
+              "wall_median_ms": 0.102,
+              "wall_max_ms": 0.187,
+              "current_thread_cpu_total_ms": 1.1909999999999998
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.1295,
+              "wall_max_ms": 20.689,
+              "current_thread_cpu_total_ms": 240.977
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 49.4495,
+              "wall_max_ms": 66.177,
+              "current_thread_cpu_total_ms": 618.6479999999999
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 51.4605,
+              "wall_max_ms": 62.332,
+              "current_thread_cpu_total_ms": 18.281
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 51.548,
+              "wall_max_ms": 62.151,
+              "current_thread_cpu_total_ms": 7.6160000000000005
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1306.155,
+              "wall_max_ms": 1306.155,
+              "current_thread_cpu_total_ms": 635.03
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1390.849,
+              "wall_max_ms": 1390.849,
+              "current_thread_cpu_total_ms": 638.485
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 338.3295,
+              "wall_max_ms": 375.508,
+              "current_thread_cpu_total_ms": 18.511000000000003
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 58.158500000000004,
+              "wall_max_ms": 65.629,
+              "current_thread_cpu_total_ms": 6.936999999999999
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 50.6085,
+              "wall_max_ms": 51.253,
+              "current_thread_cpu_total_ms": 8.993
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 54.551,
+              "wall_max_ms": 62.282,
+              "current_thread_cpu_total_ms": 2.413
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 606.9735000000001,
+              "wall_max_ms": 656.384,
+              "current_thread_cpu_total_ms": 69.977
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 3783.318,
+              "wall_max_ms": 3783.318,
+              "current_thread_cpu_total_ms": 56.895
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 3896.091,
+              "wall_max_ms": 3896.091,
+              "current_thread_cpu_total_ms": 57.316
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 188.8905,
+              "wall_max_ms": 377.656,
+              "current_thread_cpu_total_ms": 43.745
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 8.958,
+              "wall_max_ms": 8.958,
+              "current_thread_cpu_total_ms": 8.935
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 62.673,
+              "wall_max_ms": 62.673,
+              "current_thread_cpu_total_ms": 62.365
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 10205.743,
+              "wall_max_ms": 10205.743,
+              "current_thread_cpu_total_ms": 1187.622
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.125,
+              "wall_max_ms": 2.125,
+              "current_thread_cpu_total_ms": 2.118
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 769.165,
+              "wall_max_ms": 769.165,
+              "current_thread_cpu_total_ms": 766.925
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 1,
+          "motion": "no-preference",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1328.7273569999961,
+          "file_click_to_completed_preparation_ms": 11306.202742000023,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 168,
+              "wall_median_ms": 0.256,
+              "wall_max_ms": 0.669,
+              "current_thread_cpu_total_ms": 42.72299999999998
+            },
+            "gui.state": {
+              "count": 159,
+              "wall_median_ms": 0.525,
+              "wall_max_ms": 1.253,
+              "current_thread_cpu_total_ms": 83.22800000000001
+            },
+            "gui.enqueue": {
+              "count": 7,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.005,
+              "current_thread_cpu_total_ms": 0.01
+            },
+            "job.queue": {
+              "count": 7,
+              "wall_median_ms": 0.056,
+              "wall_max_ms": 0.11,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 7,
+              "wall_median_ms": 0.307,
+              "wall_max_ms": 0.444,
+              "current_thread_cpu_total_ms": 1.99
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.098,
+              "wall_max_ms": 0.098,
+              "current_thread_cpu_total_ms": 0.085
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.112,
+              "wall_max_ms": 0.112,
+              "current_thread_cpu_total_ms": 0.092
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.103,
+              "wall_max_ms": 0.103,
+              "current_thread_cpu_total_ms": 0.081
+            },
+            "process.run": {
+              "count": 44,
+              "wall_median_ms": 40.9455,
+              "wall_max_ms": 3179.418,
+              "current_thread_cpu_total_ms": 50.27699999999999
+            },
+            "view.directory.observe": {
+              "count": 6,
+              "wall_median_ms": 49.3005,
+              "wall_max_ms": 65.127,
+              "current_thread_cpu_total_ms": 30.842999999999996
+            },
+            "view.evidence.materialize": {
+              "count": 7,
+              "wall_median_ms": 0.014,
+              "wall_max_ms": 0.034,
+              "current_thread_cpu_total_ms": 0.11399999999999999
+            },
+            "gui.job": {
+              "count": 7,
+              "wall_median_ms": 55.119,
+              "wall_max_ms": 10961.813,
+              "current_thread_cpu_total_ms": 2439.774
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 95.523,
+              "wall_max_ms": 95.523,
+              "current_thread_cpu_total_ms": 9.793
+            },
+            "gui.directory_respond": {
+              "count": 6,
+              "wall_median_ms": 0.1235,
+              "wall_max_ms": 0.16,
+              "current_thread_cpu_total_ms": 0.5920000000000001
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.101,
+              "wall_max_ms": 0.101,
+              "current_thread_cpu_total_ms": 0.081
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 41.693,
+              "wall_max_ms": 41.693,
+              "current_thread_cpu_total_ms": 1.307
+            },
+            "atlas.resources.select": {
+              "count": 31,
+              "wall_median_ms": 8.951,
+              "wall_max_ms": 17.96,
+              "current_thread_cpu_total_ms": 293.634
+            },
+            "atlas.resources.validate": {
+              "count": 44,
+              "wall_median_ms": 20.250999999999998,
+              "wall_max_ms": 34.749,
+              "current_thread_cpu_total_ms": 914.2380000000002
+            },
+            "analysis.capture_sources": {
+              "count": 4,
+              "wall_median_ms": 41.6685,
+              "wall_max_ms": 62.32,
+              "current_thread_cpu_total_ms": 5.465
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.113,
+              "wall_max_ms": 0.113,
+              "current_thread_cpu_total_ms": 0.096
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 1.0915,
+              "wall_max_ms": 1.132,
+              "current_thread_cpu_total_ms": 2.1719999999999997
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 267.334,
+              "wall_max_ms": 267.334,
+              "current_thread_cpu_total_ms": 225.41
+            },
+            "view.preparation_log.materialize": {
+              "count": 16,
+              "wall_median_ms": 0.2555,
+              "wall_max_ms": 0.501,
+              "current_thread_cpu_total_ms": 4.436000000000001
+            },
+            "gui.preparation_log_respond": {
+              "count": 12,
+              "wall_median_ms": 0.0925,
+              "wall_max_ms": 0.192,
+              "current_thread_cpu_total_ms": 1.055
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.2185,
+              "wall_max_ms": 0.261,
+              "current_thread_cpu_total_ms": 0.373
+            },
+            "atlas.lake_configuration.reuse": {
+              "count": 12,
+              "wall_median_ms": 20.14,
+              "wall_max_ms": 21.571,
+              "current_thread_cpu_total_ms": 243.74000000000004
+            },
+            "atlas.lake_configuration.resolve": {
+              "count": 12,
+              "wall_median_ms": 50.639,
+              "wall_max_ms": 54.775,
+              "current_thread_cpu_total_ms": 606.962
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 18,
+              "wall_median_ms": 41.435,
+              "wall_max_ms": 51.832,
+              "current_thread_cpu_total_ms": 16.16
+            },
+            "analysis.metadata.file_batch": {
+              "count": 6,
+              "wall_median_ms": 41.346000000000004,
+              "wall_max_ms": 52.616,
+              "current_thread_cpu_total_ms": 6.276000000000001
+            },
+            "analysis.discover_layout": {
+              "count": 1,
+              "wall_median_ms": 1181.911,
+              "wall_max_ms": 1181.911,
+              "current_thread_cpu_total_ms": 621.733
+            },
+            "analysis.select_roots": {
+              "count": 1,
+              "wall_median_ms": 1255.505,
+              "wall_max_ms": 1255.505,
+              "current_thread_cpu_total_ms": 624.416
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 321.8795,
+              "wall_max_ms": 353.601,
+              "current_thread_cpu_total_ms": 16.199
+            },
+            "sandbox.public_tools": {
+              "count": 2,
+              "wall_median_ms": 52.1105,
+              "wall_max_ms": 59.06,
+              "current_thread_cpu_total_ms": 6.526999999999999
+            },
+            "sandbox.libraries": {
+              "count": 2,
+              "wall_median_ms": 53.483000000000004,
+              "wall_max_ms": 53.939,
+              "current_thread_cpu_total_ms": 8.911999999999999
+            },
+            "sandbox.nix_closure": {
+              "count": 2,
+              "wall_median_ms": 38.873999999999995,
+              "wall_max_ms": 39.558,
+              "current_thread_cpu_total_ms": 1.556
+            },
+            "sandbox.prepare": {
+              "count": 2,
+              "wall_median_ms": 446.0465,
+              "wall_max_ms": 469.037,
+              "current_thread_cpu_total_ms": 66.03399999999999
+            },
+            "atlas.project.query": {
+              "count": 1,
+              "wall_median_ms": 3603.33,
+              "wall_max_ms": 3603.33,
+              "current_thread_cpu_total_ms": 53.55
+            },
+            "atlas.project.fingerprint": {
+              "count": 1,
+              "wall_median_ms": 3602.087,
+              "wall_max_ms": 3602.087,
+              "current_thread_cpu_total_ms": 48.463
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 229.416,
+              "wall_max_ms": 458.695,
+              "current_thread_cpu_total_ms": 53.806000000000004
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 8.882,
+              "wall_max_ms": 8.882,
+              "current_thread_cpu_total_ms": 8.853
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 62.936,
+              "wall_max_ms": 62.936,
+              "current_thread_cpu_total_ms": 62.665
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 9609.843,
+              "wall_max_ms": 9609.843,
+              "current_thread_cpu_total_ms": 1184.603
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 2.14,
+              "wall_max_ms": 2.14,
+              "current_thread_cpu_total_ms": 2.131
+            },
+            "view.inventory.materialize": {
+              "count": 1,
+              "wall_median_ms": 778.956,
+              "wall_max_ms": 778.956,
+              "current_thread_cpu_total_ms": 776.3
+            }
+          }
+        }
+      ],
+      "median_first_graph_ms": {
+        "before": 12331.344913499997,
+        "after": 1351.165023499997,
+        "reduction_percent": 89.04284136906445
+      },
+      "median_completed_preparation_ms": {
+        "before": 12837.6068295,
+        "after": 11930.816010999999
+      },
+      "scope": "Four warm persistent-cache openings per version after fresh host/browser restart; two per motion. Automation visibility plus two-rAF proxy, not physical presentation or population percentile. Full validation still runs."
+    },
+    {
+      "project": "ethlib",
+      "samples": [
+        {
+          "stage": "before",
+          "rep": 0,
+          "motion": "reduce",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 2004.1657590000032,
+          "file_click_to_completed_preparation_ms": 2049.8318359999976,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 49,
+              "wall_median_ms": 0.271,
+              "wall_max_ms": 2.09,
+              "current_thread_cpu_total_ms": 15.888
+            },
+            "gui.state": {
+              "count": 38,
+              "wall_median_ms": 0.608,
+              "wall_max_ms": 1.503,
+              "current_thread_cpu_total_ms": 24.822999999999993
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.001,
+              "current_thread_cpu_total_ms": 0.003
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.029,
+              "wall_max_ms": 0.039,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.2,
+              "wall_max_ms": 0.242,
+              "current_thread_cpu_total_ms": 0.95
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.095,
+              "wall_max_ms": 0.095,
+              "current_thread_cpu_total_ms": 0.078
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.996,
+              "wall_max_ms": 1.996,
+              "current_thread_cpu_total_ms": 1.937
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.1,
+              "wall_max_ms": 0.1,
+              "current_thread_cpu_total_ms": 0.078
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 9.376,
+              "wall_max_ms": 9.376,
+              "current_thread_cpu_total_ms": 5.858
+            },
+            "process.run": {
+              "count": 24,
+              "wall_median_ms": 41.0125,
+              "wall_max_ms": 81.305,
+              "current_thread_cpu_total_ms": 10.609
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 47.073,
+              "wall_max_ms": 62.417,
+              "current_thread_cpu_total_ms": 5.598
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.018,
+              "wall_max_ms": 0.035,
+              "current_thread_cpu_total_ms": 0.103
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 52.391,
+              "wall_max_ms": 1714.361,
+              "current_thread_cpu_total_ms": 760.6310000000001
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.099,
+              "wall_max_ms": 0.128,
+              "current_thread_cpu_total_ms": 0.334
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.115,
+              "wall_max_ms": 0.115,
+              "current_thread_cpu_total_ms": 0.088
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 82.211,
+              "wall_max_ms": 82.211,
+              "current_thread_cpu_total_ms": 1.553
+            },
+            "atlas.resources.select": {
+              "count": 18,
+              "wall_median_ms": 10.5325,
+              "wall_max_ms": 15.103,
+              "current_thread_cpu_total_ms": 199.42000000000004
+            },
+            "atlas.resources.validate": {
+              "count": 18,
+              "wall_median_ms": 21.549,
+              "wall_max_ms": 29.329,
+              "current_thread_cpu_total_ms": 399.196
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.112,
+              "wall_max_ms": 0.112,
+              "current_thread_cpu_total_ms": 0.094
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 41.5955,
+              "wall_max_ms": 61.852,
+              "current_thread_cpu_total_ms": 14.552000000000001
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 65.7855,
+              "wall_max_ms": 66.893,
+              "current_thread_cpu_total_ms": 9.963
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 388.82,
+              "wall_max_ms": 397.063,
+              "current_thread_cpu_total_ms": 29.064
+            },
+            "analysis.capture_sources": {
+              "count": 2,
+              "wall_median_ms": 41.5405,
+              "wall_max_ms": 41.828,
+              "current_thread_cpu_total_ms": 1.933
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 469.995,
+              "wall_max_ms": 478.308,
+              "current_thread_cpu_total_ms": 109.957
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 15.809,
+              "wall_max_ms": 15.809,
+              "current_thread_cpu_total_ms": 15.725
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 72.727,
+              "wall_max_ms": 72.727,
+              "current_thread_cpu_total_ms": 72.331
+            },
+            "view.preparation_log.materialize": {
+              "count": 1,
+              "wall_median_ms": 0.024,
+              "wall_max_ms": 0.024,
+              "current_thread_cpu_total_ms": 0.024
+            },
+            "gui.preparation_log_respond": {
+              "count": 1,
+              "wall_median_ms": 0.103,
+              "wall_max_ms": 0.103,
+              "current_thread_cpu_total_ms": 0.087
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 2.4154999999999998,
+              "wall_max_ms": 2.532,
+              "current_thread_cpu_total_ms": 4.805
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 898.546,
+              "wall_max_ms": 898.546,
+              "current_thread_cpu_total_ms": 488.673
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 4.207,
+              "wall_max_ms": 4.207,
+              "current_thread_cpu_total_ms": 4.172
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.2935,
+              "wall_max_ms": 0.352,
+              "current_thread_cpu_total_ms": 0.492
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 0,
+          "motion": "no-preference",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 1990.3517410000059,
+          "file_click_to_completed_preparation_ms": 2082.539825,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 50,
+              "wall_median_ms": 0.239,
+              "wall_max_ms": 3.491,
+              "current_thread_cpu_total_ms": 15.902
+            },
+            "gui.state": {
+              "count": 39,
+              "wall_median_ms": 0.507,
+              "wall_max_ms": 1.223,
+              "current_thread_cpu_total_ms": 21.631
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.008
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.038,
+              "wall_max_ms": 0.066,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.303,
+              "wall_max_ms": 0.346,
+              "current_thread_cpu_total_ms": 1.3289999999999997
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.08,
+              "wall_max_ms": 0.08,
+              "current_thread_cpu_total_ms": 0.063
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.937,
+              "wall_max_ms": 1.937,
+              "current_thread_cpu_total_ms": 1.885
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.197,
+              "wall_max_ms": 0.197,
+              "current_thread_cpu_total_ms": 0.161
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 15.758,
+              "wall_max_ms": 15.758,
+              "current_thread_cpu_total_ms": 8.359
+            },
+            "process.run": {
+              "count": 24,
+              "wall_median_ms": 50.971,
+              "wall_max_ms": 81.408,
+              "current_thread_cpu_total_ms": 11.956
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 57.1575,
+              "wall_max_ms": 62.016,
+              "current_thread_cpu_total_ms": 5.439
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.013,
+              "wall_max_ms": 0.02,
+              "current_thread_cpu_total_ms": 0.06999999999999999
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 62,
+              "wall_max_ms": 1794.391,
+              "current_thread_cpu_total_ms": 773.48
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.109,
+              "wall_max_ms": 0.122,
+              "current_thread_cpu_total_ms": 0.35100000000000003
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.116,
+              "wall_max_ms": 0.116,
+              "current_thread_cpu_total_ms": 0.093
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 62.196,
+              "wall_max_ms": 62.196,
+              "current_thread_cpu_total_ms": 1.684
+            },
+            "atlas.resources.select": {
+              "count": 18,
+              "wall_median_ms": 11.003,
+              "wall_max_ms": 16.751,
+              "current_thread_cpu_total_ms": 205.18
+            },
+            "atlas.resources.validate": {
+              "count": 18,
+              "wall_median_ms": 22.13,
+              "wall_max_ms": 24.431,
+              "current_thread_cpu_total_ms": 399.37199999999996
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.177,
+              "wall_max_ms": 0.177,
+              "current_thread_cpu_total_ms": 0.154
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 46.611000000000004,
+              "wall_max_ms": 72.557,
+              "current_thread_cpu_total_ms": 17.159999999999997
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 60.304500000000004,
+              "wall_max_ms": 64.149,
+              "current_thread_cpu_total_ms": 9.504
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 409.4185,
+              "wall_max_ms": 410.832,
+              "current_thread_cpu_total_ms": 31.008000000000003
+            },
+            "analysis.capture_sources": {
+              "count": 2,
+              "wall_median_ms": 61.6265,
+              "wall_max_ms": 82.05,
+              "current_thread_cpu_total_ms": 2.064
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 511.17949999999996,
+              "wall_max_ms": 531.91,
+              "current_thread_cpu_total_ms": 112.955
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 12.87,
+              "wall_max_ms": 12.87,
+              "current_thread_cpu_total_ms": 12.788
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 73.069,
+              "wall_max_ms": 73.069,
+              "current_thread_cpu_total_ms": 72.737
+            },
+            "view.preparation_log.materialize": {
+              "count": 1,
+              "wall_median_ms": 0.027,
+              "wall_max_ms": 0.027,
+              "current_thread_cpu_total_ms": 0.026
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 3.175,
+              "wall_max_ms": 4.12,
+              "current_thread_cpu_total_ms": 6.297000000000001
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 968.916,
+              "wall_max_ms": 968.916,
+              "current_thread_cpu_total_ms": 491.345
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 4.236,
+              "wall_max_ms": 4.236,
+              "current_thread_cpu_total_ms": 4.22
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.22699999999999998,
+              "wall_max_ms": 0.238,
+              "current_thread_cpu_total_ms": 0.376
+            },
+            "gui.preparation_log_respond": {
+              "count": 1,
+              "wall_median_ms": 0.123,
+              "wall_max_ms": 0.123,
+              "current_thread_cpu_total_ms": 0.097
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 1,
+          "motion": "reduce",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 1625.592359000002,
+          "file_click_to_completed_preparation_ms": 1878.4243560000032,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 47,
+              "wall_median_ms": 0.29,
+              "wall_max_ms": 1.826,
+              "current_thread_cpu_total_ms": 14.569999999999999
+            },
+            "gui.state": {
+              "count": 36,
+              "wall_median_ms": 0.585,
+              "wall_max_ms": 1.739,
+              "current_thread_cpu_total_ms": 22.026999999999997
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.002,
+              "current_thread_cpu_total_ms": 0.006
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.037,
+              "wall_max_ms": 0.061,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.235,
+              "wall_max_ms": 0.296,
+              "current_thread_cpu_total_ms": 1.048
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.089,
+              "wall_max_ms": 0.089,
+              "current_thread_cpu_total_ms": 0.072
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.092,
+              "wall_max_ms": 0.092,
+              "current_thread_cpu_total_ms": 0.067
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.88,
+              "wall_max_ms": 1.88,
+              "current_thread_cpu_total_ms": 1.779
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 3.136,
+              "wall_max_ms": 3.136,
+              "current_thread_cpu_total_ms": 2.85
+            },
+            "process.run": {
+              "count": 24,
+              "wall_median_ms": 40.942,
+              "wall_max_ms": 51.78,
+              "current_thread_cpu_total_ms": 9.698999999999996
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 41.772999999999996,
+              "wall_max_ms": 51.428,
+              "current_thread_cpu_total_ms": 4.445
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.016,
+              "wall_max_ms": 0.017,
+              "current_thread_cpu_total_ms": 0.06999999999999999
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 42.114,
+              "wall_max_ms": 1605.011,
+              "current_thread_cpu_total_ms": 723.936
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.14100000000000001,
+              "wall_max_ms": 0.2,
+              "current_thread_cpu_total_ms": 0.494
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.133,
+              "wall_max_ms": 0.133,
+              "current_thread_cpu_total_ms": 0.106
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 51.429,
+              "wall_max_ms": 51.429,
+              "current_thread_cpu_total_ms": 0.965
+            },
+            "atlas.resources.select": {
+              "count": 18,
+              "wall_median_ms": 10.222999999999999,
+              "wall_max_ms": 11.779,
+              "current_thread_cpu_total_ms": 186.81799999999998
+            },
+            "atlas.resources.validate": {
+              "count": 18,
+              "wall_median_ms": 21.483,
+              "wall_max_ms": 24.267,
+              "current_thread_cpu_total_ms": 386.4049999999999
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 41.697500000000005,
+              "wall_max_ms": 53.677,
+              "current_thread_cpu_total_ms": 16.334
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.093,
+              "wall_max_ms": 0.093,
+              "current_thread_cpu_total_ms": 0.084
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 49.713499999999996,
+              "wall_max_ms": 55.157,
+              "current_thread_cpu_total_ms": 8.462
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 368.45799999999997,
+              "wall_max_ms": 381.14,
+              "current_thread_cpu_total_ms": 28.522999999999996
+            },
+            "analysis.capture_sources": {
+              "count": 2,
+              "wall_median_ms": 41.22,
+              "wall_max_ms": 41.242,
+              "current_thread_cpu_total_ms": 1.558
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 449.2155,
+              "wall_max_ms": 462.233,
+              "current_thread_cpu_total_ms": 108.822
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 11.824,
+              "wall_max_ms": 11.824,
+              "current_thread_cpu_total_ms": 11.789
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 69.079,
+              "wall_max_ms": 69.079,
+              "current_thread_cpu_total_ms": 68.743
+            },
+            "view.preparation_log.materialize": {
+              "count": 1,
+              "wall_median_ms": 0.024,
+              "wall_max_ms": 0.024,
+              "current_thread_cpu_total_ms": 0.023
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 2.2805,
+              "wall_max_ms": 2.306,
+              "current_thread_cpu_total_ms": 4.5440000000000005
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 846.147,
+              "wall_max_ms": 846.147,
+              "current_thread_cpu_total_ms": 459.633
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 4.071,
+              "wall_max_ms": 4.071,
+              "current_thread_cpu_total_ms": 4.051
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.162,
+              "wall_max_ms": 0.164,
+              "current_thread_cpu_total_ms": 0.278
+            },
+            "gui.preparation_log_respond": {
+              "count": 1,
+              "wall_median_ms": 0.096,
+              "wall_max_ms": 0.096,
+              "current_thread_cpu_total_ms": 0.077
+            }
+          }
+        },
+        {
+          "stage": "before",
+          "rep": 1,
+          "motion": "no-preference",
+          "binary_sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121",
+          "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+          "file_click_to_visible_original_node_two_raf_ms": 1990.841963999992,
+          "file_click_to_completed_preparation_ms": 1988.8719529999944,
+          "first_graph_outcome": "ready",
+          "first_graph_has_current_backend": true,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 49,
+              "wall_median_ms": 0.272,
+              "wall_max_ms": 1.882,
+              "current_thread_cpu_total_ms": 14.125999999999998
+            },
+            "gui.state": {
+              "count": 38,
+              "wall_median_ms": 0.5765,
+              "wall_max_ms": 1.426,
+              "current_thread_cpu_total_ms": 21.236000000000008
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.002,
+              "current_thread_cpu_total_ms": 0.004
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.031,
+              "wall_max_ms": 0.041,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.267,
+              "wall_max_ms": 0.337,
+              "current_thread_cpu_total_ms": 1.138
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.087,
+              "wall_max_ms": 0.087,
+              "current_thread_cpu_total_ms": 0.071
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.055,
+              "wall_max_ms": 0.055,
+              "current_thread_cpu_total_ms": 0.045
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.736,
+              "wall_max_ms": 1.736,
+              "current_thread_cpu_total_ms": 1.679
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 2.777,
+              "wall_max_ms": 2.777,
+              "current_thread_cpu_total_ms": 2.547
+            },
+            "process.run": {
+              "count": 24,
+              "wall_median_ms": 50.8395,
+              "wall_max_ms": 61.187,
+              "current_thread_cpu_total_ms": 10.438999999999998
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 46.848,
+              "wall_max_ms": 52.182,
+              "current_thread_cpu_total_ms": 5.593999999999999
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.019,
+              "wall_max_ms": 0.02,
+              "current_thread_cpu_total_ms": 0.08399999999999999
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 51.935,
+              "wall_max_ms": 1693.95,
+              "current_thread_cpu_total_ms": 743.806
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.1235,
+              "wall_max_ms": 0.157,
+              "current_thread_cpu_total_ms": 0.41000000000000003
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.064,
+              "wall_max_ms": 0.064,
+              "current_thread_cpu_total_ms": 0.05
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 51.555,
+              "wall_max_ms": 51.555,
+              "current_thread_cpu_total_ms": 1.035
+            },
+            "atlas.resources.select": {
+              "count": 18,
+              "wall_median_ms": 10.4015,
+              "wall_max_ms": 15.027,
+              "current_thread_cpu_total_ms": 197.093
+            },
+            "atlas.resources.validate": {
+              "count": 18,
+              "wall_median_ms": 21.4255,
+              "wall_max_ms": 23.703,
+              "current_thread_cpu_total_ms": 385.76899999999995
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.097,
+              "wall_max_ms": 0.097,
+              "current_thread_cpu_total_ms": 0.082
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 42.0895,
+              "wall_max_ms": 62.319,
+              "current_thread_cpu_total_ms": 16.307
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 61.114000000000004,
+              "wall_max_ms": 66.622,
+              "current_thread_cpu_total_ms": 10.847999999999999
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 395.007,
+              "wall_max_ms": 400.296,
+              "current_thread_cpu_total_ms": 31.506
+            },
+            "analysis.capture_sources": {
+              "count": 2,
+              "wall_median_ms": 51.480000000000004,
+              "wall_max_ms": 51.526,
+              "current_thread_cpu_total_ms": 1.903
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 485.34749999999997,
+              "wall_max_ms": 491.029,
+              "current_thread_cpu_total_ms": 110.819
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 11.823,
+              "wall_max_ms": 11.823,
+              "current_thread_cpu_total_ms": 11.782
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 69.124,
+              "wall_max_ms": 69.124,
+              "current_thread_cpu_total_ms": 68.809
+            },
+            "view.preparation_log.materialize": {
+              "count": 1,
+              "wall_median_ms": 0.024,
+              "wall_max_ms": 0.024,
+              "current_thread_cpu_total_ms": 0.024
+            },
+            "analysis.cache.load_rendering": {
+              "count": 2,
+              "wall_median_ms": 2.284,
+              "wall_max_ms": 2.31,
+              "current_thread_cpu_total_ms": 4.548
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 903.547,
+              "wall_max_ms": 903.547,
+              "current_thread_cpu_total_ms": 466.107
+            },
+            "gui.preparation_log_respond": {
+              "count": 1,
+              "wall_median_ms": 0.097,
+              "wall_max_ms": 0.097,
+              "current_thread_cpu_total_ms": 0.082
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 4.225,
+              "wall_max_ms": 4.225,
+              "current_thread_cpu_total_ms": 4.206
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.2585,
+              "wall_max_ms": 0.264,
+              "current_thread_cpu_total_ms": 0.459
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 0,
+          "motion": "reduce",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1269.6736660000024,
+          "file_click_to_completed_preparation_ms": 2145.523749,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 46,
+              "wall_median_ms": 0.2385,
+              "wall_max_ms": 1.83,
+              "current_thread_cpu_total_ms": 12.29
+            },
+            "gui.state": {
+              "count": 36,
+              "wall_median_ms": 0.4755,
+              "wall_max_ms": 1.335,
+              "current_thread_cpu_total_ms": 18.578000000000003
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.003
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.028,
+              "wall_max_ms": 0.063,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.277,
+              "wall_max_ms": 0.34,
+              "current_thread_cpu_total_ms": 1.184
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.114,
+              "wall_max_ms": 0.114,
+              "current_thread_cpu_total_ms": 0.096
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.83,
+              "wall_max_ms": 1.83,
+              "current_thread_cpu_total_ms": 1.783
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.08,
+              "wall_max_ms": 0.08,
+              "current_thread_cpu_total_ms": 0.064
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 26.835,
+              "wall_max_ms": 26.835,
+              "current_thread_cpu_total_ms": 3.245
+            },
+            "process.run": {
+              "count": 25,
+              "wall_median_ms": 40.761,
+              "wall_max_ms": 51.003,
+              "current_thread_cpu_total_ms": 8.238
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 41.518,
+              "wall_max_ms": 42.021,
+              "current_thread_cpu_total_ms": 4.1739999999999995
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.011,
+              "wall_max_ms": 0.016,
+              "current_thread_cpu_total_ms": 0.054
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 41.717,
+              "wall_max_ms": 1815.474,
+              "current_thread_cpu_total_ms": 955.1569999999999
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.1485,
+              "wall_max_ms": 0.167,
+              "current_thread_cpu_total_ms": 0.484
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.101,
+              "wall_max_ms": 0.101,
+              "current_thread_cpu_total_ms": 0.084
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 41.651,
+              "wall_max_ms": 41.651,
+              "current_thread_cpu_total_ms": 1.12
+            },
+            "atlas.resources.select": {
+              "count": 24,
+              "wall_median_ms": 10.1005,
+              "wall_max_ms": 16.597,
+              "current_thread_cpu_total_ms": 249.85
+            },
+            "atlas.resources.validate": {
+              "count": 24,
+              "wall_median_ms": 20.942999999999998,
+              "wall_max_ms": 23.055,
+              "current_thread_cpu_total_ms": 503.597
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.339,
+              "wall_max_ms": 51.365,
+              "current_thread_cpu_total_ms": 2.464
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.1,
+              "wall_max_ms": 0.1,
+              "current_thread_cpu_total_ms": 0.081
+            },
+            "analysis.cache.load_rendering": {
+              "count": 3,
+              "wall_median_ms": 2.274,
+              "wall_max_ms": 2.31,
+              "current_thread_cpu_total_ms": 6.8100000000000005
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 285.601,
+              "wall_max_ms": 285.601,
+              "current_thread_cpu_total_ms": 243.926
+            },
+            "view.preparation_log.materialize": {
+              "count": 2,
+              "wall_median_ms": 0.022,
+              "wall_max_ms": 0.025,
+              "current_thread_cpu_total_ms": 0.043
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 41.176,
+              "wall_max_ms": 51.609,
+              "current_thread_cpu_total_ms": 12.262
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.2655,
+              "wall_max_ms": 0.395,
+              "current_thread_cpu_total_ms": 0.445
+            },
+            "gui.preparation_log_respond": {
+              "count": 2,
+              "wall_median_ms": 0.0735,
+              "wall_max_ms": 0.089,
+              "current_thread_cpu_total_ms": 0.125
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 49.7585,
+              "wall_max_ms": 55.748,
+              "current_thread_cpu_total_ms": 8.437000000000001
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 340.568,
+              "wall_max_ms": 346.564,
+              "current_thread_cpu_total_ms": 24.119999999999997
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 425.341,
+              "wall_max_ms": 436.899,
+              "current_thread_cpu_total_ms": 102.363
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 12.27,
+              "wall_max_ms": 12.27,
+              "current_thread_cpu_total_ms": 12.227
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 67.59,
+              "wall_max_ms": 67.59,
+              "current_thread_cpu_total_ms": 67.365
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 818.151,
+              "wall_max_ms": 818.151,
+              "current_thread_cpu_total_ms": 452.346
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 3.954,
+              "wall_max_ms": 3.954,
+              "current_thread_cpu_total_ms": 3.937
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 0,
+          "motion": "no-preference",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1353.4392420000077,
+          "file_click_to_completed_preparation_ms": 2353.023312000005,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 48,
+              "wall_median_ms": 0.246,
+              "wall_max_ms": 3.157,
+              "current_thread_cpu_total_ms": 14.020999999999999
+            },
+            "gui.state": {
+              "count": 38,
+              "wall_median_ms": 0.4795,
+              "wall_max_ms": 0.959,
+              "current_thread_cpu_total_ms": 19.136999999999997
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.001,
+              "wall_max_ms": 0.002,
+              "current_thread_cpu_total_ms": 0.005
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.029,
+              "wall_max_ms": 0.071,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.217,
+              "wall_max_ms": 0.344,
+              "current_thread_cpu_total_ms": 1.1769999999999998
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.074,
+              "wall_max_ms": 0.074,
+              "current_thread_cpu_total_ms": 0.061
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.05,
+              "wall_max_ms": 0.05,
+              "current_thread_cpu_total_ms": 0.04
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.539,
+              "wall_max_ms": 1.539,
+              "current_thread_cpu_total_ms": 1.511
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 27.422,
+              "wall_max_ms": 27.422,
+              "current_thread_cpu_total_ms": 5.172
+            },
+            "process.run": {
+              "count": 25,
+              "wall_median_ms": 40.942,
+              "wall_max_ms": 61.427,
+              "current_thread_cpu_total_ms": 10.107999999999999
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 46.635,
+              "wall_max_ms": 62.294,
+              "current_thread_cpu_total_ms": 4.8149999999999995
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.014,
+              "wall_max_ms": 0.04,
+              "current_thread_cpu_total_ms": 0.07300000000000001
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 51.909,
+              "wall_max_ms": 1952.257,
+              "current_thread_cpu_total_ms": 969.362
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.12,
+              "wall_max_ms": 0.161,
+              "current_thread_cpu_total_ms": 0.37999999999999995
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.124,
+              "wall_max_ms": 0.124,
+              "current_thread_cpu_total_ms": 0.1
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 51.613,
+              "wall_max_ms": 51.613,
+              "current_thread_cpu_total_ms": 1.037
+            },
+            "atlas.resources.select": {
+              "count": 24,
+              "wall_median_ms": 9.9845,
+              "wall_max_ms": 16.42,
+              "current_thread_cpu_total_ms": 253.21399999999994
+            },
+            "atlas.resources.validate": {
+              "count": 24,
+              "wall_median_ms": 20.839,
+              "wall_max_ms": 22.15,
+              "current_thread_cpu_total_ms": 501.70699999999994
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 41.338,
+              "wall_max_ms": 51.954,
+              "current_thread_cpu_total_ms": 3.027
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.073,
+              "wall_max_ms": 0.073,
+              "current_thread_cpu_total_ms": 0.062
+            },
+            "analysis.cache.load_rendering": {
+              "count": 3,
+              "wall_median_ms": 2.245,
+              "wall_max_ms": 2.292,
+              "current_thread_cpu_total_ms": 6.745
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 289.839,
+              "wall_max_ms": 289.839,
+              "current_thread_cpu_total_ms": 248.26
+            },
+            "view.preparation_log.materialize": {
+              "count": 2,
+              "wall_median_ms": 0.025,
+              "wall_max_ms": 0.026,
+              "current_thread_cpu_total_ms": 0.046
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.1885,
+              "wall_max_ms": 0.245,
+              "current_thread_cpu_total_ms": 0.32
+            },
+            "gui.preparation_log_respond": {
+              "count": 2,
+              "wall_median_ms": 0.08,
+              "wall_max_ms": 0.105,
+              "current_thread_cpu_total_ms": 0.13
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 41.5475,
+              "wall_max_ms": 62.191,
+              "current_thread_cpu_total_ms": 13.971000000000002
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 61.4945,
+              "wall_max_ms": 67.309,
+              "current_thread_cpu_total_ms": 11.753
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 394.693,
+              "wall_max_ms": 421.903,
+              "current_thread_cpu_total_ms": 30.377
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 480.87149999999997,
+              "wall_max_ms": 514.439,
+              "current_thread_cpu_total_ms": 111.27099999999999
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 11.897,
+              "wall_max_ms": 11.897,
+              "current_thread_cpu_total_ms": 11.85
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 67.014,
+              "wall_max_ms": 67.014,
+              "current_thread_cpu_total_ms": 66.692
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 843.677,
+              "wall_max_ms": 843.677,
+              "current_thread_cpu_total_ms": 447.141
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 3.881,
+              "wall_max_ms": 3.881,
+              "current_thread_cpu_total_ms": 3.87
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 1,
+          "motion": "reduce",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1354.3835749999853,
+          "file_click_to_completed_preparation_ms": 2432.913998999982,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 49,
+              "wall_median_ms": 0.229,
+              "wall_max_ms": 1.994,
+              "current_thread_cpu_total_ms": 12.930000000000003
+            },
+            "gui.state": {
+              "count": 39,
+              "wall_median_ms": 0.456,
+              "wall_max_ms": 1.124,
+              "current_thread_cpu_total_ms": 19.753999999999994
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.007,
+              "current_thread_cpu_total_ms": 0.009000000000000001
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.036,
+              "wall_max_ms": 0.06,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.241,
+              "wall_max_ms": 0.407,
+              "current_thread_cpu_total_ms": 1.264
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.543,
+              "wall_max_ms": 1.543,
+              "current_thread_cpu_total_ms": 1.475
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.091,
+              "wall_max_ms": 0.091,
+              "current_thread_cpu_total_ms": 0.074
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.042,
+              "wall_max_ms": 0.042,
+              "current_thread_cpu_total_ms": 0.035
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 10.565,
+              "wall_max_ms": 10.565,
+              "current_thread_cpu_total_ms": 3.055
+            },
+            "process.run": {
+              "count": 25,
+              "wall_median_ms": 51.071,
+              "wall_max_ms": 71.295,
+              "current_thread_cpu_total_ms": 10.759
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 46.7255,
+              "wall_max_ms": 62.277,
+              "current_thread_cpu_total_ms": 4.769
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.014,
+              "wall_max_ms": 0.023,
+              "current_thread_cpu_total_ms": 0.074
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 52.182,
+              "wall_max_ms": 2012.168,
+              "current_thread_cpu_total_ms": 958.384
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.1585,
+              "wall_max_ms": 0.192,
+              "current_thread_cpu_total_ms": 0.503
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.109,
+              "wall_max_ms": 0.109,
+              "current_thread_cpu_total_ms": 0.08
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 41.437,
+              "wall_max_ms": 41.437,
+              "current_thread_cpu_total_ms": 1.024
+            },
+            "atlas.resources.select": {
+              "count": 24,
+              "wall_median_ms": 9.977,
+              "wall_max_ms": 15.339,
+              "current_thread_cpu_total_ms": 248.27800000000002
+            },
+            "atlas.resources.validate": {
+              "count": 24,
+              "wall_median_ms": 20.868499999999997,
+              "wall_max_ms": 24.839,
+              "current_thread_cpu_total_ms": 502.7009999999999
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 51.578,
+              "wall_max_ms": 51.655,
+              "current_thread_cpu_total_ms": 2.85
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.115,
+              "wall_max_ms": 0.115,
+              "current_thread_cpu_total_ms": 0.095
+            },
+            "analysis.cache.load_rendering": {
+              "count": 3,
+              "wall_median_ms": 2.291,
+              "wall_max_ms": 2.321,
+              "current_thread_cpu_total_ms": 6.8180000000000005
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 282.585,
+              "wall_max_ms": 282.585,
+              "current_thread_cpu_total_ms": 240.852
+            },
+            "view.preparation_log.materialize": {
+              "count": 2,
+              "wall_median_ms": 0.0225,
+              "wall_max_ms": 0.024,
+              "current_thread_cpu_total_ms": 0.044
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 51.869,
+              "wall_max_ms": 73.446,
+              "current_thread_cpu_total_ms": 17.928
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.203,
+              "wall_max_ms": 0.254,
+              "current_thread_cpu_total_ms": 0.34299999999999997
+            },
+            "gui.preparation_log_respond": {
+              "count": 2,
+              "wall_median_ms": 0.091,
+              "wall_max_ms": 0.117,
+              "current_thread_cpu_total_ms": 0.148
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 66.67,
+              "wall_max_ms": 67.396,
+              "current_thread_cpu_total_ms": 11.968
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 432.531,
+              "wall_max_ms": 444.608,
+              "current_thread_cpu_total_ms": 34.562
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 522.333,
+              "wall_max_ms": 534.793,
+              "current_thread_cpu_total_ms": 112.544
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 12.167,
+              "wall_max_ms": 12.167,
+              "current_thread_cpu_total_ms": 12.126
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 67.094,
+              "wall_max_ms": 67.094,
+              "current_thread_cpu_total_ms": 66.802
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 915.304,
+              "wall_max_ms": 915.304,
+              "current_thread_cpu_total_ms": 457.787
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 3.976,
+              "wall_max_ms": 3.976,
+              "current_thread_cpu_total_ms": 3.964
+            }
+          }
+        },
+        {
+          "stage": "after",
+          "rep": 1,
+          "motion": "no-preference",
+          "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+          "assets_sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b",
+          "file_click_to_visible_original_node_two_raf_ms": 1368.5371969999978,
+          "file_click_to_completed_preparation_ms": 2465.2783530000015,
+          "first_graph_outcome": "preparing",
+          "first_graph_has_current_backend": false,
+          "semantic_workers": 0,
+          "events": {
+            "gui.serialize_respond": {
+              "count": 49,
+              "wall_median_ms": 0.308,
+              "wall_max_ms": 3.365,
+              "current_thread_cpu_total_ms": 17.569999999999993
+            },
+            "gui.state": {
+              "count": 39,
+              "wall_median_ms": 0.6,
+              "wall_max_ms": 1.868,
+              "current_thread_cpu_total_ms": 25.480999999999998
+            },
+            "gui.enqueue": {
+              "count": 5,
+              "wall_median_ms": 0.002,
+              "wall_max_ms": 0.003,
+              "current_thread_cpu_total_ms": 0.007
+            },
+            "job.queue": {
+              "count": 5,
+              "wall_median_ms": 0.059,
+              "wall_max_ms": 0.113,
+              "current_thread_cpu_total_ms": 0
+            },
+            "gui.command": {
+              "count": 5,
+              "wall_median_ms": 0.342,
+              "wall_max_ms": 0.346,
+              "current_thread_cpu_total_ms": 1.4120000000000001
+            },
+            "gui.analysis_history_respond": {
+              "count": 1,
+              "wall_median_ms": 0.055,
+              "wall_max_ms": 0.055,
+              "current_thread_cpu_total_ms": 0.044
+            },
+            "gui.evidence_respond": {
+              "count": 1,
+              "wall_median_ms": 0.055,
+              "wall_max_ms": 0.055,
+              "current_thread_cpu_total_ms": 0.044
+            },
+            "gui.history_respond": {
+              "count": 1,
+              "wall_median_ms": 1.465,
+              "wall_max_ms": 1.465,
+              "current_thread_cpu_total_ms": 1.367
+            },
+            "gui.inventory_respond": {
+              "count": 1,
+              "wall_median_ms": 26.57,
+              "wall_max_ms": 26.57,
+              "current_thread_cpu_total_ms": 3.233
+            },
+            "process.run": {
+              "count": 25,
+              "wall_median_ms": 50.968,
+              "wall_max_ms": 61.077,
+              "current_thread_cpu_total_ms": 10.277
+            },
+            "view.directory.observe": {
+              "count": 4,
+              "wall_median_ms": 46.7415,
+              "wall_max_ms": 51.995,
+              "current_thread_cpu_total_ms": 4.729
+            },
+            "view.evidence.materialize": {
+              "count": 5,
+              "wall_median_ms": 0.013,
+              "wall_max_ms": 0.015,
+              "current_thread_cpu_total_ms": 0.059
+            },
+            "gui.job": {
+              "count": 5,
+              "wall_median_ms": 51.991,
+              "wall_max_ms": 2014.715,
+              "current_thread_cpu_total_ms": 978.962
+            },
+            "gui.directory_respond": {
+              "count": 4,
+              "wall_median_ms": 0.16649999999999998,
+              "wall_max_ms": 0.216,
+              "current_thread_cpu_total_ms": 0.53
+            },
+            "gui.inventory_chunk_respond": {
+              "count": 1,
+              "wall_median_ms": 0.137,
+              "wall_max_ms": 0.137,
+              "current_thread_cpu_total_ms": 0.111
+            },
+            "gui.reader_prepare": {
+              "count": 1,
+              "wall_median_ms": 52.135,
+              "wall_max_ms": 52.135,
+              "current_thread_cpu_total_ms": 1.507
+            },
+            "atlas.resources.select": {
+              "count": 24,
+              "wall_median_ms": 10.034,
+              "wall_max_ms": 19.525,
+              "current_thread_cpu_total_ms": 261.57400000000007
+            },
+            "atlas.resources.validate": {
+              "count": 24,
+              "wall_median_ms": 21.006999999999998,
+              "wall_max_ms": 21.591,
+              "current_thread_cpu_total_ms": 503.20799999999997
+            },
+            "analysis.capture_sources": {
+              "count": 3,
+              "wall_median_ms": 51.642,
+              "wall_max_ms": 52.012,
+              "current_thread_cpu_total_ms": 3.2220000000000004
+            },
+            "gui.reader_respond": {
+              "count": 1,
+              "wall_median_ms": 0.064,
+              "wall_max_ms": 0.064,
+              "current_thread_cpu_total_ms": 0.056
+            },
+            "analysis.cache.load_rendering": {
+              "count": 3,
+              "wall_median_ms": 2.401,
+              "wall_max_ms": 2.431,
+              "current_thread_cpu_total_ms": 7.045
+            },
+            "analysis.saved_view": {
+              "count": 1,
+              "wall_median_ms": 303.354,
+              "wall_max_ms": 303.354,
+              "current_thread_cpu_total_ms": 251.162
+            },
+            "view.preparation_log.materialize": {
+              "count": 2,
+              "wall_median_ms": 0.020999999999999998,
+              "wall_max_ms": 0.023,
+              "current_thread_cpu_total_ms": 0.040999999999999995
+            },
+            "gui.source_respond": {
+              "count": 2,
+              "wall_median_ms": 0.23049999999999998,
+              "wall_max_ms": 0.307,
+              "current_thread_cpu_total_ms": 0.385
+            },
+            "gui.preparation_log_respond": {
+              "count": 2,
+              "wall_median_ms": 0.089,
+              "wall_max_ms": 0.099,
+              "current_thread_cpu_total_ms": 0.14800000000000002
+            },
+            "analysis.metadata.directory_batch": {
+              "count": 14,
+              "wall_median_ms": 51.488,
+              "wall_max_ms": 61.599,
+              "current_thread_cpu_total_ms": 14.802999999999999
+            },
+            "analysis.metadata.file_batch": {
+              "count": 2,
+              "wall_median_ms": 61.549499999999995,
+              "wall_max_ms": 65.925,
+              "current_thread_cpu_total_ms": 11.962
+            },
+            "analysis.metadata.validate": {
+              "count": 2,
+              "wall_median_ms": 405.04150000000004,
+              "wall_max_ms": 418.92,
+              "current_thread_cpu_total_ms": 31.269000000000002
+            },
+            "analysis.cache.validate": {
+              "count": 2,
+              "wall_median_ms": 495.40549999999996,
+              "wall_max_ms": 510.109,
+              "current_thread_cpu_total_ms": 110.253
+            },
+            "analysis.cache.retain_observation": {
+              "count": 1,
+              "wall_median_ms": 11.992,
+              "wall_max_ms": 11.992,
+              "current_thread_cpu_total_ms": 11.897
+            },
+            "analysis.search": {
+              "count": 1,
+              "wall_median_ms": 69.035,
+              "wall_max_ms": 69.035,
+              "current_thread_cpu_total_ms": 68.732
+            },
+            "analysis.extract": {
+              "count": 1,
+              "wall_median_ms": 914.283,
+              "wall_max_ms": 914.283,
+              "current_thread_cpu_total_ms": 456.681
+            },
+            "analysis.materialize_view": {
+              "count": 1,
+              "wall_median_ms": 3.9,
+              "wall_max_ms": 3.9,
+              "current_thread_cpu_total_ms": 3.889
+            }
+          }
+        }
+      ],
+      "median_first_graph_ms": {
+        "before": 1990.596852499999,
+        "after": 1353.9114084999965,
+        "reduction_percent": 31.984650392689336
+      },
+      "median_completed_preparation_ms": {
+        "before": 2019.351894499996,
+        "after": 2392.9686554999935
+      },
+      "scope": "Four warm persistent-cache openings per version after fresh host/browser restart; two per motion. Automation visibility plus two-rAF proxy, not physical presentation or population percentile. Full validation still runs."
+    }
+  ],
+  "fidelity": [
+    {
+      "project": "riemann",
+      "stage": "updated",
+      "input_mode": "lake",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [
+        {
+          "context": {
+            "trace": 176,
+            "span": 506
+          },
+          "parent": 193,
+          "name": "atlas.project.extract",
+          "start_us": 31698293,
+          "wall_us": 21995100,
+          "thread_cpu_us": 113482
+        },
+        {
+          "context": {
+            "trace": 176,
+            "span": 895
+          },
+          "parent": 886,
+          "name": "atlas.search",
+          "start_us": 68689232,
+          "wall_us": 121319848,
+          "thread_cpu_us": 499039
+        },
+        {
+          "context": {
+            "trace": 176,
+            "span": 2021
+          },
+          "parent": 193,
+          "name": "analysis.render",
+          "start_us": 198186942,
+          "wall_us": 9563306,
+          "thread_cpu_us": 596500
+        }
+      ],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": false,
+      "preparation_ms": 197558.147238,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa",
+        "search_id": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb",
+        "rendering_id": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "f4dae65076bd8bd3f822c98edafe11da412841880b40c28620c0eaf7d152fc92",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"N\"\n          (∀ (N : ℕ),\n            MedenPlausible.NamedBinder \"hN\"\n              (0 < N →\n                MedenPlausible.NamedBinder \"a\"\n                  (∀ {a : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                    MedenPlausible.NamedBinder \"b\"\n                      (∀ {b : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                        MedenPlausible.NamedBinder \"h\" (↑N • a = ↑N • b → a = b)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        }
+      ],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    },
+    {
+      "project": "ethlib",
+      "stage": "updated",
+      "input_mode": "frozen",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [
+        {
+          "context": {
+            "trace": 554,
+            "span": 808
+          },
+          "parent": 571,
+          "name": "atlas.compile",
+          "start_us": 220483634,
+          "wall_us": 930820,
+          "thread_cpu_us": 35189
+        },
+        {
+          "context": {
+            "trace": 554,
+            "span": 946
+          },
+          "parent": 935,
+          "name": "atlas.search",
+          "start_us": 229077373,
+          "wall_us": 17485312,
+          "thread_cpu_us": 91677
+        },
+        {
+          "context": {
+            "trace": 554,
+            "span": 1167
+          },
+          "parent": 571,
+          "name": "analysis.render",
+          "start_us": 247195292,
+          "wall_us": 17368680,
+          "thread_cpu_us": 1005554
+        }
+      ],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": false,
+      "preparation_ms": 51359.069921,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc",
+        "search_id": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9",
+        "rendering_id": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "9e85bdd7fa9cb492a7286bd30d15ba64f83f1bdb3d8435b1a74e6f53f4e6bc35",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    },
+    {
+      "project": "riemann",
+      "stage": "cached",
+      "input_mode": "lake",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": true,
+      "preparation_ms": 11003.529027,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa",
+        "search_id": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb",
+        "rendering_id": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "f4dae65076bd8bd3f822c98edafe11da412841880b40c28620c0eaf7d152fc92",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"N\"\n          (∀ (N : ℕ),\n            MedenPlausible.NamedBinder \"hN\"\n              (0 < N →\n                MedenPlausible.NamedBinder \"a\"\n                  (∀ {a : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                    MedenPlausible.NamedBinder \"b\"\n                      (∀ {b : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                        MedenPlausible.NamedBinder \"h\" (↑N • a = ↑N • b → a = b)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        }
+      ],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    },
+    {
+      "project": "ethlib",
+      "stage": "cached",
+      "input_mode": "frozen",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": true,
+      "preparation_ms": 2965.601864,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc",
+        "search_id": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9",
+        "rendering_id": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "9e85bdd7fa9cb492a7286bd30d15ba64f83f1bdb3d8435b1a74e6f53f4e6bc35",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    },
+    {
+      "project": "riemann",
+      "stage": "restarted",
+      "input_mode": "lake",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": true,
+      "preparation_ms": 12264.693139,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa",
+        "search_id": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb",
+        "rendering_id": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "f4dae65076bd8bd3f822c98edafe11da412841880b40c28620c0eaf7d152fc92",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"N\"\n          (∀ (N : ℕ),\n            MedenPlausible.NamedBinder \"hN\"\n              (0 < N →\n                MedenPlausible.NamedBinder \"a\"\n                  (∀ {a : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                    MedenPlausible.NamedBinder \"b\"\n                      (∀ {b : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                        MedenPlausible.NamedBinder \"h\" (↑N • a = ↑N • b → a = b)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        }
+      ],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    },
+    {
+      "project": "ethlib",
+      "stage": "restarted",
+      "input_mode": "frozen",
+      "execution_resources_absent_from_graph": true,
+      "original_frozen_module_descriptor_unchanged": true,
+      "semantic_workers": [],
+      "native_ring_evicted": 0,
+      "explicit_file_inspections": 1,
+      "binary_sha256": "356a9f1dc03294ff4bad6b703c5b262d530abe63022628677979afdc428b2ad2",
+      "cache_hit": true,
+      "preparation_ms": 3243.3814429999998,
+      "chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc",
+        "search_id": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9",
+        "rendering_id": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "9e85bdd7fa9cb492a7286bd30d15ba64f83f1bdb3d8435b1a74e6f53f4e6bc35",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "source_changes": [],
+      "exact_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "exact_original_physical_inputs_raw_graph_and_renderer": true,
+      "new_compiler_search_rendering_chain_bound_once": true,
+      "original_artifacts_retained": true,
+      "history_candidates_unchanged": true,
+      "map_and_graph_cameras_preserved": true,
+      "node_selection_original_source_line": true,
+      "quiet_chat": true,
+      "original_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "no_job_or_preview_request": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false,
+      "scope": "Actual deployed public UI fidelity. Preparation time is a functional observation, not an old/new performance comparison."
+    }
+  ],
+  "remaining": "Full current-input Lake query and fingerprint waits remain; native heterogeneous preparation selection, broader role/identity audit, browser stalls and retirement remain open. Saved display is not completed preparation or current evidence."
+}

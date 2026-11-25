@@ -57,6 +57,31 @@ pub(super) fn prepare(
         .source_preparation
         .begin(path, "Resolving modules")?;
     super::lock(view).sources.forget_file(path);
+    if publish {
+        if let Ok(Some(saved)) = crate::adapters::lean::saved::load(
+            &crate::adapters::Context {
+                workspace,
+                control,
+                observer: None,
+            },
+            &[path.into()],
+        ) {
+            let _ = control.with_active(|| {
+                let mut view = super::lock(view);
+                view.source_preparation
+                    .update(
+                        &original,
+                        preparation::millis(started),
+                        "Checking saved analysis",
+                        0,
+                        None,
+                    )
+                    .map_err(std::io::Error::other)?;
+                view.sources.publish_saved(saved);
+                Ok(())
+            });
+        }
+    }
     let result = crate::adapters::lean::pipeline::extract_cached(
         workspace,
         control,
@@ -85,6 +110,7 @@ pub(super) fn prepare(
             if let Err(error) = completion {
                 let mut view = super::lock(view);
                 if publish {
+                    view.sources.discard_saved(path);
                     view.sources.clear_current();
                 }
                 view.source_preparation.finish(
@@ -97,6 +123,7 @@ pub(super) fn prepare(
         Err(error) => {
             let mut view = super::lock(view);
             if publish {
+                view.sources.discard_saved(path);
                 view.sources.clear_current();
             }
             view.source_preparation.finish(

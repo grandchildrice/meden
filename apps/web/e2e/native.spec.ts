@@ -1925,6 +1925,306 @@ test.describe("native GUI with real offline workers", () => {
     }
   });
 
+  for (const motion of ["reduce", "no-preference"] as const) {
+    test(`saved graph appears before input validation (${motion}) and retires after failure`, async ({
+      page,
+    }, info) => {
+      test.setTimeout(300000);
+      await page.emulateMedia({ reducedMotion: motion });
+      await writeFile(
+        resolve(project, "lakefile.toml"),
+        'name = "saved"\n[[lean_lib]]\nname = "Entry"\nroots = ["Entry", "Base"]\n',
+      );
+      const original = "import Base\ntheorem target : base = 1 := by rfl\n";
+      await writeFile(resolve(project, "Entry.lean"), original);
+      await writeFile(resolve(project, "Base.lean"), "def base : Nat := 1\n");
+      const build = await promisify(execFile)(
+        process.env.MEDEN_BIN || resolve("target/debug/meden"),
+        [
+          "lake",
+          "--workspace",
+          project,
+          "--lean",
+          process.env.MEDEN_ATLAS_LEAN ||
+            resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
+          "--timeout",
+          "120",
+          "--",
+          "build",
+          "+Entry",
+        ],
+        { timeout: 180000 },
+      );
+      expect(JSON.parse(build.stdout).success, build.stderr).toBe(true);
+      const environment = { MEDEN_ATLAS_BACKEND: "lake" };
+      const ready = async (path: string) => {
+        await expect
+          .poll(
+            async () => {
+              const state = await nativeState(page);
+              return (
+                !state.running &&
+                state.source_preparation[path]?.outcome.state === "ready"
+              );
+            },
+            { timeout: 120000 },
+          )
+          .toBe(true);
+        return nativeState(page);
+      };
+      const open = () =>
+        page
+          .getByRole("button", { name: "File: Entry.lean", exact: true })
+          .click();
+      const file = page.locator(".ide-file-page:not([hidden])");
+      const graph = file.locator(".native-source-graph .cone-graph");
+      const publication = async (revision: string) =>
+        page.evaluate(async (revision) => {
+          const response = await fetch(
+            "/api/source?revision=" + encodeURIComponent(revision),
+            {
+              headers: {
+                Authorization:
+                  "Bearer " + sessionStorage.getItem("meden-native-session"),
+              },
+            },
+          );
+          return { status: response.status, body: await response.json() };
+        }, revision);
+      await page.goto(await start(0, environment));
+      await open();
+      const first = await ready("Entry.lean");
+      const originalView = await nativeSource(page, first);
+      expect(
+        originalView.graph.declarations.some((d: any) => d.id === "target"),
+      ).toBe(true);
+      await expect(graph).toBeVisible();
+      await stop();
+      const gate = await verificationGate(root, "prepared");
+      try {
+        await page.goto(
+          await start(0, { ...environment, ...gate.environment }),
+        );
+        const clicked = performance.now();
+        await open();
+        await expect(file.getByLabel("File contents")).toContainText(
+          "theorem target",
+          { timeout: 5000 },
+        );
+        // Observe actual declaration visibility independently of the held query.
+        // The retired implementation must fail this graph condition after its
+        // successful cold preparation, not at a prerequisite.
+        const [, firstGraphMs] = await Promise.all([
+          expect.poll(gate.started, { timeout: 15000 }).toBe("started"),
+          expect(
+            graph.locator('.react-flow__node[data-id="target"] button').first(),
+          )
+            .toBeVisible({ timeout: 5000 })
+            .then(async () => {
+              await graph.evaluate(async () => {
+                for (let i = 0; i < 2; i++)
+                  await new Promise(requestAnimationFrame);
+              });
+              return performance.now() - clicked;
+            }),
+        ]);
+        const saved = await nativeState(page);
+        expect(saved.source_preparation["Entry.lean"].outcome.state).toBe(
+          "preparing",
+        );
+        expect(saved.sources.current).toBeNull();
+        expect(saved.authorized).toBe(false);
+        const reference = saved.sources.files["Entry.lean"].revision;
+        expect((await publication(reference)).body.data).toEqual(originalView);
+        const chat = page.getByRole("complementary", {
+          name: "Workspace chat",
+          exact: true,
+        });
+        const chatBefore = await chat.innerHTML();
+        const commands: unknown[] = [];
+        page.on("request", (r) => {
+          if (r.url().endsWith("/api/command")) commands.push(r.postDataJSON());
+        });
+        await graph
+          .locator('.react-flow__node[data-id="target"] button')
+          .first()
+          .click();
+        await expect(
+          file.locator('[aria-current="location"] .editor-line-number'),
+        ).toHaveText("2:");
+        await expect(
+          file.getByText("Checking saved analysis", { exact: true }),
+        ).toBeVisible();
+        await expect(
+          file.getByLabel("Requirement to compare", { exact: true }),
+        ).toBeHidden();
+        const box = await graph.boundingBox();
+        await page.mouse.move(
+          box!.x + box!.width / 2,
+          box!.y + box!.height / 2,
+        );
+        await page.mouse.wheel(0, -120);
+        await page.waitForTimeout(300);
+        const camera = await graph
+          .locator(".react-flow__viewport")
+          .getAttribute("style");
+        await graph.evaluate((e) => {
+          (window as any).__savedGraph = e;
+        });
+        expect(commands).toHaveLength(0);
+        expect(await chat.innerHTML()).toBe(chatBefore);
+        expect(
+          await hostCommand(page, {
+            type: "analyze_meaning",
+            input: {
+              source_revision: originalView.revision,
+              graph_revision: originalView.graph.revision,
+              target: { file: "Entry.lean", line: 2, name: "target" },
+              requirement: "Preserve the original target.",
+            },
+          }),
+        ).toBe(409);
+        expect(requests).toHaveLength(0);
+        await page.screenshot({
+          path: info.outputPath("saved-graph-before-validation.png"),
+        });
+        await gate.release();
+        const completed = await ready("Entry.lean");
+        expect(
+          completed.source_preparation["Entry.lean"].outcome.cache_hit,
+        ).toBe(true);
+        expect(completed.sources.current.revision).toBe(reference);
+        expect(await nativeSource(page, completed)).toEqual(originalView);
+        expect(
+          await graph.evaluate((e) => e === (window as any).__savedGraph),
+        ).toBe(true);
+        expect(
+          await graph.locator(".react-flow__viewport").getAttribute("style"),
+        ).toBe(camera);
+        await expect(
+          file.getByLabel("Requirement to compare", { exact: true }),
+        ).toBeVisible();
+        expect(await chat.innerHTML()).toBe(chatBefore);
+        const metrics = await page.evaluate(async () =>
+          (
+            await fetch("/api/metrics", {
+              headers: {
+                Authorization:
+                  "Bearer " + sessionStorage.getItem("meden-native-session"),
+              },
+            })
+          ).json(),
+        );
+        const names = metrics.records.map((r: any) => r.name);
+        expect(names).toContain("atlas.project.query");
+        expect(names).toContain("atlas.project.fingerprint");
+        for (const name of [
+          "atlas.compile",
+          "atlas.project.extract",
+          "atlas.search",
+          "analysis.render",
+        ])
+          expect(names).not.toContain(name);
+        await info.attach("saved-view-ordering-and-timings", {
+          body: JSON.stringify(
+            {
+              first_graph_ms: firstGraphMs,
+              motion,
+              metrics,
+              scope:
+                "Complete saved source/graph before a held actual offline Lake query; original input validation subsequently runs. No skipped freshness, new evidence or model request.",
+            },
+            null,
+            2,
+          ),
+          contentType: "application/json",
+        });
+        await stop();
+        await gate.arm();
+        await page.goto(
+          await start(0, { ...environment, ...gate.environment }),
+        );
+        await open();
+        await expect.poll(gate.started, { timeout: 15000 }).toBe("started");
+        await expect(graph).toBeVisible({ timeout: 5000 });
+        const failing = await nativeState(page);
+        const failingReference = failing.sources.files["Entry.lean"].revision;
+        // Deliberate concurrent dependency fault after saved bytes are visible.
+        // Entry stays unchanged; no off-screen configuration rescue follows.
+        await writeFile(resolve(project, "Base.lean"), "def base : Nat := 2\n");
+        await gate.release();
+        await expect
+          .poll(
+            async () =>
+              (await nativeState(page)).source_preparation["Entry.lean"]
+                ?.outcome.state,
+            { timeout: 120000 },
+          )
+          .toBe("failed");
+        await expect
+          .poll(async () => (await nativeState(page)).running)
+          .toBe(false);
+        const failed = await nativeState(page);
+        expect(failed.sources.current).toBeNull();
+        expect(failed.sources.files["Entry.lean"]).toBeUndefined();
+        expect((await publication(failingReference)).status).toBe(409);
+        await expect(graph).toHaveCount(0);
+        await expect(file.getByLabel("File contents")).toContainText(
+          "theorem target",
+        );
+        await expect(file.getByRole("alert")).toContainText("stopped");
+        await page.screenshot({
+          path: info.outputPath("saved-graph-retired-after-failure.png"),
+        });
+        const failedJob = failed.source_preparation["Entry.lean"].job;
+        await file
+          .getByRole("button", { name: "Retry preparation", exact: true })
+          .click();
+        await expect
+          .poll(
+            async () => {
+              const state = await nativeState(page),
+                p = state.source_preparation["Entry.lean"];
+              return (
+                !state.running &&
+                p?.job !== failedJob &&
+                p?.outcome.state === "failed"
+              );
+            },
+            { timeout: 120000 },
+          )
+          .toBe(true);
+        await page
+          .getByRole("button", { name: "File: Base.lean", exact: true })
+          .click();
+        const recovered = await ready("Base.lean");
+        await expect(graph).toBeVisible();
+        expect(
+          (await nativeSource(page, recovered)).graph.declarations.some(
+            (d: any) => d.id === "base",
+          ),
+        ).toBe(true);
+        expect(recovered.authorized).toBe(false);
+        expect(requests).toHaveLength(0);
+        expect(await readFile(resolve(project, "Entry.lean"), "utf8")).toBe(
+          original,
+        );
+        await stop();
+        await page.goto(await start(0, environment));
+        await page
+          .getByRole("button", { name: "File: Base.lean", exact: true })
+          .click();
+        expect(
+          (await ready("Base.lean")).source_preparation["Base.lean"].outcome
+            .cache_hit,
+        ).toBe(true);
+        expect(requests).toHaveLength(0);
+      } finally {
+        await gate.release();
+      }
+    });
+  }
+
   test("open file tabs restore source, graph camera and explanations without another inspection", async ({
     page,
   }) => {
@@ -6003,6 +6303,16 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       exact: true,
     });
     await expect(compiled).toBeVisible({ timeout: 120000 });
+    // Saved graph visibility precedes backend eligibility during revalidation.
+    await expect
+      .poll(
+        async () => {
+          const state = await nativeState(page);
+          return !state.running && Boolean(state.sources.current);
+        },
+        { timeout: 120000 },
+      )
+      .toBe(true);
     expect(
       (await nativeSource(page)).files["Networking/Multistream.lean"],
     ).toBe(largeSource);

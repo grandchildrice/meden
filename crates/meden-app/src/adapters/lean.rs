@@ -4,6 +4,7 @@ mod compiler;
 pub(super) mod definition;
 pub mod pipeline;
 pub mod repair;
+pub mod saved;
 pub mod search;
 pub mod semantic;
 pub(crate) mod snapshot;

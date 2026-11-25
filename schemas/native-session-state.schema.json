@@ -653,7 +653,7 @@
       "type": "object",
       "properties": {
         "current": {
-          "description": "Most recently published observation; absent while an explicit read fails.",
+          "description": "Latest prepared backend observation; saved-only views do not set this.",
           "anyOf": [
             {
               "$ref": "#/$defs/ArtifactRef3"

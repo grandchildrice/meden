@@ -26,7 +26,7 @@ pub struct Note {
 }
 
 impl Store {
-    fn searched(
+    pub(super) fn searched(
         &self,
         original: &Observation,
         definition: &meden_runtime::plugin::Descriptor,
@@ -148,7 +148,7 @@ impl Store {
             snapshot: Arc::new(artifact.snapshot),
         })
     }
-    fn rendered(
+    pub(super) fn rendered(
         &self,
         id: &Id<Compilation>,
         snapshot: &Snapshot,
@@ -215,7 +215,10 @@ impl Store {
 }
 
 impl Artifact {
-    fn check_compiler(&self, compiler: &meden_runtime::plugin::Descriptor) -> Result<()> {
+    pub(super) fn check_compiler(
+        &self,
+        compiler: &meden_runtime::plugin::Descriptor,
+    ) -> Result<()> {
         anyhow::ensure!(
             compiler.role() == meden_runtime::plugin::Role::Compiler
                 && self.compiler == serde_json::to_value(compiler)?,
@@ -223,7 +226,7 @@ impl Artifact {
         );
         Ok(())
     }
-    fn check(&self) -> Result<()> {
+    pub(super) fn check(&self) -> Result<()> {
         let snapshot = &self.snapshot;
         let collection = snapshot
             .collection()
@@ -285,7 +288,7 @@ impl Rendering {
     }
 }
 
-fn scope(
+pub(super) fn scope(
     paths: &[String],
     prepared: bool,
     compiler: &meden_runtime::plugin::Descriptor,

@@ -1081,3 +1081,12 @@ still require completion.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).
+
+The [saved-view latency boundary](../performance/saved-graph-display.md)
+separates a complete immutable presentation from a prepared backend observation.
+The shared retention owner can serve saved graph bytes without retaining any
+backend input for assessment. Native Lean composition validates the original
+saved chain and selected source, then runs the unchanged current-input pipeline
+before promotion. Failure retires saved aliases; successful identical promotion
+preserves the actual graph and camera. This advances the visible-wait exit;
+full native freshness work, heterogeneous preparation and retirement remain open.

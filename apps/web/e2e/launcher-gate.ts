@@ -41,12 +41,12 @@ async function publicTool(name: string) {
 const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
 
 /** Trusted host launcher fixture, outside the writable project. Only the fixed
- * Z3 or recorded-work Lake build dispatch is held. Release executes Bubblewrap with unchanged
+ * Z3, recorded-work build or prepared-Lake query dispatch is held. Release executes Bubblewrap with unchanged
  * arguments; no checker result, wrapper solver or unconfined fallback exists.
  */
 export async function verificationGate(
   root: string,
-  kind: "z3" | "recorded" = "z3",
+  kind: "z3" | "recorded" | "prepared" = "z3",
 ) {
   const bash = await publicTool("bash"),
     sleep = await publicTool("sleep");
@@ -63,7 +63,7 @@ export async function verificationGate(
     `#!${bash}
 set -eu
 hold=false
-${kind === "z3" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then hold=true; fi' : 'previous=""; for argument in "$@"; do if [[ "$previous" == "/analysis/library/project.sh" && "$argument" == "build" ]]; then hold=true; fi; previous="$argument"; done'}
+${kind === "z3" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then hold=true; fi' : kind === "recorded" ? 'previous=""; for argument in "$@"; do if [[ "$previous" == "/analysis/library/project.sh" && "$argument" == "build" ]]; then hold=true; fi; previous="$argument"; done' : 'for argument in "$@"; do if [[ "$argument" == "/analysis/library/project-atlas-query.sh" ]]; then hold=true; fi; done'}
 if $hold; then
   printf started > ${quote(started)}
   while [[ ! -e ${quote(release)} ]]; do ${quote(sleep)} 0.02; done
@@ -76,6 +76,10 @@ exec ${quote(bwrap)} "$@"
     environment: { MEDEN_BWRAP: launcher },
     started: () => readFile(started, "utf8").catch(() => ""),
     reset: () => rm(started, { force: true }),
+    arm: async () => {
+      await rm(started, { force: true });
+      await rm(release, { force: true });
+    },
     release: () => writeFile(release, "release"),
   };
 }

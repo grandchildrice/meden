@@ -4,6 +4,7 @@ use super::{
     publication::{ArtifactId, ArtifactRef},
     PreparedSource,
 };
+use crate::analysis::sources::Snapshot as Original;
 use schemars::JsonSchema;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -21,17 +22,62 @@ pub const MAX_BYTES: usize = 134_217_728;
 #[derive(Default, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Index {
-    /// Most recently published observation; absent while an explicit read fails.
+    /// Latest prepared backend observation; saved-only views do not set this.
     pub current: Option<ArtifactRef<Artifact>>,
     /// Exact retained artifact for each observed path.
     pub files: BTreeMap<String, ArtifactRef<Artifact>>,
+}
+
+/// Complete saved presentation without a backend input for model use.
+/// Current dependency freshness remains a separate preparation operation.
+/// ```compile_fail,E0599
+/// fn input(saved:&meden_app::view::sources::SavedSource) { let _ = saved.snapshot(); }
+/// ```
+pub struct SavedSource {
+    original: Original,
+    publication: super::publication::Publication<Artifact>,
+}
+impl SavedSource {
+    /// Freeze only complete presentation and original source bytes; drop the
+    /// backend execution/assessment context when its caller releases it.
+    pub fn new<O: super::Projection>(snapshot: &O) -> anyhow::Result<Self> {
+        let page = super::SourcePage::from_snapshot(snapshot)?;
+        Ok(Self {
+            original: snapshot.sources().clone(),
+            publication: super::publication::Publication::new(&page)?,
+        })
+    }
+}
+enum Retained<O> {
+    Saved(SavedSource),
+    Prepared(PreparedSource<O>),
+}
+impl<O: super::Projection> Retained<O> {
+    fn original(&self) -> &Original {
+        match self {
+            Self::Saved(s) => &s.original,
+            Self::Prepared(s) => s.sources(),
+        }
+    }
+    fn publication(&self) -> &super::publication::Publication<Artifact> {
+        match self {
+            Self::Saved(s) => &s.publication,
+            Self::Prepared(s) => s.publication(),
+        }
+    }
+    fn prepared(&self) -> Option<&PreparedSource<O>> {
+        match self {
+            Self::Prepared(s) => Some(s),
+            Self::Saved(_) => None,
+        }
+    }
 }
 
 /// Sole owner of retained originals, publication identities and eviction order.
 pub struct Sources<O> {
     current: Option<ArtifactId<Artifact>>,
     files: BTreeMap<String, ArtifactId<Artifact>>,
-    artifacts: BTreeMap<ArtifactId<Artifact>, PreparedSource<O>>,
+    artifacts: BTreeMap<ArtifactId<Artifact>, Retained<O>>,
     order: VecDeque<ArtifactId<Artifact>>,
     bytes: usize,
 }
@@ -49,14 +95,38 @@ impl<O> Default for Sources<O> {
 impl<O: super::Projection> Sources<O> {
     /// Inspect the latest original observation for explicit analysis only.
     pub fn current(&self) -> Option<&PreparedSource<O>> {
-        self.current.as_ref().and_then(|id| self.artifacts.get(id))
+        self.current
+            .as_ref()
+            .and_then(|id| self.artifacts.get(id))
+            .and_then(Retained::prepared)
     }
     /// Original retained inputs associated with one file, not a browser value.
     pub fn file(&self, path: &str) -> Option<&PreparedSource<O>> {
-        self.files.get(path).and_then(|id| self.artifacts.get(id))
+        self.files
+            .get(path)
+            .and_then(|id| self.artifacts.get(id))
+            .and_then(Retained::prepared)
     }
     /// Publish complete validated data, then evict oldest artifacts by bounds.
     pub fn publish(&mut self, source: PreparedSource<O>) {
+        self.retain(Retained::Prepared(source));
+    }
+    /// Publish complete saved bytes for viewing, without exposing backend inputs.
+    pub fn publish_saved(&mut self, source: SavedSource) {
+        self.retain(Retained::Saved(source));
+    }
+    /// A failed freshness operation retires every alias of its saved observation.
+    pub fn discard_saved(&mut self, path: &str) {
+        if let Some(id) = self
+            .files
+            .get(path)
+            .filter(|id| matches!(self.artifacts.get(*id), Some(Retained::Saved(_))))
+            .cloned()
+        {
+            self.remove(&id);
+        }
+    }
+    fn retain(&mut self, source: Retained<O>) {
         let id = source.publication().reference().revision.clone();
         if let Some(old) = self.artifacts.remove(&id) {
             self.bytes = self.bytes.saturating_sub(old.publication().size());
@@ -64,10 +134,14 @@ impl<O: super::Projection> Sources<O> {
         self.order.retain(|old| old != &id);
         // Retention is at most 128 MiB before one <=64 MiB insertion.
         self.bytes = self.bytes.saturating_add(source.publication().size());
-        for path in source.sources().files.keys() {
+        for path in source.original().files.keys() {
             self.files.insert(path.clone(), id.clone());
         }
-        self.current = Some(id.clone());
+        if source.prepared().is_some() {
+            self.current = Some(id.clone());
+        } else if self.current.as_ref() == Some(&id) {
+            self.current = None;
+        }
         self.order.push_back(id.clone());
         self.artifacts.insert(id, source);
         self.prune();
@@ -103,7 +177,7 @@ impl<O: super::Projection> Sources<O> {
             .artifacts
             .iter()
             .filter_map(|(id, source)| {
-                let original = source.sources().files.get(&observation.path)?;
+                let original = source.original().files.get(&observation.path)?;
                 (!revision.is_some_and(|r| {
                     r == format!("sha256:{:x}", Sha256::digest(original.as_bytes()))
                 }))
@@ -315,6 +389,124 @@ mod tests {
         }
         assert!(sources.bytes(first.as_ref().context("first")?).is_none());
         assert!(sources.bytes <= MAX_BYTES && sources.current().is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn saved_views_drop_backend_inputs_and_promote_only_through_complete_preparation() -> Result<()>
+    {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        struct Backend {
+            source: crate::analysis::sources::Snapshot,
+            dropped: Arc<AtomicUsize>,
+        }
+        impl crate::analysis::sources::Source for Backend {
+            fn sources(&self) -> &crate::analysis::sources::Snapshot {
+                &self.source
+            }
+        }
+        impl crate::view::Projection for Backend {
+            fn page(&self) -> Result<crate::view::SourcePage> {
+                crate::view::Projection::page(&self.source)
+            }
+        }
+        impl Drop for Backend {
+            fn drop(&mut self) {
+                self.dropped.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+        let original = original(&[("A.lean", "def a := 1\n"), ("B.lean", "def b := 2\n")])?;
+        let dropped = Arc::new(AtomicUsize::new(0));
+        let saved = {
+            let backend = Backend {
+                source: original.source.clone(),
+                dropped: Arc::clone(&dropped),
+            };
+            SavedSource::new(&backend)?
+        };
+        assert_eq!(dropped.load(Ordering::SeqCst), 1);
+        let mut sources = Sources::<Snapshot>::default();
+        sources.publish_saved(saved);
+        let id = sources
+            .index()
+            .files
+            .get("A.lean")
+            .context("saved reference")?
+            .revision
+            .clone();
+        let bytes = sources.bytes(&id).context("saved bytes")?;
+        assert!(
+            sources.current().is_none()
+                && sources.file("A.lean").is_none()
+                && sources.file("B.lean").is_none()
+        );
+        assert!(sources.index().current.is_none());
+        sources.publish(PreparedSource::new(original.clone())?);
+        assert_eq!(sources.index().current.context("prepared")?.revision, id);
+        assert_eq!(&*sources.bytes(&id).context("same bytes")?, &*bytes);
+        assert!(sources.file("A.lean").is_some() && sources.file("B.lean").is_some());
+        sources.publish_saved(SavedSource::new(&original)?);
+        assert!(sources.current().is_none() && sources.file("A.lean").is_none());
+        Ok(())
+    }
+    #[test]
+    fn failed_or_changed_saved_views_retire_all_aliases_without_discarding_other_tabs() -> Result<()>
+    {
+        let mut sources = Sources::<Snapshot>::default();
+        sources.publish(PreparedSource::new(original(&[(
+            "Other.lean",
+            "def o := 1\n",
+        )])?)?);
+        let cached = original(&[("A.lean", "def a := 1\n"), ("B.lean", "def b := 2\n")])?;
+        sources.publish_saved(SavedSource::new(&cached)?);
+        let id = sources
+            .index()
+            .files
+            .get("A.lean")
+            .context("saved")?
+            .revision
+            .clone();
+        sources.discard_saved("A.lean");
+        assert!(!sources.index().files.contains_key("B.lean") && sources.bytes(&id).is_none());
+        assert!(sources.file("Other.lean").is_some());
+        sources.publish_saved(SavedSource::new(&cached)?);
+        assert_eq!(
+            sources.observe(&observation("B.lean", "def b := 3\n")?),
+            vec!["A.lean", "B.lean"]
+        );
+        assert!(sources.bytes(&id).is_none() && sources.file("Other.lean").is_some());
+        sources.publish(PreparedSource::new(cached)?);
+        sources.discard_saved("A.lean");
+        assert!(sources.file("A.lean").is_some());
+        Ok(())
+    }
+    #[test]
+    fn saved_and_prepared_views_share_the_same_bounded_eviction_owner() -> Result<()> {
+        let mut sources = Sources::<Snapshot>::default();
+        let mut ids = Vec::new();
+        for n in 0..80 {
+            let path = format!("F{n}.lean");
+            let raw = original(&[(&path, "def a := 1\n")])?;
+            if n % 2 == 0 {
+                sources.publish_saved(SavedSource::new(&raw)?);
+            } else {
+                sources.publish(PreparedSource::new(raw)?);
+            }
+            ids.push(
+                sources
+                    .index()
+                    .files
+                    .get(&path)
+                    .context("reference")?
+                    .revision
+                    .clone(),
+            );
+        }
+        assert_eq!(sources.artifacts.len(), MAX_ARTIFACTS);
+        for (i, id) in ids.iter().enumerate() {
+            assert_eq!(sources.bytes(id).is_some(), i >= 16);
+        }
+        assert!(sources.bytes <= MAX_BYTES);
         Ok(())
     }
     proptest! {

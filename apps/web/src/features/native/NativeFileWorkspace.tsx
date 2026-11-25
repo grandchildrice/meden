@@ -222,6 +222,7 @@ function FileWorkspace({
   };
   const preparing =
     !unavailable && !sourceOnly && preparation?.outcome.state === "preparing";
+  const saved = preparing && Boolean(snapshot?.compiled);
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
@@ -246,7 +247,7 @@ function FileWorkspace({
             line={selectedHere?.line ?? selection?.line}
             running={running}
             onCommand={onCommand}
-            explanations={preparing ? [] : explanations}
+            explanations={preparing && !saved ? [] : explanations}
             hoveredLine={
               hovered?.source?.file === path ? hovered.source.line : undefined
             }
@@ -284,7 +285,7 @@ function FileWorkspace({
           </Alert>
         )}
         {analysesLoading && <p role="status">Loading saved analyses…</p>}
-        {preparing ? (
+        {preparing && !saved ? (
           <NativePreparation
             preparation={preparation}
             {...logProps}
@@ -303,6 +304,17 @@ function FileWorkspace({
           </p>
         ) : (
           <>
+            {saved && (
+              <details className="preparation-history">
+                <summary>Checking saved analysis</summary>
+                <NativePreparation
+                  preparation={preparation}
+                  {...logProps}
+                  path={path}
+                  onCancel={() => void onCommand({ type: "cancel" })}
+                />
+              </details>
+            )}
             {preparation?.outcome.state === "failed" && (
               <Alert severity="warning">
                 <p>{preparation.phase} stopped.</p>
