@@ -1,5 +1,7 @@
 # Graph interaction measurements
 
+The [current deployed event audit](performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
+
 The [ordered sibling index](performance/map-sibling-bounds.md) reduces hidden-file
 query work with unchanged world coordinates and pixels. Riemann's actual-data
 query matrix improves by about 90%; two browser captures per version reduce total

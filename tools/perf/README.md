@@ -1,5 +1,7 @@
 # Local profiling and regression workloads
 
+The [current deployed event audit](../../docs/performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
+
 The [ordered sibling index](../../docs/performance/map-sibling-bounds.md) keeps
 closed intersections and original order while pruning dense off-screen branches.
 Its 100,000-file/six-camera gate compares nine interleaved pairs with the retired
