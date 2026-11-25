@@ -231,12 +231,11 @@ fn capture(
     paths.sort();
     lock(view).overview.total = paths.len();
     let inventory_only = paths.len() > 10_000;
-    let mut files = if inventory_only {
+    let files = if inventory_only {
         inventory_files(view, workspace, control, &paths, started, fresh)?
     } else {
         source_files(view, workspace, control, &paths, started)?
     };
-    apply_annotations(workspace, control, &mut files);
     let generation = if inventory_only {
         cache::generation(workspace)?
     } else {

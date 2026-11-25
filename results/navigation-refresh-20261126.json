@@ -1,0 +1,483 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "3eeab4e",
+  "change": "Delete the inventory collector annotation pass. Keep one full validated load after entry preparation and before map publication; per-file indexing remains independently validated. No cache or retained validation success added.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 350954,
+      "sha256": "d67c22ab9ce541f14bf7622cfa2643bcdf0f0e48ce0018d21ff7915814b30b9e"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 22422,
+      "sha256": "82124ceb3cf9596b80cd43a43fa4c670543f7efc96c2b43654f4a813f7ffa2ca"
+    }
+  ],
+  "fixture": {
+    "scope": "Real native restart, actual offline Lean/Plausible/Informath observations and unchanged browser assets. One diagnostic run per binary, not end-to-end or field-percentile evidence.",
+    "original": [
+      {
+        "name": "navigation.annotations.load",
+        "wall_us": 266416,
+        "thread_cpu_us": 224891
+      },
+      {
+        "name": "navigation.annotations.overlay",
+        "wall_us": 19,
+        "thread_cpu_us": 19
+      },
+      {
+        "name": "navigation.annotations",
+        "wall_us": 266452,
+        "thread_cpu_us": 224924
+      },
+      {
+        "name": "navigation.annotations.load",
+        "wall_us": 274205,
+        "thread_cpu_us": 232640
+      },
+      {
+        "name": "navigation.annotations.overlay",
+        "wall_us": 19,
+        "thread_cpu_us": 18
+      },
+      {
+        "name": "navigation.annotations",
+        "wall_us": 274241,
+        "thread_cpu_us": 232675
+      }
+    ],
+    "candidate": [
+      {
+        "name": "navigation.annotations.load",
+        "wall_us": 274743,
+        "thread_cpu_us": 232842
+      },
+      {
+        "name": "navigation.annotations.overlay",
+        "wall_us": 17,
+        "thread_cpu_us": 17
+      },
+      {
+        "name": "navigation.annotations",
+        "wall_us": 274780,
+        "thread_cpu_us": 232876
+      }
+    ],
+    "load_totals": {
+      "original_wall_us": 540621,
+      "candidate_wall_us": 274743,
+      "original_thread_cpu_us": 457531,
+      "candidate_thread_cpu_us": 232842
+    },
+    "negative_control": {
+      "stats": {
+        "total": 1,
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "reason": "Original native executable reaches original prepared explanation/source checks and fails only the expected-one/observed-two annotation-load budget."
+    }
+  },
+  "validation": {
+    "phase": "complete",
+    "candidate": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/c5aaad0bb30cba0ac52523438f59d5b6c655b45087c64da7a3b9f06262f1fe69/meden",
+      "sha256": "c5aaad0bb30cba0ac52523438f59d5b6c655b45087c64da7a3b9f06262f1fe69"
+    },
+    "gates": [
+      {
+        "phase": "control",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "phase": "gui-new",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustfmt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-existing",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "cli_unit": 50,
+    "cli_integration": 27,
+    "clippy": "Final CLI all-targets/all-features -D warnings passed",
+    "tui": 37,
+    "decoded_tui_journeys": 9,
+    "browser": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "existing_browser": {
+      "total": 2,
+      "expected": 2,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "frontend_runtime_changed": false,
+    "scope": "Scripted-provider and actual installed-tool public journeys, not live-model/cold-install validation."
+  },
+  "deployed": {
+    "binary_sha256": "c5aaad0bb30cba0ac52523438f59d5b6c655b45087c64da7a3b9f06262f1fe69",
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "assets": 88,
+    "projects": [
+      {
+        "project": "riemann",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 67856,
+            "thread_cpu_us": 67651
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 6,
+            "thread_cpu_us": 6
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 69138,
+            "thread_cpu_us": 68926
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 63577,
+            "thread_cpu_us": 63273
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 3,
+            "thread_cpu_us": 3
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 63592,
+            "thread_cpu_us": 63287
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      },
+      {
+        "project": "ethlib",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 636124,
+            "thread_cpu_us": 270005
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 431,
+            "thread_cpu_us": 428
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 636958,
+            "thread_cpu_us": 270835
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 701052,
+            "thread_cpu_us": 254582
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 27,
+            "thread_cpu_us": 27
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 701102,
+            "thread_cpu_us": 254630
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      }
+    ],
+    "comparison": [
+      {
+        "project": "riemann",
+        "original_loads": 3,
+        "candidate_loads": 2,
+        "scope": "Startup plus original selected-file indexing. Complete original source, reader, inventory, navigation and evidence payloads agree; compilation cache reused and history/candidates unchanged. Single-workload diagnostic observations, not a controlled project-wide speed comparison."
+      },
+      {
+        "project": "ethlib",
+        "original_loads": 3,
+        "candidate_loads": 2,
+        "scope": "Startup plus original selected-file indexing. Complete original source, reader, inventory, navigation and evidence payloads agree; compilation cache reused and history/candidates unchanged. Single-workload diagnostic observations, not a controlled project-wide speed comparison."
+      }
+    ]
+  },
+  "boundaries": "No core, application/compiler/renderer/search implementation, schema, browser runtime or dependency change. Final annotation failure leaves lexical navigation; it cannot retain the removed earlier successful prefix. Existing complete-input and resource checks remain. Neither cache/display observations nor this work admit proof evidence or restore model approval. No new refinement, atomic filesystem, live-model, cold-install or confidentiality claim.",
+  "remaining": "Complete generic layout/source collection, observation-revision correspondence, native input-validation waits, first-exposure rendering and retirement under the original five-step plan.",
+  "artifacts": [
+    {
+      "path": "/tmp/meden-navigation-once-state.json",
+      "bytes": 725,
+      "sha256": "13f8f921418e351dc7e4b605fbf36af3e80b5dd79224fe4e62fae1b591eba14b"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-reviewed-validation.json",
+      "bytes": 1783,
+      "sha256": "a11a582e942b6e20d791266e9e8243bf52eedda287c7d9ee3d9be7eb4cbf1569"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-control-report.json",
+      "bytes": 1359,
+      "sha256": "997c83b5a4215371d95cc4f131e2040e439f4aca4da6d302092716748d7fdc31"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-new-browser.json",
+      "bytes": 906,
+      "sha256": "b6d7ad67ace9d697cd6d916c03706187159c596af4b5bfdad48ca51dd76485e5"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-existing-browser.json",
+      "bytes": 36246,
+      "sha256": "ae704919a18252fca219902274c488a6b8101cd0e0b3276f272e2364c5a2980e"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-decoded-screens.json",
+      "bytes": 5424,
+      "sha256": "b3190984eb44347fbf38e66dd8ca0bcd6cbf5d399997ecdfa345bde9ce7a76c5"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-decoded-screens.txt",
+      "bytes": 42909,
+      "sha256": "98b16661b5eaed5d4fa6b0319fe3f00857e404019a3e8e0934e63a18e108baac"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-deployed-fidelity.json",
+      "bytes": 4143,
+      "sha256": "05d2c32d1ae0a797abf7108d342079105c6ecfb3e4f5aeb75b1de8d095b34c83"
+    },
+    {
+      "path": "/tmp/meden-navigation-deployed-fidelity.json",
+      "bytes": 4857,
+      "sha256": "fe59fe160e439871a9108a27851c279e9444e3976f8a5112e8af977686363384"
+    },
+    {
+      "path": "/tmp/meden-ux-navigation-once-20261126/summary.json",
+      "bytes": 10728,
+      "sha256": "191e2506761f37c3949ce23b547c7fd1171080c742f6d33153f8a99ca5d045c2"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-control.log",
+      "bytes": 5009,
+      "sha256": "1f97ee6aab73412475787dad69ed2b29989790bae5994030688fe17512eaa77b"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-gui-new.log",
+      "bytes": 2419,
+      "sha256": "35d5e64d20111c550ed3882633c08f6d8bcc6067cc93dbb4d3072203362df2d9"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-cli.log",
+      "bytes": 8278,
+      "sha256": "ba35de4008108b8cfbcb59c69bcf20eb76e4bd81399e634a2676b9323263ead2"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-clippy.log",
+      "bytes": 388,
+      "sha256": "e5b181d19176eb681897f88faa42a0deff64ee5e4fef960370b158e2ccd8fd1f"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-architecture.log",
+      "bytes": 11462,
+      "sha256": "c01a1d0f56fa22f5bb5716f103569fe74bb17145eaffa160d78a7689118d6a3e"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-tui.log",
+      "bytes": 191,
+      "sha256": "64e8d12dcec2d2df7cf4142831a5c7c3cc6a9f6ec8ba63ede9eb0922b6cb0d44"
+    },
+    {
+      "path": "/tmp/meden-navigation-once-gui-existing.log",
+      "bytes": 2675,
+      "sha256": "e97a07ebdfe2f49079f4024e97faf3770b4245eb303d9e745c9e86d147282bac"
+    }
+  ]
+}

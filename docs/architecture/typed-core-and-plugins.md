@@ -1136,3 +1136,11 @@ changing the former duplicate/ordering behavior; load and overlay have separate
 bounded native spans. Compiler-captured code and wire shapes stay unchanged.
 This advances step 4's navigation ownership, not the remaining generic layout,
 source collection, first-exposure rendering, freshness or retirement exits.
+
+[Refresh now loads annotations once](../performance/navigation-refresh.md), after
+entry preparation and before publication. The collector's earlier annotation
+pass is deleted; per-file indexing keeps its own validated read. The old actual
+binary fails the new one-load native budget after matching the original prepared
+explanation; the candidate preserves source-change/failure/restart outcomes.
+This removes measured repeated work without a retained validation success or a
+new cache, and does not complete the remaining migration exits.

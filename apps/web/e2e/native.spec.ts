@@ -5683,6 +5683,13 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       body: JSON.stringify(annotationSpans),
       contentType: "application/json",
     });
+    // Capture and publication share one complete annotation load. Keep the
+    // original input/resource validation immediately before publication.
+    expect(
+      annotationSpans.filter(
+        (s: any) => s.name === "navigation.annotations.load",
+      ),
+    ).toHaveLength(1);
     const beforeRefresh = (await nativeState(page)).overview.revision;
 
     await writeFile(
