@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [mixed camera-motion regression](performance/camera-motion.md) now exercises
+ordinary wheel and pinch-equivalent input while crossing compiled graph nodes.
+Both motion modes retain the viewport and pointer anchor; an armed hover-remount
+fault is rejected. Numeric SVG batch parsing is also rejected after a slower
+measured construction result. This slice changes no runtime or deployment.
+
 The [saved project-map startup](performance/saved-project-map.md) shows retained
 navigation before normal discovery completes. Actual first-scene/frame proxies
 fall from 17.1 to 2.6 seconds in EthLib and 7.4 to 3.2 seconds in Riemann. Complete

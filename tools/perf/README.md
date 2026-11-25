@@ -1,5 +1,10 @@
 # Local profiling and regression workloads
 
+The [camera-motion record](../../docs/performance/camera-motion.md) combines
+actual mixed pointer/wheel input, a rejected hover-remount fault and an isolated
+SVG construction comparison. Fewer JavaScript writes did not improve construction
+time: numeric batch parsing is rejected and the original runtime remains.
+
 The [saved project-map record](../../docs/performance/saved-project-map.md)
 separates first displayed navigation from complete native refresh. It retains
 baseline/prototype/final startup observations, exact original inventory digests,

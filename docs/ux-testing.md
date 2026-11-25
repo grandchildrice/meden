@@ -272,7 +272,13 @@ invalidation. These are presentation checks, not new verification authority.
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded
-source line keeps its page. Replacing a prepared graph must retain a selected
+source line keeps its page. In both motion settings, interleave ordinary and
+Control-wheel input with actual root-node/background pointer crossings on a
+compiled graph. Require one retained viewport, no shrinking zoom frame, bounded
+pointer-anchor error and a complete trace. A hover-remount fault must reach this
+probe after real preparation/selection and fail its camera assertion, rather than
+an earlier setup condition. See [the motion record](performance/camera-motion.md).
+Replacing a prepared graph must retain a selected
 declaration with the same original file, line and name, independently of camera
 focus or saved analysis. The meaning-history restart journey replaces the actual
 source and graph after selection with a corrupt saved analysis, retains the

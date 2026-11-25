@@ -33,6 +33,7 @@ import {
   previewPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { verificationGate } from "./launcher-gate";
+import { zoomAcrossNode } from "./graph-motion";
 import {
   installMapPaintObserver,
   measureMapGeometry,
@@ -2493,7 +2494,7 @@ test.describe("native GUI with real offline workers", () => {
 
   test("open file tabs restore source, graph camera and explanations without another inspection", async ({
     page,
-  }) => {
+  }, info) => {
     test.setTimeout(180000);
     await writeFile(
       resolve(project, "Alpha.lean"),
@@ -2614,6 +2615,12 @@ test.describe("native GUI with real offline workers", () => {
       .poll(() => graph.locator(".react-flow__viewport").getAttribute("style"))
       .toContain("scale");
     await page.waitForTimeout(300);
+    await zoomAcrossNode(
+      page,
+      graph,
+      graph.locator(".root-node > button"),
+      info,
+    );
     const camera = await graph
       .locator(".react-flow__viewport")
       .getAttribute("style");
