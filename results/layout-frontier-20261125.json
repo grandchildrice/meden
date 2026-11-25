@@ -1,0 +1,1395 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "e9cef51405c35a0f7213e57e0d75b2809e15890f",
+  "scope": "Bounded configuration-frontier reads with private prefetched values and original frozen-evaluation namespaces. Original full content/freshness/resource checks remain. The real controlled source-selection comparison excludes project compilation, search, rendering and inference.",
+  "sources": [
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "bytes": 18981,
+      "sha256": "36cf3ec749c1bd5dc2ad3aacc79cac5af3faeaa58c03cb26f3fbe2ebf69d707f"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "bytes": 16980,
+      "sha256": "56384e0d4ab3a4b127d098de48e803c140e70c90c1f2f08efeb34944a36007a0"
+    },
+    {
+      "path": "crates/meden-app/examples/profile-source-selection.rs",
+      "bytes": 4196,
+      "sha256": "913e932746e6b675600cea1e51ac5260f4e6930dea292a6cc6d762edfde1a8e8"
+    }
+  ],
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2/meden",
+    "sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2"
+  },
+  "diagnostic": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27/profile-source-selection",
+    "sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27"
+  },
+  "kernel_runtime_cli_model_refinement_and_all_88_assets_unchanged": true,
+  "native_schemas_unchanged": true,
+  "new_dependencies": [],
+  "comparison": {
+    "scope": "Actual original DictGen.lean selection through the fixed confined file worker. Private hard-link mirror; original bytes remain shared, no project-file writes or bypassed lease. Project/OS/frozen-evaluation caches retained; no concurrent build/test/sampler. Resource preparation and result hashing outside selection intervals.",
+    "selected": [
+      "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean"
+    ],
+    "fixed_worker_sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2",
+    "baseline_diagnostic": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8/profile-source-selection",
+      "sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8"
+    },
+    "candidate_diagnostic": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27/profile-source-selection",
+      "sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27"
+    },
+    "complete_selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+    "canonical_bytes": 31655,
+    "source_files": 1,
+    "packages": 10,
+    "configuration_observations": 12,
+    "configuration_bytes": 17894,
+    "groups": {
+      "baseline": {
+        "samples": 4,
+        "median_ms": 1483.5354615,
+        "min_ms": 1420.804209,
+        "max_ms": 1572.022394,
+        "worker_starts": 27
+      },
+      "candidate": {
+        "samples": 4,
+        "median_ms": 1138.817387,
+        "min_ms": 1100.436613,
+        "max_ms": 1151.800733,
+        "worker_starts": 16
+      }
+    },
+    "median_reduction_percent": 23.236254437184545,
+    "order": [
+      "warmup-baseline",
+      "warmup-candidate",
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    "samples": [
+      {
+        "i": 0,
+        "role": "warmup-baseline",
+        "binary_sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8",
+        "sample": 0,
+        "elapsed_ms": 1415.011474,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 27,
+        "layout_ms": 1361.05,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-0-warmup-baseline.json"
+      },
+      {
+        "i": 1,
+        "role": "warmup-candidate",
+        "binary_sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27",
+        "sample": 0,
+        "elapsed_ms": 1135.7262859999998,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 16,
+        "layout_ms": 1081.752,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-1-warmup-candidate.json"
+      },
+      {
+        "i": 2,
+        "role": "baseline",
+        "binary_sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8",
+        "sample": 0,
+        "elapsed_ms": 1540.169961,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 27,
+        "layout_ms": 1497.094,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-2-baseline.json"
+      },
+      {
+        "i": 3,
+        "role": "candidate",
+        "binary_sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27",
+        "sample": 0,
+        "elapsed_ms": 1142.994867,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 16,
+        "layout_ms": 1099.517,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-3-candidate.json"
+      },
+      {
+        "i": 4,
+        "role": "candidate",
+        "binary_sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27",
+        "sample": 0,
+        "elapsed_ms": 1151.800733,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 16,
+        "layout_ms": 1108.333,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-4-candidate.json"
+      },
+      {
+        "i": 5,
+        "role": "baseline",
+        "binary_sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8",
+        "sample": 0,
+        "elapsed_ms": 1426.900962,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 27,
+        "layout_ms": 1383.694,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-5-baseline.json"
+      },
+      {
+        "i": 6,
+        "role": "baseline",
+        "binary_sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8",
+        "sample": 0,
+        "elapsed_ms": 1420.804209,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 27,
+        "layout_ms": 1377.78,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-6-baseline.json"
+      },
+      {
+        "i": 7,
+        "role": "candidate",
+        "binary_sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27",
+        "sample": 0,
+        "elapsed_ms": 1100.436613,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 16,
+        "layout_ms": 1056.872,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-7-candidate.json"
+      },
+      {
+        "i": 8,
+        "role": "candidate",
+        "binary_sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27",
+        "sample": 0,
+        "elapsed_ms": 1134.639907,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 16,
+        "layout_ms": 1080.547,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-8-candidate.json"
+      },
+      {
+        "i": 9,
+        "role": "baseline",
+        "binary_sha256": "661a987cab27a41d5acdae0f6f72f5ddb9735b0c6f6eea9794ceb7414e08acc8",
+        "sample": 0,
+        "elapsed_ms": 1572.022394,
+        "selection_sha256": "sha256:bbc24bc8dd0608ac82761e0c2f84519bd3cd4cbe0091a3f9f867a4dcff0f5094",
+        "canonical_bytes": 31655,
+        "source_files": 1,
+        "packages": 10,
+        "configuration_observations": 12,
+        "configuration_bytes": 17894,
+        "process_invocations": 27,
+        "layout_ms": 1528.847,
+        "configuration_resolutions": 12,
+        "configuration_reuses": 12,
+        "raw": "/tmp/meden-layout-frontier-final-comparison-9-baseline.json"
+      }
+    ],
+    "raw": [
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-0-warmup-baseline.json",
+        "bytes": 24710,
+        "sha256": "cd7c1fb9597b77e192c2ad9aa12ab86b412fae678e2ffd0878510b25ecfa8ef1"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-1-warmup-candidate.json",
+        "bytes": 24668,
+        "sha256": "17f59be8cb15f93317198a1f7d47d735879bda3371efdc74bb8947a0be3dbf1d"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-2-baseline.json",
+        "bytes": 24713,
+        "sha256": "ba128bcb1ba944444223ddb18c2938bd4027f0a19e030a8ffbed6bb4b5b71eba"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-3-candidate.json",
+        "bytes": 24659,
+        "sha256": "9d54fd4ec6b1415c5366e9452f8b14aa10051b5fb15ab32270a95df7df312122"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-4-candidate.json",
+        "bytes": 24665,
+        "sha256": "a8bd01316d59a68327dadb0c4f440c106aa2d532b212a5a27437434353b3ed50"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-5-baseline.json",
+        "bytes": 24699,
+        "sha256": "8215092c537535b4e839fe8697794b1e063df1d719b02985f671bc8fdc1aeac8"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-6-baseline.json",
+        "bytes": 24699,
+        "sha256": "8177d42bd4a454b719e093605d00f6da41729d242b9fe0b3360483731ffcc88f"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-7-candidate.json",
+        "bytes": 24657,
+        "sha256": "7d17956ac47534d39a1a9316e511102d4ebbd2987d61fcc8bb56d14020ccf958"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-8-candidate.json",
+        "bytes": 24661,
+        "sha256": "0f74b2fa4918183fd3db5fe3e73e9a08ad457f757198a861a51ae87fee3340ae"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison-9-baseline.json",
+        "bytes": 24712,
+        "sha256": "0fd424d0dec700d82230bffd8586cd158c637bb93de553c39d92089f156d5807"
+      }
+    ],
+    "mirror_retirement": {
+      "removed_private_hardlink_tree": "/home/gohan/workspace/meden/target/native-profile/layout-frontier-20261125/project",
+      "after_complete_controlled_comparison": true,
+      "before_new_host_preparation": true
+    },
+    "preliminary_comparison": {
+      "path": "/tmp/meden-layout-frontier-comparison.json",
+      "bytes": 5596,
+      "sha256": "5f77b6c500167b44ec8ebedc46fd08371cf024a390b5d69ba56a8ee32783d125"
+    }
+  },
+  "validation": {
+    "rust": {
+      "counts": [
+        {
+          "passed": 147,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 50,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 24,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 30,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "passed": 272
+    },
+    "architecture_checks": 40,
+    "installed_selection_and_lake_checks": 12,
+    "gates": {
+      "phase": "complete",
+      "candidate": {
+        "binary": "/home/gohan/workspace/meden/target/validation-bin/8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2/meden",
+        "sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2"
+      },
+      "profile": {
+        "binary": "/home/gohan/workspace/meden/target/validation-bin/9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27/profile-source-selection",
+        "sha256": "9aa8b76946197d275fa207ed045939c51c933603fe1c3fa8cb682e7ce7e2aa27"
+      },
+      "rows": [
+        {
+          "phase": "rust",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "clippy",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "architecture",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "schema",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "rust-format",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "format",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "python-lint",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "selection-and-lake",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "tui",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "phase": "gui",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "browser": {
+      "stats": {
+        "total": 76,
+        "expected": 76,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "startTime": 1795588201428,
+      "duration": 544234.676
+    },
+    "tui": {
+      "selected": 36,
+      "success": true,
+      "inference": "scripted fixtures; no live-model validation",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2/meden",
+        "sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2"
+      },
+      "summary": {
+        "path": "/tmp/meden-ux-layout-frontier-20261125/summary.json",
+        "bytes": 10414,
+        "sha256": "51fa2e5402de0bb81a6b5e83109d8c6e5b0285e5b5405169c283d2e5741de00e"
+      },
+      "decoded_screens": [
+        {
+          "label": "review",
+          "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+          "frames": 165,
+          "seconds": 0.293,
+          "columns": 120,
+          "rows": 30,
+          "screen_sha256": "68852895d53c5009a0a4d86863ab8fb2eeeb029a156b377c2010810a443e7fba",
+          "observed_lines": [
+            "          Allow Configured server to receive workspace context?",
+            "          │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │",
+            "           y: Allow for this session   n / esc: Back"
+          ]
+        },
+        {
+          "label": "judge",
+          "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+          "frames": 39,
+          "seconds": 1.032,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "1e81e97b85abaf7cdef002134a2d15bdee5fb7e8c25ef9475bdf24590f1de7c0",
+          "observed_lines": [
+            "               · Translator: translator-fixture · http://127.0.0.1:33359/v1/chat/completions",
+            "               · Judge: judge-fixture · http://127.0.0.1:33359/v1/chat/completions",
+            "               · Candidate Mismatch",
+            "               · Candidate Mismatch · candidate assessment, not proof"
+          ]
+        },
+        {
+          "label": "resume",
+          "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+          "frames": 43,
+          "seconds": 1.131,
+          "columns": 130,
+          "rows": 40,
+          "screen_sha256": "3b151eddf1ec3f31a968b667e32e1fde12f27d9d8f450fe270ec8785da83bc62",
+          "observed_lines": ["               ● TUI-CONTINUED"]
+        },
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 798,
+          "seconds": 74.251,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "4f0c7686b2ca9df9f80c90a3d49d4ee82871c5bf6e2817f764832580450ffbbb",
+          "observed_lines": [
+            "               · Stopped: Lake source inventory changed at src/lib/Store; reread the graph"
+          ],
+          "initial_guarded_selection": {
+            "seconds": 37.516,
+            "screen_sha256": "ada5fab9a08c2bb5205610f9f537b439cbb225b271ff0800171d36acef45832a",
+            "scope": "Actual initial public TUI graph after the selected Lean configuration rejects any premature future-sibling visibility."
+          }
+        },
+        {
+          "label": "repair",
+          "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "frames": 85,
+          "seconds": 5.472,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "cc6e7fcab5e9f91386265ae26837a86b0b4458ebf8a688da7afecda6819a69d1",
+          "observed_lines": ["               · Assistant: LEAN-MODEL-REPAIRED"]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 153,
+          "seconds": 1.53,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "7c52263a72a5ffd0c1c157faaad4b9a5b30468c93773217e7f2200415a17a0d3",
+          "observed_lines": [
+            "               · Portable work stopped: Lean check did not complete successfully; its output was retained in",
+            "               · Portable work stopped: offline Lean check failed / interrupted for gossip. Inspect the retained"
+          ]
+        },
+        {
+          "label": "plain-source",
+          "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+          "frames": 37,
+          "observations": [
+            {
+              "label": "Sources ready: 1 file",
+              "seconds": 0.434,
+              "screen_sha256": "ddfba0101436d12f53a6ce591358e0116cf99f0e163af7345a54e7af9ac79f8e",
+              "lines": [
+                "               · Sources ready: 1 file",
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Source observation failed for missing.smt2",
+              "seconds": 0.434,
+              "screen_sha256": "ddfba0101436d12f53a6ce591358e0116cf99f0e163af7345a54e7af9ac79f8e",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Source preparation stopped: Source observation failed for missing.smt2: No such file or directory",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "source must be UTF-8",
+              "seconds": 0.434,
+              "screen_sha256": "ddfba0101436d12f53a6ce591358e0116cf99f0e163af7345a54e7af9ac79f8e",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Source preparation stopped: source must be UTF-8: invalid utf-8 sequence of 1 bytes from index 0.",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Sources ready: 2 files",
+              "seconds": 0.434,
+              "screen_sha256": "ddfba0101436d12f53a6ce591358e0116cf99f0e163af7345a54e7af9ac79f8e",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Sources ready: 2 files",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Read the source graph first",
+              "seconds": 0.706,
+              "screen_sha256": "3e4f2ca214b4aac291ed5f57956c554fb976427b52f1222e2e5b4277dc1e9eae",
+              "lines": [
+                "               · Read the source graph first: /atlas FILE.lean or /sources FILE.rs",
+                "               · Revision: sha256:c8033febda3952edb4bb6ec3d0b1bab2f57310bd6a1bcfdeca29e6abc0df3add"
+              ]
+            },
+            {
+              "label": "Sources ready: 3 files",
+              "seconds": 0.706,
+              "screen_sha256": "3e4f2ca214b4aac291ed5f57956c554fb976427b52f1222e2e5b4277dc1e9eae",
+              "lines": [
+                "               · Sources ready: 3 files",
+                "               · Revision: sha256:c8033febda3952edb4bb6ec3d0b1bab2f57310bd6a1bcfdeca29e6abc0df3add"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "negative_controls": {
+      "retired_path": {
+        "expected_failure": "All independent full-selection checks pass, then 27 starts exceed the 16-start budget.",
+        "log": {
+          "path": "/tmp/meden-layout-frontier-retired-budget.log",
+          "bytes": 3317,
+          "sha256": "3ec6a1bb969113ae64c58805666a17a6bbfa68b9dce8e4514f195a0a42697a64"
+        }
+      },
+      "premature_namespace": {
+        "source": "/home/gohan/workspace/meden/target/layout-frontier-mutations/source-wqM9h6",
+        "binary": "/home/gohan/workspace/meden/target/validation-bin/9eb1d1eae5bf44173241dab9d3abd727e156cf88658810993bb2c4b7e58d2a08/meden",
+        "sha256": "9eb1d1eae5bf44173241dab9d3abd727e156cf88658810993bb2c4b7e58d2a08",
+        "mutation": "Prematurely publish prefetched configuration files into the frozen evaluator namespace.",
+        "expected_failure": "Actual Lean run_cmd rejects a visible future sibling before any source graph or model request.",
+        "log": {
+          "path": "/tmp/meden-layout-frontier-final-namespace-mutant-tui.log",
+          "bytes": 14192,
+          "sha256": "4859970514a9ebc43a0fcf35d2be3acbc43a5ddff409d5aa38a1125ab8a85786"
+        },
+        "build": {
+          "path": "/tmp/meden-layout-frontier-final-namespace-mutant-build.log",
+          "bytes": 962,
+          "sha256": "3def628c91a0e3d6d54f936b7bf7abc8ff79ad59d8e5ec5a36112bec06486a2d"
+        }
+      }
+    },
+    "logs": [
+      {
+        "path": "/tmp/meden-layout-frontier-gate-rust.log",
+        "bytes": 27926,
+        "sha256": "513eaff9dcb1862a561127669aff4fd28409bfebda1651c21f278616a6aa2219"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-clippy.log",
+        "bytes": 72,
+        "sha256": "2b34696728dc82b03cbf6311d7e3a6a41658bbde097834c3010a78bc82842c1a"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-architecture.log",
+        "bytes": 8568,
+        "sha256": "bca6a6fbd00e43355a19bde92f6f4b250c5e96ffa88d95cce465f03dc197195e"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-schema.log",
+        "bytes": 199,
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-rust-format.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-python-lint.log",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-selection-and-lake.log",
+        "bytes": 111,
+        "sha256": "d0dd2ae22ba008f7848d224adc9f5f475fcd2c601b4a6d78da38068a49938183"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-tui.log",
+        "bytes": 191,
+        "sha256": "5127ec8c90b8564a9065d2c197bd1a7465b1e4ab1dc8eae186ab43f51aaac8de"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-gate-gui.log",
+        "bytes": 15825,
+        "sha256": "b4b9710c94506834315394bca286eeaa2f62eb7ab2f85cdadd548cc471cfe137"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-comparison.log",
+        "bytes": 684,
+        "sha256": "756daf8f47a27a69e0239c676d9df82bc3567dd7576fb14cd5af53bf7eb43355"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-screen-review.log",
+        "bytes": 12037,
+        "sha256": "62aba907af321f404595b5b777982ae77e19c4f4a369261ad8b7a09944c8238a"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-source-screen.log",
+        "bytes": 11558,
+        "sha256": "8810f8f58e8d0feb64dd689c64915ea1a567676969ec31d8f298e2d9a8cb3754"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-final-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-deploy.log",
+        "bytes": 192,
+        "sha256": "b5143151ff3c843a432d45dde418ad7af604e8c342e55cf7adde038788f3cba4"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-restart.log",
+        "bytes": 109,
+        "sha256": "f63a1356b909e3fd7421b221282137a72eb2f7c349df5b3263e3c426c14a0215"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-updated-riemann.log",
+        "bytes": 132,
+        "sha256": "e9e4ad301e548018bc7b658c1dcdf0183e346ff50ba648a970a84057ef8aac64"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-updated-ethlib.log",
+        "bytes": 130,
+        "sha256": "02dbeb7d86b04683c9d1a8b3d977fff439ef92cf8dbc135361db3e73ad1a2432"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-cached-riemann.log",
+        "bytes": 129,
+        "sha256": "e8c0aa8c3b85a633c7fe8eff07be9d9298338b5a2f3829949bfac118df172596"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-cached-ethlib.log",
+        "bytes": 134,
+        "sha256": "31fb813cbb6b06364c70df1f8f16d4f7086dfc81b1202773d441c434f7ca8f08"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-restarted-riemann.log",
+        "bytes": 132,
+        "sha256": "0e57f3ce446669b6ad823fa5330322543b4aad826c385a30660ee429908b41f4"
+      },
+      {
+        "path": "/tmp/meden-layout-frontier-restarted-ethlib.log",
+        "bytes": 137,
+        "sha256": "aacd486a043e4377e0449e295476197dbd14d6d7bd3cb33e525405b7066f5251"
+      }
+    ],
+    "construction_diagnostics": [
+      {
+        "path": "/tmp/meden-layout-frontier-clippy.log",
+        "bytes": 882,
+        "sha256": "cf5bd5343b3bfd4bc534b4bc08ca389128bc8ab7ce8ab8bf8eeb2fef628e968c"
+      }
+    ],
+    "reviewed_browser_screens": [
+      {
+        "path": "target/gui-layout-frontier-output/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png",
+        "sha256": "9fb97288f6ca30394790b5bebfd030a574193e574f5c07dba3676abad38f5575",
+        "scope": "Actual prepared Lake source and graph after restart, with unapproved quiet chat."
+      },
+      {
+        "path": "target/gui-layout-frontier-output/native-native-GUI-with-rea-98e8c-n-isolated-Lean-environment/metadata-update-reused-original-artifacts.png",
+        "sha256": "09bc9a7fa36413a0fd5939d43c998f602f368abc089612bb249cbb4f3e61662e",
+        "scope": "Original source after helper-only update. The graph is still loading in this screenshot; it is not graph-ready evidence."
+      },
+      {
+        "path": "target/native-profile/layout-frontier-20261125/riemann-restarted-deployed.png",
+        "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274",
+        "scope": "Actual deployed graph and original highlighted source after host restart; full cached/restarted UI checks pass with quiet retained chat."
+      },
+      {
+        "path": "target/native-profile/layout-frontier-20261125/ethlib-restarted-deployed.png",
+        "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846",
+        "scope": "Actual deployed graph and original highlighted source after host restart; full cached/restarted UI checks pass with quiet retained chat."
+      }
+    ]
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "original_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3",
+        "search_id": "784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07",
+        "rendering_id": "da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "45192857de74faf6d95af224642cc4cabd84cd391ca349404209528947ff11e0",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "new_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28",
+        "search_id": "e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8",
+        "rendering_id": "713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "1a5fcee24ed192dda1d0421e3473a81f3d904e90ce1c6985ea24bec1232035f8",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "changed_checks": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.fmat_inv_mul",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"x\" (∀ (x : I.Gf), I.fmat x⁻¹ * I.fmat x = 1)))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        },
+        {
+          "id": "PIW.AdelClassFin.DictGen.fmat_mul_inv",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"x\" (∀ (x : I.Gf), I.fmat x * I.fmat x⁻¹ = 1)))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        },
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"N\"\n          (∀ (N : ℕ),\n            MedenPlausible.NamedBinder \"hN\"\n              (0 < N →\n                MedenPlausible.NamedBinder \"a\"\n                  (∀ {a : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                    MedenPlausible.NamedBinder \"b\"\n                      (∀ {b : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                        MedenPlausible.NamedBinder \"h\" (↑N • a = ↑N • b → a = b)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        },
+        {
+          "id": "PIW.AdelClassFin.mGen_of",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "The file's observation budget was reached; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "stage": "updated",
+          "preparation_ms": 200683.046292,
+          "cache_hit": false,
+          "semantic_workers": [
+            {
+              "context": {
+                "trace": 162,
+                "span": 489
+              },
+              "parent": 174,
+              "name": "atlas.project.extract",
+              "start_us": 32653561,
+              "wall_us": 28776046,
+              "thread_cpu_us": 115917
+            },
+            {
+              "context": {
+                "trace": 162,
+                "span": 916
+              },
+              "parent": 909,
+              "name": "atlas.search",
+              "start_us": 74595593,
+              "wall_us": 121231727,
+              "thread_cpu_us": 459951
+            },
+            {
+              "context": {
+                "trace": 162,
+                "span": 2041
+              },
+              "parent": 174,
+              "name": "analysis.render",
+              "start_us": 203374186,
+              "wall_us": 8459842,
+              "thread_cpu_us": 531428
+            }
+          ],
+          "changed_checks": 4,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-updated-riemann-fidelity.json",
+            "bytes": 8754,
+            "sha256": "9da8f53a1bf425220411994ddbf7e308e0f63192d085ddff46faaebc861ca126"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-updated-metrics.json",
+            "bytes": 489473,
+            "sha256": "ab4169f0d283d3dcab8793879dbaf08975468e1e045ac8c79d8bf2b15aacd509"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-updated-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        },
+        {
+          "stage": "cached",
+          "preparation_ms": 10984.950225,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "changed_checks": 4,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-cached-riemann-fidelity.json",
+            "bytes": 7296,
+            "sha256": "639b8062812728e84c22f2b83c7675e121ae10059d7d75d008890ebaaed06c7a"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-cached-metrics.json",
+            "bytes": 568831,
+            "sha256": "4a3227abacfe6d12288395681726ea90e59efc19aac5eded7f0cdd075dd05939"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-cached-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        },
+        {
+          "stage": "restarted",
+          "preparation_ms": 13281.084133,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "changed_checks": 4,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-restarted-riemann-fidelity.json",
+            "bytes": 8013,
+            "sha256": "7dd25775e7e39f9d364a2eace525c6ddb703c5e00992d55b9e8d7cf5e8cbee57"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-restarted-metrics.json",
+            "bytes": 109779,
+            "sha256": "0da072a7aa8eefd93719ecc629c989d97f79d25a0c2e32405d7fd43a20af9597"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/riemann-restarted-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        }
+      ]
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "original_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1",
+        "search_id": "bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff",
+        "rendering_id": "543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "dad2b26bf4209d73c57df82a5e4d3c5e1b2cc50603414d393cc2715367db3949",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "new_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9",
+        "search_id": "f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37",
+        "rendering_id": "bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "08b49f45adccd23677922413440fae0112851a3bfe7ba6c54f5daaee6818802c",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "changed_checks": [],
+      "stages": [
+        {
+          "stage": "updated",
+          "preparation_ms": 49345.320599,
+          "cache_hit": false,
+          "semantic_workers": [
+            {
+              "context": {
+                "trace": 386,
+                "span": 626
+              },
+              "parent": 398,
+              "name": "atlas.compile",
+              "start_us": 26308654,
+              "wall_us": 721717,
+              "thread_cpu_us": 34992
+            },
+            {
+              "context": {
+                "trace": 386,
+                "span": 766
+              },
+              "parent": 755,
+              "name": "atlas.search",
+              "start_us": 35228498,
+              "wall_us": 18701567,
+              "thread_cpu_us": 96079
+            },
+            {
+              "context": {
+                "trace": 386,
+                "span": 997
+              },
+              "parent": 398,
+              "name": "analysis.render",
+              "start_us": 54520722,
+              "wall_us": 14342990,
+              "thread_cpu_us": 843951
+            }
+          ],
+          "changed_checks": 0,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-updated-ethlib-fidelity.json",
+            "bytes": 4936,
+            "sha256": "c84b7d09f138e0de6b9f95287f406f76c5e8de56244dcab116cc1c93bafdbc71"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-updated-metrics.json",
+            "bytes": 294246,
+            "sha256": "9db85581f518b0746025a4ce63e64b451c0c30fe898345663f0cebfc249a8c05"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-updated-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        },
+        {
+          "stage": "cached",
+          "preparation_ms": 1950.7007089999997,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "changed_checks": 0,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-cached-ethlib-fidelity.json",
+            "bytes": 3805,
+            "sha256": "ff87c3b054cf53ea14fccb1a1ff7a86d7296d6c2a8211e03fd98ee55c862829f"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-cached-metrics.json",
+            "bytes": 347274,
+            "sha256": "8a215b77c3378e36cc576e1ae76a4f237ed5653a653fd5c18c187d3f6a508679"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-cached-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        },
+        {
+          "stage": "restarted",
+          "preparation_ms": 2240.0340490000003,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "changed_checks": 0,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-layout-frontier-restarted-ethlib-fidelity.json",
+            "bytes": 4216,
+            "sha256": "5669ac944051843dd2f04e8773a3fed54e9baf3c2fd30f5a00c9ef82c981ff66"
+          },
+          "capture": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-restarted-metrics.json",
+            "bytes": 121124,
+            "sha256": "5fd32d95dcbaf7db9f366fca2fdb51c3c1dddb32d682ee1022101d118fdc702c"
+          },
+          "screenshot": {
+            "path": "target/native-profile/layout-frontier-20261125/ethlib-restarted-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        }
+      ]
+    }
+  ],
+  "deployment": {
+    "binary_sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2",
+    "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+    "files": 88,
+    "actual_host_restart": true,
+    "final_fidelity": [
+      {
+        "project": "riemann",
+        "binary_sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2",
+        "exact_complete_restarted_views": true,
+        "exact_new_cache_chain": true,
+        "original_history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false,
+        "records": [
+          {
+            "name": "source",
+            "bytes": 69201,
+            "sha256": "dbcc056be91144097690f886723b561e321787873c53fb0d39021e00d18b6df6"
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017593,
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "bytes": 13853,
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "binary_sha256": "8516b9d2311a00a40fd355bbbd50950010d384ef5f048cfa5dd1dc4dfa7c6fd2",
+        "exact_complete_restarted_views": true,
+        "exact_new_cache_chain": true,
+        "original_history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false,
+        "records": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "ffcc058398e5db3c0dd3de2efef212f50876664734ed6fc3f9f92d87f43b34d4"
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "bytes": 7308199,
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "bytes": 1516,
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "This measured selection-stage improvement is not an end-to-end browser or full-input fingerprint speedup. Existing installed resources and OS/project caches remain.",
+    "The original worker/policy/pinned-path and complete-result checks are reused; this is no new Lean refinement or proof of atomic filesystem origin, arbitrary project I/O or full session execution.",
+    "Actual compiler definitions change with their selected implementation. First semantic observations are produced anew; no old compiler result is relabeled. Search/renderer methods stay original but new artifacts bind the new compiler parent.",
+    "Wall-budgeted fresh search observations can differ and are retained exactly, without proof/evidence admission.",
+    "No cold installation, paid/live-model quality, local/large-model deployment or outbound-confidentiality claim.",
+    "Generic semantic/search/cache orchestration, full-input waits and the complete retirement audit remain open."
+  ]
+}

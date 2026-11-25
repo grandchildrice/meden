@@ -31,6 +31,7 @@ pub(super) struct Reader<'a> {
     workspace: &'a Workspace,
     control: &'a Control,
     directories: BTreeMap<String, Vec<Entry>>,
+    pending_files: BTreeMap<String, Option<String>>,
     pub metadata: Metadata,
 }
 impl<'a> Reader<'a> {
@@ -39,6 +40,7 @@ impl<'a> Reader<'a> {
             workspace,
             control,
             directories: BTreeMap::new(),
+            pending_files: BTreeMap::new(),
             metadata: Metadata::default(),
         }
     }
@@ -167,7 +169,13 @@ impl<'a> Reader<'a> {
                 "Noncanonical Lake metadata path"
             );
         }
-        self.prefetch_directories(expected)?;
+        self.prefetch_directories(
+            expected
+                .files
+                .keys()
+                .map(|path| parent_directory(path))
+                .chain(expected.directories.keys().map(String::as_str)),
+        )?;
         self.check_files(expected)?;
         for (directory, entries) in &expected.directories {
             self.glob_entries(directory)?;
@@ -178,13 +186,8 @@ impl<'a> Reader<'a> {
         }
         Ok(())
     }
-    fn prefetch_directories(&mut self, expected: &Metadata) -> Result<()> {
-        let needed = expected
-            .files
-            .keys()
-            .map(|path| path.rsplit_once('/').map_or("", |(parent, _)| parent))
-            .chain(expected.directories.keys().map(String::as_str))
-            .collect::<BTreeSet<_>>();
+    fn prefetch_directories<'p>(&mut self, paths: impl Iterator<Item = &'p str>) -> Result<()> {
+        let needed = paths.collect::<BTreeSet<_>>();
         loop {
             let frontier = needed
                 .iter()
@@ -242,6 +245,67 @@ impl<'a> Reader<'a> {
         }
         Ok(())
     }
+    /// Observe a bounded set of upcoming configuration files together. Keep the
+    /// results private until the original read order admits each file into the
+    /// frozen evaluator's inputs. The caller still revalidates complete metadata.
+    pub fn prefetch_configurations(&mut self, paths: &[String]) -> Result<()> {
+        let paths = paths
+            .iter()
+            .map(|path| relative("", path))
+            .collect::<Result<BTreeSet<_>>>()?;
+        anyhow::ensure!(
+            paths.len() <= 4096,
+            "Lake configuration observations exceed bounds"
+        );
+        self.prefetch_directories(paths.iter().map(|path| parent_directory(path)))?;
+        let mut next = BTreeMap::new();
+        let mut present = Vec::new();
+        for path in &paths {
+            if self.pending_files.contains_key(path) {
+                continue;
+            }
+            if self.exists(path)? {
+                present.push(path.as_str());
+            } else {
+                next.insert(path.clone(), None);
+            }
+        }
+        for paths in present.chunks(256) {
+            let payload = Args::from_iter([
+                ("max_bytes".into(), 65_536.into()),
+                ("encoding".into(), "base64".into()),
+            ]);
+            let values = self.batch(Operation::Snapshot, paths, &payload)?;
+            for (path, value) in paths.iter().zip(values) {
+                next.insert((*path).to_owned(), Some(decode_snapshot(&value, 65_536)?));
+            }
+        }
+        let anticipated = self
+            .metadata
+            .files
+            .iter()
+            .filter(|(path, _)| {
+                !self.pending_files.contains_key(*path) && !next.contains_key(*path)
+            })
+            .chain(
+                self.pending_files
+                    .iter()
+                    .filter(|(path, _)| !next.contains_key(*path)),
+            )
+            .chain(next.iter());
+        let (count, bytes) = anticipated.fold((0usize, 0usize), |(count, bytes), (_, value)| {
+            (
+                count.saturating_add(1),
+                bytes.saturating_add(value.as_ref().map_or(0, String::len)),
+            )
+        });
+        anyhow::ensure!(
+            count <= 4096 && bytes <= 1_048_576,
+            "Lake configuration observations exceed bounds"
+        );
+        self.pending_files.extend(next);
+        Ok(())
+    }
     pub fn entries(&mut self, directory: &str) -> Result<Vec<Entry>> {
         if let Some(entries) = self.directories.get(directory) {
             return Ok(entries.clone());
@@ -294,7 +358,10 @@ impl<'a> Reader<'a> {
     }
     pub fn read(&mut self, path: &str, retain: bool) -> Result<Option<String>> {
         let path = relative("", path)?;
-        let value = if self.exists(&path)? {
+        let prefetched = retain.then(|| self.pending_files.remove(&path)).flatten();
+        let value = if let Some(value) = prefetched {
+            value
+        } else if self.exists(&path)? {
             let limit: usize = if retain { 65_536 } else { 1_048_576 };
             let payload = Args::from_iter([
                 ("max_bytes".into(), limit.into()),
@@ -322,6 +389,9 @@ impl<'a> Reader<'a> {
         );
         Ok(value)
     }
+}
+fn parent_directory(path: &str) -> &str {
+    path.rsplit_once('/').map_or("", |(parent, _)| parent)
 }
 fn parse_entries(value: serde_json::Value) -> Result<Vec<Entry>> {
     let entries: Vec<Entry> = serde_json::from_value(value)?;

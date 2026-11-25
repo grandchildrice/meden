@@ -1026,6 +1026,14 @@ Local TUI source/preparation tasks no longer depend on model-worker approval;
 their failure/recovery/restart journey uses actual offline file reads.
 This advances steps 3 and 4 without closing the remaining waits or retirement
 audit in step 5.
+The [configuration-frontier comparison](../performance/layout-frontier.md)
+reduces source-selection worker startup while preserving the original frozen
+file namespace for every evaluator invocation. Its private read buffer is
+separate from published metadata; all original content/freshness checks remain.
+The independent full-selection oracle, retired-path budget control and actual
+Lean namespace-fault refusal complement the public TUI failure/restart journey.
+This is measured progress on the native wait, not completion of generic
+orchestration, full-input hashing or the retirement audit.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

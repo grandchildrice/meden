@@ -20,6 +20,24 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
     original = make_project(root)
     config = root / "lakefile.lean"
     config.write_text(config.read_text() + "  globs := #[.andSubmodules `Store]\n")
+    # Later sibling configurations must stay absent from this package's frozen
+    # filesystem, even when their complete bytes have already been prefetched.
+    logic_config = root / "vendor/logic/lakefile.toml"
+    logic_config.unlink()
+    (root / "vendor/logic/lakefile.lean").write_text('''import Lake
+open Lake DSL
+run_cmd do
+  if ← System.FilePath.pathExists "/workspace/.lake/packages/cached/sub/config/lakefile.toml" then
+    throwError "A future sibling configuration became visible"
+package logic where
+  srcDir := "lean"
+require base from "../base"
+lean_lib Domain
+''')
+    manifest_path = root / "lake-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    next(p for p in manifest["packages"] if p["name"] == "logic")["configFile"] = "lakefile.lean"
+    manifest_path.write_text(json.dumps(manifest))
     requests = []
     hold_next = threading.Event()
     translating = threading.Event()
@@ -114,6 +132,7 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
     screens = {}
 
     def command(text, expected, count):
+        failures = terminal.view().count("Source preparation stopped:")
         terminal.paste(text)
         terminal.send("\r")
         if text.startswith("/atlas"):
@@ -130,6 +149,9 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
             ):
                 screens[text] = view
                 return
+            if ("shift+enter" in view
+                    and view.count("Source preparation stopped:") > failures):
+                raise AssertionError(view)
         raise AssertionError(terminal.view())
 
     def entries():

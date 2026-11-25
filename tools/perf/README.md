@@ -397,6 +397,34 @@ reasons. The [Riemann calibration](../../results/lake-preparation-calibration-20
 rejects a slower path-validation prototype rather than adopting a misleading
 standalone improvement. Production compilation and cache checks remain unchanged.
 
+## Isolate source and layout selection
+
+```sh
+cargo build -p meden-app --example profile-source-selection
+target/debug/examples/profile-source-selection /absolute/private-project \
+  /absolute/installed/meden '["src/Entry.lean"]' 3 > /tmp/source-selection.json
+```
+
+This diagnostic calls the shared source/root-selection service through the real
+policy-bound file worker and frozen offline Lake configuration evaluator. It
+retains complete canonical selection hashes, source/package/configuration
+counts, configuration byte counts and original native spans. The JSON excludes
+source/configuration contents. Preparation and result hashing are outside the
+selection intervals. There is no project-module build, graph extraction,
+counterexample search, inference or evidence admission. Existing project/OS and
+frozen-evaluation caches remain present; keep paths and failure diagnostics local.
+
+Use a private byte-identical mirror when the selected project is already open;
+the exclusive workspace lease is not bypassed. Compare fixed executables with
+the same original worker, resources and input paths, require complete hash
+equality, and interleave samples without concurrent builds/tests/sampling.
+`python/tests/test_source_selection.py` adds an independent complete-input
+oracle, unavailable-input checks and a deterministic worker-start budget.
+It builds the diagnostic example if needed; `MEDEN_SOURCE_SELECTION_PROFILE`
+can select a pinned diagnostic executable for an explicit negative comparison.
+This count budget is separate from timing and cold-install/model validation.
+See [the layout comparison](../../docs/performance/layout-frontier.md).
+
 ## Isolate portable history loading
 
 ```sh

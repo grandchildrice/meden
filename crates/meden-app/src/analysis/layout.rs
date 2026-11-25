@@ -119,9 +119,15 @@ impl Layout {
                 );
                 continue;
             }
-            for dep in &pkg.dependencies {
-                let (child, config) =
-                    dependency_location(&dir, &directory, &packages_directory, dep, &entries)?;
+            let children = pkg
+                .dependencies
+                .iter()
+                .map(|dep| {
+                    dependency_location(&dir, &directory, &packages_directory, dep, &entries)
+                })
+                .collect::<Result<Vec<_>>>()?;
+            prefetch_dependencies(reader, &children)?;
+            for (dep, (child, config)) in pkg.dependencies.iter().zip(children) {
                 let config = configuration(reader, &child, config.as_deref())?.with_context(|| {
                     let preparation = if dep.name == "mathlib" {
                         "For a Mathlib project, run `lake exe cache get` in the project directory before retrying."
@@ -292,11 +298,34 @@ impl Layout {
             .context("Missing module source")
     }
 }
+fn prefetch_dependencies(
+    reader: &mut Reader<'_>,
+    children: &[(String, Option<String>)],
+) -> Result<()> {
+    let upcoming = children
+        .iter()
+        .map(|(child, config)| configuration_paths(child, config.as_deref()))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .flatten()
+        .map(|(_, path)| path)
+        .collect::<Vec<_>>();
+    reader.prefetch_configurations(&upcoming)
+}
 fn configuration(
     reader: &mut Reader<'_>,
     directory: &str,
     explicit: Option<&str>,
 ) -> Result<Option<String>> {
+    let mut chosen = None;
+    for (name, path) in configuration_paths(directory, explicit)? {
+        if reader.read(&path, true)?.is_some() && chosen.is_none() {
+            chosen = Some(name);
+        }
+    }
+    Ok(chosen)
+}
+fn configuration_paths(directory: &str, explicit: Option<&str>) -> Result<Vec<(String, String)>> {
     let names = if let Some(explicit) = explicit {
         if Path::new(explicit).extension().is_some() {
             vec![explicit.to_owned()]
@@ -306,13 +335,13 @@ fn configuration(
     } else {
         vec!["lakefile.lean".into(), "lakefile.toml".into()]
     };
-    let mut chosen = None;
-    for name in names {
-        if reader.read(&relative(directory, &name)?, true)?.is_some() && chosen.is_none() {
-            chosen = Some(name);
-        }
-    }
-    Ok(chosen)
+    names
+        .into_iter()
+        .map(|name| {
+            let path = relative(directory, &name)?;
+            Ok((name, path))
+        })
+        .collect()
 }
 fn package_roots(directory: &str, package: &Package) -> Result<Vec<String>> {
     let src = relative(directory, &package.src_dir)?;
