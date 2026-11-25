@@ -5,12 +5,14 @@ use crate::analysis::sources::Snapshot;
 use crate::identity::snapshots::{GraphRevision, PreparedRevision, SourceRevision};
 use anyhow::{Context, Result};
 use meden_runtime::{process::Control, workspace::Workspace};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use sha2::Digest as _;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::PathBuf,
 };
+pub mod artifact;
+use artifact::{Compilation, Content, CounterexampleSearch, Id, MeaningRendering};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -31,17 +33,40 @@ pub struct Note {
 /// }
 /// ```
 pub struct Observation {
-    id: String,
-    compilation: String,
+    identity: Identity,
     reused: bool,
     snapshot: Snapshot,
+}
+enum Identity {
+    Compilation(Id<Compilation>),
+    Searched {
+        compilation: Id<Compilation>,
+        search: Id<CounterexampleSearch>,
+    },
 }
 impl Observation {
     pub fn reused(&self) -> bool {
         self.reused
     }
-    pub fn id(&self) -> &str {
-        &self.id
+    /// Original compiler parent, retained independently of search results.
+    pub fn compilation(&self) -> &Id<Compilation> {
+        match &self.identity {
+            Identity::Compilation(id) => id,
+            Identity::Searched { compilation, .. } => compilation,
+        }
+    }
+    /// Original search artifact, absent before a completed search observation.
+    pub fn search_id(&self) -> Option<&Id<CounterexampleSearch>> {
+        match &self.identity {
+            Identity::Compilation(_) => None,
+            Identity::Searched { search, .. } => Some(search),
+        }
+    }
+    fn unsearched(&self) -> Result<&Id<Compilation>> {
+        match &self.identity {
+            Identity::Compilation(id) => Ok(id),
+            Identity::Searched { .. } => anyhow::bail!("Search requires an original compilation"),
+        }
     }
     /// The exact retained compiler/search result, before renderer changes.
     pub fn snapshot(&self) -> &Snapshot {
@@ -60,16 +85,28 @@ struct Artifact {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Rendering {
-    observation: String,
+    observation: Id<Compilation>,
     renderer: serde_json::Value,
     readings: Vec<Reading>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Search {
-    observation: String,
+    observation: Id<Compilation>,
     searcher: serde_json::Value,
     report: crate::search::Report,
+}
+impl Content for Artifact {
+    type Domain = Compilation;
+    const DIRECTORY: &'static str = "observations";
+}
+impl Content for Rendering {
+    type Domain = MeaningRendering;
+    const DIRECTORY: &'static str = "renderings";
+}
+impl Content for Search {
+    type Domain = CounterexampleSearch;
+    const DIRECTORY: &'static str = "searches";
 }
 impl Store {
     fn searched(
@@ -77,16 +114,17 @@ impl Store {
         original: &Observation,
         definition: &meden_runtime::plugin::Descriptor,
     ) -> Result<Option<Observation>> {
+        let compilation = original.unsearched()?;
         let Some(id) = self
-            .index("searches")?
-            .get(&hash(&(&original.id, definition.identity()))?)
+            .index::<Search>()?
+            .get(&hash(&(compilation, definition.identity()))?)
             .cloned()
         else {
             return Ok(None);
         };
-        let search: Search = self.read("searches", &id)?;
+        let search = self.read::<Search>(&id)?;
         anyhow::ensure!(
-            search.observation == original.id
+            &search.observation == compilation
                 && search.searcher == serde_json::to_value(definition)?,
             "Search input binding changed"
         );
@@ -94,8 +132,10 @@ impl Store {
         bind_revision(&mut snapshot, &id)?;
         Ok(Some(Observation {
             reused: original.reused,
-            id,
-            compilation: original.compilation.clone(),
+            identity: Identity::Searched {
+                compilation: compilation.clone(),
+                search: id,
+            },
             snapshot,
         }))
     }
@@ -105,24 +145,26 @@ impl Store {
         definition: &meden_runtime::plugin::Descriptor,
         report: crate::search::Report,
     ) -> Result<Observation> {
+        let compilation = original.unsearched()?.clone();
         anyhow::ensure!(
             definition.role() == meden_runtime::plugin::Role::CounterexampleSearch,
             "Invalid search identity"
         );
         let mut snapshot = report.project(original.snapshot)?;
-        let compilation = original.compilation;
         let search = Search {
-            observation: original.id,
+            observation: compilation.clone(),
             searcher: serde_json::to_value(definition)?,
             report,
         };
         let key = hash(&(&search.observation, definition.identity()))?;
-        let id = self.write("searches", key, &search)?;
+        let id = self.write(key, &search)?;
         bind_revision(&mut snapshot, &id)?;
         Ok(Observation {
             reused: false,
-            id,
-            compilation,
+            identity: Identity::Searched {
+                compilation,
+                search: id,
+            },
             snapshot,
         })
     }
@@ -141,7 +183,7 @@ pub fn search(
         return Ok(hit);
     }
     let report = selected
-        .search(context, crate::search::Request::new(&original))?
+        .search(context, crate::search::Request::new(&original)?)?
         .into_report();
     selected.validate()?;
     context
@@ -172,8 +214,9 @@ impl Store {
             crate::storage::directory(workspace.path())?.join("compiled-views"),
         ))
     }
-    fn index(&self, role: &str) -> Result<BTreeMap<String, String>> {
-        let index: BTreeMap<String, String> =
+    fn index<T: Content>(&self) -> Result<BTreeMap<String, Id<T::Domain>>> {
+        let role = T::DIRECTORY;
+        let index: BTreeMap<String, Id<T::Domain>> =
             crate::storage::read(&self.0.join(format!("{role}-index.json")))?.unwrap_or_default();
         anyhow::ensure!(
             index.len() <= 10_000,
@@ -181,22 +224,20 @@ impl Store {
         );
         Ok(index)
     }
-    fn read<T: DeserializeOwned + Serialize>(&self, role: &str, id: &str) -> Result<T> {
-        anyhow::ensure!(
-            id.len() == 64 && id.bytes().all(|c| c.is_ascii_hexdigit()),
-            "Invalid compiled view artifact ID"
-        );
+    fn read<T: Content>(&self, id: &Id<T::Domain>) -> Result<T> {
+        let role = T::DIRECTORY;
         let artifact: T = crate::storage::read(&self.0.join(role).join(format!("{id}.json")))?
             .context("Missing compiled view artifact")?;
         anyhow::ensure!(
-            hash(&artifact)? == id,
+            &Id::of(&artifact)? == id,
             "Compiled view artifact binding changed"
         );
         Ok(artifact)
     }
-    fn write(&self, role: &str, key: String, artifact: &impl Serialize) -> Result<String> {
-        let id = hash(artifact)?;
-        let mut index = self.index(role)?;
+    fn write<T: Content>(&self, key: String, artifact: &T) -> Result<Id<T::Domain>> {
+        let role = T::DIRECTORY;
+        let id = Id::of(artifact)?;
+        let mut index = self.index::<T>()?;
         index.insert(key, id.clone());
         anyhow::ensure!(
             index.len() <= 10_000,
@@ -225,36 +266,35 @@ impl Store {
             .as_ref()
             .context("Missing compilation bindings")?;
         let key = scope(&collection.roots, collection.prepared.is_some(), definition)?;
-        let id = hash(&artifact)?;
-        if self.index("observations")?.get(&key) == Some(&id) {
-            self.read::<Artifact>("observations", &id)?.check()?;
+        let id = Id::of(&artifact)?;
+        if self.index::<Artifact>()?.get(&key) == Some(&id) {
+            self.read::<Artifact>(&id)?.check()?;
         } else {
-            self.write("observations", key, &artifact)?;
+            self.write(key, &artifact)?;
         }
         Ok(Observation {
             reused: false,
-            compilation: id.clone(),
-            id,
+            identity: Identity::Compilation(id),
             snapshot: artifact.snapshot,
         })
     }
     fn rendered(
         &self,
-        id: &str,
+        id: &Id<Compilation>,
         snapshot: &Snapshot,
         renderer: &meden_runtime::plugin::Descriptor,
     ) -> Result<Option<Snapshot>> {
         let _timing = meden_runtime::metrics::Span::start("analysis.cache.load_rendering");
         let Some(rendering_id) = self
-            .index("renderings")?
+            .index::<Rendering>()?
             .get(&hash(&(id, renderer.identity()))?)
             .cloned()
         else {
             return Ok(None);
         };
-        let rendering: Rendering = self.read("renderings", &rendering_id)?;
+        let rendering = self.read::<Rendering>(&rendering_id)?;
         anyhow::ensure!(
-            rendering.observation == id && rendering.renderer == serde_json::to_value(renderer)?,
+            &rendering.observation == id && rendering.renderer == serde_json::to_value(renderer)?,
             "Rendering input binding changed"
         );
         let mut result = rendering.project(snapshot.clone())?;
@@ -275,7 +315,7 @@ impl Store {
         );
         let graph = snapshot.atlas.as_ref().context("Missing rendered graph")?;
         let rendering = Rendering {
-            observation: original.compilation,
+            observation: original.compilation().clone(),
             renderer: serde_json::to_value(renderer)?,
             readings: graph
                 .graph
@@ -297,7 +337,7 @@ impl Store {
             "Rendering changed a compiler/search observation"
         );
         let key = hash(&(&rendering.observation, renderer.identity()))?;
-        let id = self.write("renderings", key, &rendering)?;
+        let id = self.write(key, &rendering)?;
         bind_revision(&mut expected, &id)?;
         *snapshot = expected;
         Ok(())
@@ -391,7 +431,7 @@ fn scope(
     let paths = paths.iter().collect::<BTreeSet<_>>();
     hash(&(paths, prepared, compiler.identity()))
 }
-fn bind_revision(snapshot: &mut Snapshot, rendering: &str) -> Result<()> {
+fn bind_revision<T>(snapshot: &mut Snapshot, rendering: &Id<T>) -> Result<()> {
     let graph = snapshot.atlas.as_mut().context("Missing compiled graph")?;
     graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
         &graph.revision,
@@ -416,7 +456,7 @@ pub fn rendering(
     original: &Observation,
     renderer: &meden_runtime::plugin::Descriptor,
 ) -> Result<Option<Snapshot>> {
-    Store::host(workspace)?.rendered(&original.compilation, &original.snapshot, renderer)
+    Store::host(workspace)?.rendered(original.compilation(), &original.snapshot, renderer)
 }
 pub fn retain_rendering(
     workspace: &Workspace,
@@ -433,11 +473,11 @@ fn artifacts(
     selections: impl IntoIterator<Item = Vec<String>>,
     prepared: Option<&PreparedRevision>,
     compiler: &meden_runtime::plugin::Descriptor,
-) -> Result<Vec<(String, Artifact)>> {
+) -> Result<Vec<(Id<Compilation>, Artifact)>> {
     let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
     let store = Store::host(workspace)?;
-    let index = store.index("observations")?;
-    let mut ids: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let index = store.index::<Artifact>()?;
+    let mut ids: BTreeMap<Id<Compilation>, BTreeSet<String>> = BTreeMap::new();
     for paths in selections {
         let key = scope(&paths, prepared.is_some(), compiler)?;
         if let Some(id) = index.get(&key) {
@@ -450,7 +490,7 @@ fn artifacts(
     let resources = crate::atlas::Configuration::host(workspace.path()).current_resources()?;
     let mut observations = Vec::new();
     for (id, keys) in ids {
-        let artifact: Artifact = store.read("observations", &id)?;
+        let artifact = store.read::<Artifact>(&id)?;
         artifact.check()?;
         let collection = artifact
             .snapshot
@@ -518,8 +558,7 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
         let Some(searched) = store.searched(
             &Observation {
                 reused: true,
-                compilation: id.clone(),
-                id,
+                identity: Identity::Compilation(id),
                 snapshot: artifact.snapshot,
             },
             selected.definition(),
@@ -530,7 +569,7 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
         selected.validate()?;
         // Index projection never executes a renderer, compiler or search.
         let Some(snapshot) = store.rendered(
-            &searched.compilation,
+            searched.compilation(),
             &searched.snapshot,
             renderer.definition(),
         )?

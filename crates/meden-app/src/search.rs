@@ -2,7 +2,13 @@
 use crate::{
     adapters::Context,
     analysis::sources::Snapshot,
-    explanation::{cache::Observation, Check},
+    explanation::{
+        cache::{
+            artifact::{Compilation, Id},
+            Observation,
+        },
+        Check,
+    },
 };
 use anyhow::{Context as _, Result};
 use meden_runtime::plugin::{Descriptor, Role};
@@ -11,17 +17,21 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Serialize, schemars::JsonSchema)]
 pub struct Request {
-    observation: String,
+    observation: Id<Compilation>,
     snapshot: Snapshot,
 }
 impl Request {
-    pub fn new(original: &Observation) -> Self {
-        Self {
-            observation: original.id().into(),
+    pub fn new(original: &Observation) -> Result<Self> {
+        anyhow::ensure!(
+            original.search_id().is_none(),
+            "Search requires an original compilation"
+        );
+        Ok(Self {
+            observation: original.compilation().clone(),
             snapshot: original.snapshot().clone(),
-        }
+        })
     }
-    pub fn observation(&self) -> &str {
+    pub fn observation(&self) -> &Id<Compilation> {
         &self.observation
     }
     pub fn snapshot(&self) -> &Snapshot {
@@ -220,7 +230,7 @@ mod tests {
             json!({"revision":format!("sha256:{}",crate::atlas::digest(&serde_json::to_vec(&files)?)),"files":files,"collection":null,"atlas":{"revision":format!("sha256:{}","1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture","graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":name,"shortName":name,"kind":"theorem","filePath":"M.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"True","value":null,"axioms":[],"standardAxioms":[],"externalDependencies":[],"semantic":{"version":1,"origin":"elaborated","sentence":"True","refutation":"False","checker":null}}],"edges":[],"externalReferences":[]}}}),
         )?;
         Ok(Request {
-            observation: name.into(),
+            observation: serde_json::from_value(json!(crate::atlas::digest(name.as_bytes())))?,
             snapshot,
         })
     }

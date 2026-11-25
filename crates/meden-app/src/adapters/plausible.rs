@@ -55,6 +55,7 @@ impl Searcher for Plausible {
             implementation: &[
                 include_bytes!("plausible.rs").as_slice(),
                 include_bytes!("../search.rs").as_slice(),
+                include_bytes!("../explanation/cache/artifact.rs").as_slice(),
                 include_bytes!("../identity/snapshots.rs").as_slice(),
                 include_bytes!("../atlas/project.rs").as_slice(),
                 include_bytes!("../atlas/mod.rs").as_slice(),

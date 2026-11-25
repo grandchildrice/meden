@@ -979,6 +979,14 @@ An actual helper-only native update now reuses the original checksummed
 compiler/search/render objects without relabeling them. The two worker stages
 have separate timing observations. Prepared-snapshot ownership and broader
 session/job typing still need their own audit.
+The [cache-artifact contexts](../performance/cache-artifact-contexts.md) separate
+compiler, search and rendering identities throughout their actual store, indices,
+parent references and search requests. A body's definition selects its directory;
+the caller cannot independently select a role string. Original versus searched
+observations are disjoint, including empty graphs. Existing body/hash framing
+stays fixed, while the search method binds its strengthened input codec. This
+advances the artifact audit without completing generic backend snapshots,
+prepared module ownership or the retirement work.
 The [ordered sibling index](../performance/map-sibling-bounds.md) skips hidden
 contiguous ranges while preserving original painter order, closed boundaries,
 current descriptions and world coordinates. The old sibling walk is test-only.
