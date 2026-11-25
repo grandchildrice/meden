@@ -249,7 +249,7 @@ impl App {
         let parts: Vec<_> = selection.split_whitespace().collect();
         let target = match parts.as_slice() {
             [name] => {
-                let atlas = snapshot.atlas.as_ref().context(
+                let atlas = snapshot.graph().context(
                     "A declaration name needs an Atlas graph; otherwise use FILE:LINE NAME",
                 )?;
                 let mut nodes = atlas.graph.nodes.iter().filter(|node| node.id == *name);
@@ -279,7 +279,7 @@ impl App {
         };
         let input = crate::semantic::Input {
             source_revision: snapshot.source.revision.clone(),
-            graph_revision: snapshot.atlas.as_ref().map(|atlas| atlas.revision.clone()),
+            graph_revision: snapshot.graph().map(|atlas| atlas.revision.clone()),
             target,
             requirement: requirement.trim().into(),
         };
@@ -292,7 +292,7 @@ impl App {
 
     pub(super) fn observed_sources(&mut self, snapshot: crate::adapters::lean::Snapshot) {
         self.invalidate_analysis();
-        let label = if snapshot.atlas.is_some() {
+        let label = if snapshot.graph().is_some() {
             "Source graph ready"
         } else {
             "Sources ready"
@@ -307,7 +307,7 @@ impl App {
             },
             snapshot.source.revision
         );
-        if let Some(collection) = &snapshot.collection {
+        if let Some(collection) = snapshot.collection() {
             let _ = write!(
                 text,
                 "\nSelected roots: {}\nExternal modules (not expanded): {}",
@@ -323,7 +323,7 @@ impl App {
                 );
             }
         }
-        if let Some(atlas) = &snapshot.atlas {
+        if let Some(atlas) = snapshot.graph() {
             for node in atlas.graph.nodes.iter().take(80) {
                 let _ = write!(
                     text,

@@ -129,10 +129,13 @@ impl Store {
         artifact.check_compiler(definition)?;
         let collection = artifact
             .snapshot
-            .collection
-            .as_ref()
+            .collection()
             .context("Missing compilation bindings")?;
-        let key = scope(&collection.roots, collection.prepared.is_some(), definition)?;
+        let key = scope(
+            &collection.roots,
+            artifact.snapshot.prepared().is_some(),
+            definition,
+        )?;
         let id = Id::of(&artifact)?;
         if self.index::<Artifact>()?.get(&key) == Some(&id) {
             self.read::<Artifact>(&id)?.check()?;
@@ -180,7 +183,7 @@ impl Store {
             renderer.role() == meden_runtime::plugin::Role::MeaningRenderer,
             "Invalid renderer identity"
         );
-        let graph = snapshot.atlas.as_ref().context("Missing rendered graph")?;
+        let graph = snapshot.graph().context("Missing rendered graph")?;
         let rendering = Rendering {
             observation: original.compilation().clone(),
             renderer: serde_json::to_value(renderer)?,
@@ -223,13 +226,9 @@ impl Artifact {
     fn check(&self) -> Result<()> {
         let snapshot = &self.snapshot;
         let collection = snapshot
-            .collection
-            .as_ref()
+            .collection()
             .context("Missing compilation bindings")?;
-        let graph = snapshot
-            .atlas
-            .as_ref()
-            .context("Missing compiled observations")?;
+        let graph = snapshot.graph().context("Missing compiled observations")?;
         anyhow::ensure!(
             self.version == 2
                 && !snapshot.source.files.is_empty()
@@ -263,8 +262,7 @@ impl Rendering {
             );
         }
         for node in &mut snapshot
-            .atlas
-            .as_mut()
+            .graph_mut()
             .context("Missing compiled graph")?
             .graph
             .nodes
@@ -296,7 +294,7 @@ fn scope(
     hash(&(paths, prepared, compiler.identity()))
 }
 fn bind_revision<T>(snapshot: &mut Snapshot, rendering: &Id<T>) -> Result<()> {
-    let graph = snapshot.atlas.as_mut().context("Missing compiled graph")?;
+    let graph = snapshot.graph_mut().context("Missing compiled graph")?;
     graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
         &graph.revision,
         rendering,
@@ -358,23 +356,21 @@ fn artifacts(
         artifact.check()?;
         let collection = artifact
             .snapshot
-            .collection
-            .as_ref()
+            .collection()
             .context("Missing compilation bindings")?;
         anyhow::ensure!(
             keys.contains(&scope(
                 &collection.roots,
-                collection.prepared.is_some(),
+                artifact.snapshot.prepared().is_some(),
                 compiler
             )?),
             "Compiler observation selection changed"
         );
         artifact.check_compiler(compiler)?;
-        if collection.prepared.as_ref() != prepared
+        if artifact.snapshot.prepared() != prepared
             || artifact
                 .snapshot
-                .atlas
-                .as_ref()
+                .graph()
                 .context("Missing compiled graph")?
                 .resources_sha256
                 != resources
@@ -447,7 +443,7 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
             continue;
         };
         renderer.validate()?;
-        let graph = snapshot.atlas.context("Missing compiled graph")?;
+        let graph = snapshot.into_graph().context("Missing compiled graph")?;
         for node in graph.graph.nodes {
             if !paths.contains(&node.file_path) {
                 continue;

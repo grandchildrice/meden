@@ -3,7 +3,7 @@ use super::{cache, Snapshot};
 use crate::adapters::Context;
 use crate::compiler::{Compiled, Compiler, Invocation};
 use crate::identity::snapshots::GraphRevision;
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use sha2::Digest as _;
 
 pub struct Lean {
@@ -38,13 +38,9 @@ impl Compiler for Lean {
         if let Some(cached) = cache::compiled(workspace, control, paths, &request)? {
             return Ok(cached);
         }
-        let mut snapshot =
-            crate::analysis::collect::capture(workspace, control, paths, atlas.clone())?;
+        let snapshot = crate::analysis::collect::capture(workspace, control, paths, atlas.clone())?;
         let observed = snapshot.source.files.keys().cloned().collect::<Vec<_>>();
-        let collection = snapshot
-            .collection
-            .as_ref()
-            .context("Missing collected module bindings")?;
+        let collection = &snapshot.collection;
         if paths.is_empty() {
             if let Some(cached) = cache::compiled(workspace, control, &collection.roots, &request)?
             {
@@ -52,7 +48,8 @@ impl Compiler for Lean {
             }
         }
         crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
-        let mut graph = atlas.extract(&snapshot.source.files, &collection.modules, control)?;
+        let (mut graph, modules) =
+            atlas.extract(&snapshot.source.files, &collection.modules, control)?;
         graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
             &graph.revision,
             collection,
@@ -63,8 +60,12 @@ impl Compiler for Lean {
                 == snapshot.source.revision,
             "Sources changed during compilation; no graph admitted"
         );
-        snapshot.atlas = Some(graph);
         control.with_active(|| Ok(()))?;
-        Ok(request.observe(snapshot))
+        Ok(request.observe(Snapshot::compiled(
+            snapshot.source,
+            graph,
+            snapshot.collection,
+            super::snapshot::Inputs::Frozen { modules },
+        )))
     }
 }

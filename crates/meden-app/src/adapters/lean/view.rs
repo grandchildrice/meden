@@ -5,7 +5,7 @@ use anyhow::Result;
 
 impl crate::view::Projection for Snapshot {
     fn page(&self) -> Result<SourcePage> {
-        let (graph, description) = if let Some(extraction) = &self.atlas {
+        let (graph, description) = if let Some(extraction) = self.graph() {
             let nodes = extraction
                 .graph
                 .nodes
@@ -63,13 +63,7 @@ impl crate::view::Projection for Snapshot {
                 .collect();
             (Some(Graph { revision: extraction.revision.clone(), declarations: nodes, edges }), format!("Compiled dependencies from Lean Atlas (Lean {}). Selected observed modules; external libraries remain unexpanded. Contract and proof acceptance are unchanged.", extraction.graph.metadata.lean_version))
         } else {
-            let mut page = crate::view::Projection::page(&self.source)?;
-            if let Some(collection) = &self.collection {
-                page.roots.clone_from(&collection.roots);
-                page.external.clone_from(&collection.external_modules);
-                page.inputs_revision.clone_from(&collection.prepared);
-            }
-            return Ok(page);
+            return crate::view::Projection::page(&self.source);
         };
         let page = SourcePage {
             revision: self.source.revision.clone(),
@@ -79,16 +73,15 @@ impl crate::view::Projection for Snapshot {
                 .iter()
                 .map(|(path, text)| Ok((path.clone(), SourceText::new(text.clone())?)))
                 .collect::<Result<_>>()?,
-            roots: self.collection.as_ref().map_or_else(
+            roots: self.collection().map_or_else(
                 || self.source.files.keys().cloned().collect(),
                 |c| c.roots.clone(),
             ),
             external: self
-                .collection
-                .as_ref()
+                .collection()
                 .map_or_else(Vec::new, |c| c.external_modules.clone()),
-            inputs_revision: self.collection.as_ref().and_then(|c| c.prepared.clone()),
-            compiled: self.atlas.is_some(),
+            inputs_revision: self.prepared().cloned(),
+            compiled: self.graph().is_some(),
             graph,
             description,
         };

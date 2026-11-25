@@ -73,19 +73,18 @@ impl Compiler for Changing {
 }
 fn observed() -> Result<Snapshot> {
     let files = BTreeMap::from([("Spec.lean".into(), "def value : Nat := 1\n".into())]);
-    Ok(Snapshot {
-        source: crate::analysis::sources::Snapshot {
+    Ok(crate::adapters::lean::snapshot::fixture(
+        crate::analysis::sources::Snapshot {
             revision: crate::identity::snapshots::SourceRevision::from_digest(
                 sha2::Sha256::digest(serde_json::to_vec(&files)?),
             ),
             files,
         },
-        collection: None,
-        atlas: Some(serde_json::from_value(serde_json::json!({
+        serde_json::from_value(serde_json::json!({
             "revision":format!("sha256:{}", "1".repeat(64)), "upstream":"fixture", "resources_sha256":"fixture",
             "graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":"value","shortName":"value","kind":"definition","filePath":"Spec.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"Nat","value":"1","axioms":[],"standardAxioms":[],"externalDependencies":[]}],"edges":[],"externalReferences":[]}
-        }))?),
-    })
+        }))?,
+    ))
 }
 #[test]
 fn original_definition_is_required_before_and_after_dispatch() -> Result<()> {

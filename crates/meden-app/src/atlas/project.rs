@@ -64,12 +64,7 @@ impl Configuration {
     ) -> Result<String> {
         let (lean, library) = self.selected()?;
         let before = Self::validate(&lean, &library)?;
-        let prepared = snapshot
-            .collection
-            .as_ref()
-            .context("Missing original compilation bindings")?
-            .prepared
-            .as_ref();
+        let prepared = snapshot.prepared();
         let root = if prepared.is_some() {
             workspace.to_path_buf()
         } else {

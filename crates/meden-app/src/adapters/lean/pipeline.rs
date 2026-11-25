@@ -66,7 +66,7 @@ pub fn extract_cached(
     }
     let mut snapshot = original.snapshot().clone();
     renderer.enrich(
-        snapshot.atlas.as_mut().context("Missing compiled graph")?,
+        snapshot.graph_mut().context("Missing compiled graph")?,
         control,
     )?;
     control.with_active(|| {

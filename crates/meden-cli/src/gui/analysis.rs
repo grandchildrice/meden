@@ -14,7 +14,7 @@ pub(super) fn run(
             .file(&input.target.file)
             .filter(|snapshot| {
                 snapshot.source.revision == input.source_revision
-                    && snapshot.atlas.as_ref().map(|a| &a.revision) == input.graph_revision.as_ref()
+                    && snapshot.graph().map(|a| &a.revision) == input.graph_revision.as_ref()
             })
             .map(|snapshot| snapshot.snapshot().clone())
             .or_else(|| view.sources.current().map(|s| s.snapshot().clone()))

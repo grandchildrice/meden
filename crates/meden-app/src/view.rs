@@ -335,7 +335,7 @@ impl SourcePage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::adapters::lean::Snapshot;
+    use crate::analysis::sources::Snapshot;
 
     fn snapshot(files: &[(&str, &str)]) -> Result<Snapshot> {
         let files = files
@@ -343,14 +343,10 @@ mod tests {
             .map(|(p, s)| ((*p).into(), (*s).into()))
             .collect::<BTreeMap<String, String>>();
         Ok(Snapshot {
-            source: crate::analysis::sources::Snapshot {
-                revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
-                    &files,
-                )?)),
-                files,
-            },
-            atlas: None,
-            collection: None,
+            revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+                &files,
+            )?)),
+            files,
         })
     }
     fn relations(page: &SourcePage) -> Result<Vec<(String, String)>> {

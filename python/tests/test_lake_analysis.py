@@ -87,15 +87,15 @@ def test_lake_srcdir_transitive_path_and_cached_git_keep_real_source_links(tmp_p
     )
     assert result.returncode == 0, result.stdout + result.stderr
     snapshot = json.loads(result.stdout.splitlines()[-1])["snapshot"]
-    assert snapshot["collection"]["roots"] == ["src/lib/Store.lean"]
+    assert snapshot["compilation"]["collection"]["roots"] == ["src/lib/Store.lean"]
     assert len(snapshot["files"]) == 4
-    assert sorted(p["name"] for p in snapshot["collection"]["packages"]) == [
+    assert sorted(p["name"] for p in snapshot["compilation"]["collection"]["packages"]) == [
         "base",
         "cached",
         "logic",
         "shop",
     ]
-    nodes = {n["id"]: n for n in snapshot["atlas"]["graph"]["nodes"]}
+    nodes = {n["id"]: n for n in snapshot["compilation"]["graph"]["graph"]["nodes"]}
     assert nodes["Store.permitted"]["filePath"] == "src/lib/Store.lean"
     assert nodes["Domain.eligible"]["filePath"] == "vendor/logic/lean/Domain.lean"
     assert nodes["Base.threshold"]["filePath"] == "vendor/base/source/Base.lean"

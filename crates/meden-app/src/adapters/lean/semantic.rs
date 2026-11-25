@@ -18,16 +18,13 @@ pub struct Context {
 impl crate::semantic::Observation for Snapshot {
     type Context = Context;
     fn graph_revision(&self) -> Option<&GraphRevision> {
-        self.atlas.as_ref().map(|graph| &graph.revision)
+        self.graph().map(|graph| &graph.revision)
     }
     fn context(&self, target: &Target) -> Result<Option<Context>> {
-        if let Some(graph) = &self.atlas {
+        if let Some(graph) = self.graph() {
             graph.graph.validate(&self.source.files)?;
         }
-        self.atlas
-            .as_ref()
-            .map(|graph| context(graph, target))
-            .transpose()
+        self.graph().map(|graph| context(graph, target)).transpose()
     }
 }
 fn context(graph: &crate::atlas::Extraction, target: &Target) -> Result<Context> {
@@ -89,16 +86,16 @@ impl crate::analysis::Observation for Snapshot {
     fn check(&self, context: &crate::adapters::Context<'_>) -> Result<Freshness> {
         check_binding(
             context,
-            self.collection.as_ref(),
-            self.atlas
-                .as_ref()
-                .map(|graph| graph.resources_sha256.as_str()),
+            self.collection(),
+            self.prepared(),
+            self.graph().map(|graph| graph.resources_sha256.as_str()),
         )
     }
 }
 pub(super) fn check_binding(
     context: &crate::adapters::Context<'_>,
     collection: Option<&crate::analysis::collect::Collection>,
+    prepared: Option<&crate::identity::snapshots::PreparedRevision>,
     resources: Option<&str>,
 ) -> Result<Freshness> {
     let workspace = context.workspace;
@@ -109,7 +106,7 @@ pub(super) fn check_binding(
         {
             return Ok(Freshness::Stale(error));
         }
-        if let Some(expected) = &collection.prepared {
+        if let Some(expected) = prepared {
             let observed = crate::atlas::Configuration::host(workspace.path()).input_fingerprint(
                 workspace.path(),
                 &collection.modules,

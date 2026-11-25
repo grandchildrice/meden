@@ -1,0 +1,1112 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "fadc44046cef2ee6fbee26fc8fb0059bebfc8b72",
+  "scope": "Lean-owned disjoint complete compilation and original frozen-module/prepared-Lake inputs, separate from neutral display graphs and source collection. Strict representation/codec and canonical module identity; original physical module/source/configuration/resource/dependency checks remain. No new kernel effects, model-quality, evidence or whole-workflow speedup claim.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 320153,
+      "sha256": "ca61eab0cc22b9d0ac60b736e55fbc1550aaf74384e06833587c3fa2b6ff6a76"
+    },
+    {
+      "path": "crates/meden-app/examples/profile-source-selection.rs",
+      "bytes": 4109,
+      "sha256": "9c2aaa03f7a8141e3047fcd4529f19a49748e2be98a38c2e5d58ab8ba7951a7b"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "bytes": 5699,
+      "sha256": "1e41316d914dfded2e47f76ce271e6cb577e9ec742e3ecd53b954a79eb183de4"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "bytes": 291,
+      "sha256": "2ae2ce98ebecc47cfebe8ce7778d72cbea050a551a74aaf6c7d08b43e0cd956d"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/cache.rs",
+      "bytes": 17992,
+      "sha256": "1751e6d931b9cc79aaa5de96ef4b68f0be737718783a966d9cb89451c7c4a45f"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/cache/tests.rs",
+      "bytes": 23816,
+      "sha256": "da418785b2309ea3cf978b4bd4251c96f6f665b8b1761eaa70dd81c471565878"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/compiler.rs",
+      "bytes": 2640,
+      "sha256": "959f7469f940ab01c5b04d2cad518b2b206f51ce36068af94bcc18d0b164a3b0"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/pipeline.rs",
+      "bytes": 3012,
+      "sha256": "fe8194483f737e83aa28b25fdbffb894c5393dc8c22464f8982ac6345eec5f6f"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/repair.rs",
+      "bytes": 3391,
+      "sha256": "07c57d67ad07a9a941645f8dcbed8aa9101dc8c72d85b45658cfcde74c8738dd"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/search.rs",
+      "bytes": 1937,
+      "sha256": "abf7b88d8d7e9b39b9bb2f3f00e55330c63119bb8588d19ff2f306fb4133cffd"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/semantic.rs",
+      "bytes": 4617,
+      "sha256": "1207cdaffcf6c722cd0999918629f501657819d962f213ce53c631c7e502f99b"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/semantic/tests.rs",
+      "bytes": 5197,
+      "sha256": "3d4ca40b5deef7b8766f809f322244afd6f11fea519aa8324edca8e143e28710"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/snapshot.rs",
+      "bytes": 9844,
+      "sha256": "f7baab1b52aef278b690e4ad6a3a782c28aa6a8ec66190e04ddfaf587ca5ce80"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/view.rs",
+      "bytes": 4098,
+      "sha256": "885fea3a7e97636f041026535434c4990ca8307ece7cfb500d6e93964eb5a5d5"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/plausible.rs",
+      "bytes": 6794,
+      "sha256": "7fc5e1c0b9c529dc1bb0e7b721b9f1251d623f870febdd5d8d645624891bb8f6"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "bytes": 6190,
+      "sha256": "eb99d114af5d2828339c70a2e8ee6932db5b91ef529a0c134049cfc87b54421c"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "bytes": 6476,
+      "sha256": "bc5e5d0ed8c2dd2a418c10bbb57ca48181134210010534024e53f94a08bf7c5b"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "bytes": 4991,
+      "sha256": "bf4bf28f432bc1b5a7aeaffa2d829b067abde11027c7f39c2c37717e86de4816"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "bytes": 17844,
+      "sha256": "7a77c62acc87b6267e169c12bef3a6684ebb69925613a0e8a3c6be5d53d66ff0"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "bytes": 6466,
+      "sha256": "16303da327607c7a98971aa99bb2e380be95ac05a9654c6e1c4ecde65c4d1bf4"
+    },
+    {
+      "path": "crates/meden-app/src/compiler/tests.rs",
+      "bytes": 16631,
+      "sha256": "69343a055509309e326ea25f6e3c97ec181ab12103fcbcbe1ff53a3dc0647b10"
+    },
+    {
+      "path": "crates/meden-app/src/search/tests.rs",
+      "bytes": 5334,
+      "sha256": "a96d1fc93e6d38c77976946e71bd392fc5b18e5bdf012464b0720be7068865d0"
+    },
+    {
+      "path": "crates/meden-app/src/view.rs",
+      "bytes": 24155,
+      "sha256": "359dc58948b124fdc2853763496dced8f235c57cb8da3b5b8736fb3782958cb1"
+    },
+    {
+      "path": "crates/meden-app/src/view/sources.rs",
+      "bytes": 15168,
+      "sha256": "a23f03644ad4e8168c7b1233d51e30b7c48a814c7cefda3548a35958380adcea"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/analysis.rs",
+      "bytes": 2691,
+      "sha256": "2703d27672247337bf5cc9689b5fef4a0998a90ffc809121f1edb24227caa48c"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/analysis.rs",
+      "bytes": 18346,
+      "sha256": "317ae5fc13ed0df5c60368a4945b0dc116903f92517b6df25a27fe8414245b7e"
+    },
+    {
+      "path": "python/meden_checks/meaning_eval.py",
+      "bytes": 9357,
+      "sha256": "03425825106d9204e2cb875993c84a17e5c85d4823b4dd05272bad8a470736f6"
+    },
+    {
+      "path": "python/tests/test_lake_analysis.py",
+      "bytes": 9609,
+      "sha256": "754f313042f9db0a050e9323c8861e76bd0970a1a4ab58cbf1ec81d409cdfa30"
+    }
+  ],
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121/meden",
+    "sha256": "c4b55c31d87b0a0b7faf39542c28cc41c2bb382938372dd3de63a461c78e8121"
+  },
+  "diagnostic": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/c6b72bd7c1c4426ff8293a65336f0c4e3ea77da2fb5bca42bcb17a926d86e53a/profile-source-selection",
+    "sha256": "c6b72bd7c1c4426ff8293a65336f0c4e3ea77da2fb5bca42bcb17a926d86e53a"
+  },
+  "unchanged_assets": {
+    "count": 88,
+    "sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4"
+  },
+  "validation": {
+    "rust_unit_and_doc": 289,
+    "architecture": 45,
+    "source_selection_and_lake": 12,
+    "evaluation_driver_denominator": 1,
+    "tui": 36,
+    "decoded_tui_journeys": 8,
+    "gui": 77,
+    "gui_skips": 0,
+    "gui_flaky": 0,
+    "clippy": true,
+    "schema": true,
+    "rust_format": true,
+    "format": true,
+    "python_lint": true,
+    "initial_lint_failure": "Two longer paths in the evaluation driver exceeded the line budget; a local graph binding removes duplication. Successful Rust/schema/etc checks were retained; corrected Python lint and remaining journeys run against the same sealed executable.",
+    "native_update_conformance": [
+      {
+        "kind": "metadata",
+        "title": "metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+        "ok": true,
+        "variants": {
+          "original": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/694b14f9462b343c511bbacbac242219cf157490c0c4829cf41955798478077a/meden",
+            "sha256": "694b14f9462b343c511bbacbac242219cf157490c0c4829cf41955798478077a",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/atlas/project-atlas.py",
+                "sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+              }
+            ],
+            "implementation_sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+          },
+          "updated": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/949811c355cb139a7f6b8ec58d3fc6ae63fff2e8c61fcde201ab6e3f5428dbee/meden",
+            "sha256": "949811c355cb139a7f6b8ec58d3fc6ae63fff2e8c61fcde201ab6e3f5428dbee",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/atlas/project-atlas.py",
+                "sha256": "71e9a1d4d27a874fb512e0b4be7645a501410c26cccf107e167357b677ffd9bd"
+              }
+            ],
+            "implementation_sha256": "71e9a1d4d27a874fb512e0b4be7645a501410c26cccf107e167357b677ffd9bd"
+          },
+          "source": "/home/gohan/workspace/meden/target/gui-native-variants/metadata/source-no80cI",
+          "kind": "metadata"
+        },
+        "original_artifacts": {
+          "observations/dd9c0494a337e8125e35d9441ae5152f3ae36b8c7e3a7867eeec6e1c9239c485.json": "dd9c0494a337e8125e35d9441ae5152f3ae36b8c7e3a7867eeec6e1c9239c485",
+          "observations-index.json": "5309e9223c09cf3a3d87c5c83528f70241badcd1bfa28f9dec9b99df7dca3ad2",
+          "renderings/836136b53ca2c6040009370e2d364f699a90e8578e94fbfa016b8d4cc37423d5.json": "836136b53ca2c6040009370e2d364f699a90e8578e94fbfa016b8d4cc37423d5",
+          "renderings-index.json": "37efb4f093bcc3efdb4824d7a8d279bd0b4178752fa68671ace2ca06fbabe11c",
+          "searches/9dc6a0f75aaf18e0a831ea8a28162415eb5760205e94af169fe0c070bbbf7d4e.json": "9dc6a0f75aaf18e0a831ea8a28162415eb5760205e94af169fe0c070bbbf7d4e",
+          "searches-index.json": "146f8db603a31a375860bcc2c8add143616b610561d2d471109c952750ae5e21"
+        },
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "source_and_all_artifact_bytes_equal": true,
+        "prepared_lake_input_ownership_asserted": true,
+        "model_requests": 0,
+        "scope": "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim."
+      },
+      {
+        "kind": "repair",
+        "title": "repair and composition updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+        "ok": true,
+        "variants": {
+          "original": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/repair/4f4bf453f1c4772564bf6b9f56e8fd19da63e789916e4625957315a628f3d0fb/meden",
+            "sha256": "4f4bf453f1c4772564bf6b9f56e8fd19da63e789916e4625957315a628f3d0fb",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/adapters/lean/repair.rs",
+                "sha256": "07c57d67ad07a9a941645f8dcbed8aa9101dc8c72d85b45658cfcde74c8738dd"
+              },
+              {
+                "path": "crates/meden-app/src/adapters/lean.rs",
+                "sha256": "2ae2ce98ebecc47cfebe8ce7778d72cbea050a551a74aaf6c7d08b43e0cd956d"
+              }
+            ],
+            "implementation_sha256": "07c57d67ad07a9a941645f8dcbed8aa9101dc8c72d85b45658cfcde74c8738dd"
+          },
+          "updated": {
+            "binary": "/home/gohan/workspace/meden/target/gui-native-variants/repair/c5faa1e21dbf9d7a100075ad5c56a0e875aebb7cae45e01b8006b1abe2771d19/meden",
+            "sha256": "c5faa1e21dbf9d7a100075ad5c56a0e875aebb7cae45e01b8006b1abe2771d19",
+            "changed_sources": [
+              {
+                "path": "crates/meden-app/src/adapters/lean/repair.rs",
+                "sha256": "884e8fa1abf3fe7c750fbd0ce9e368baf918dcb0c9a5289852c7f598261d57dd"
+              },
+              {
+                "path": "crates/meden-app/src/adapters/lean.rs",
+                "sha256": "14ec7c4351fe247d8fbe0e54153ad5bf26de589dbea23530ab5da0aa47333a7b"
+              }
+            ],
+            "implementation_sha256": "884e8fa1abf3fe7c750fbd0ce9e368baf918dcb0c9a5289852c7f598261d57dd"
+          },
+          "source": "/home/gohan/workspace/meden/target/gui-native-variants/repair/source-Fl9sPQ",
+          "kind": "repair"
+        },
+        "original_artifacts": {
+          "observations/dd9c0494a337e8125e35d9441ae5152f3ae36b8c7e3a7867eeec6e1c9239c485.json": "dd9c0494a337e8125e35d9441ae5152f3ae36b8c7e3a7867eeec6e1c9239c485",
+          "observations-index.json": "5309e9223c09cf3a3d87c5c83528f70241badcd1bfa28f9dec9b99df7dca3ad2",
+          "renderings/836136b53ca2c6040009370e2d364f699a90e8578e94fbfa016b8d4cc37423d5.json": "836136b53ca2c6040009370e2d364f699a90e8578e94fbfa016b8d4cc37423d5",
+          "renderings-index.json": "37efb4f093bcc3efdb4824d7a8d279bd0b4178752fa68671ace2ca06fbabe11c",
+          "searches/9dc6a0f75aaf18e0a831ea8a28162415eb5760205e94af169fe0c070bbbf7d4e.json": "9dc6a0f75aaf18e0a831ea8a28162415eb5760205e94af169fe0c070bbbf7d4e",
+          "searches-index.json": "146f8db603a31a375860bcc2c8add143616b610561d2d471109c952750ae5e21"
+        },
+        "input_query_and_fingerprint_observed": true,
+        "semantic_workers": [],
+        "source_and_all_artifact_bytes_equal": true,
+        "prepared_lake_input_ownership_asserted": true,
+        "model_requests": 0,
+        "scope": "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim."
+      }
+    ],
+    "actual_lean_prepared_dependency_probe": {
+      "real_lean_lake": true,
+      "selected_source_files": [
+        "Entry.lean"
+      ],
+      "prepared_binding": "844ecf6deea68ad82ab9235db9b6df3a762e85fa6074341995338e8d4f28911f",
+      "metadata_source_and_resources_unchanged": true,
+      "retired_metadata_only_guard_would_admit": true,
+      "dependency_only_change_refused": true,
+      "frozen_context_unchanged": true,
+      "error": "Prepared dependencies changed; reread the file before meaning analysis",
+      "no_model_or_solver": true
+    },
+    "files": [
+      {
+        "path": "/tmp/meden-compiled-input-gates-state.json",
+        "bytes": 930,
+        "sha256": "2be2dfa5c223a02a61bea51952ce802d82d67a3a6144e06b7a6f42f5570b0523"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-rust.log",
+        "bytes": 30152,
+        "sha256": "30cb240b639a3e1e5ebe0bdd188fb831eff107ec502108355e05398803181f22"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-clippy.log",
+        "bytes": 72,
+        "sha256": "2b34696728dc82b03cbf6311d7e3a6a41658bbde097834c3010a78bc82842c1a"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-architecture.log",
+        "bytes": 9497,
+        "sha256": "42100238f546fa724c940fbd27b7dfcb41ab7375e7c08fa9fd44d2888e12157a"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-schema.log",
+        "bytes": 199,
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-rust-format.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-python-lint.log",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-python-lint-failed-first.log",
+        "bytes": 1012,
+        "sha256": "ba521910771043467e763c0b44035f28218991762f3355b85e1a97740d4a1051"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-selection-and-lake.log",
+        "bytes": 111,
+        "sha256": "7aee125a965a4a420c506eefcecee901efd270135274e82486bac26859d2489c"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-tui.log",
+        "bytes": 190,
+        "sha256": "91abf9b39c4c9c26d322496074d462dfc217b5756ca83d605712b6d0cd577224"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-gate-gui.log",
+        "bytes": 16042,
+        "sha256": "9fd538618ea6ae764d9ef6a14a799bb3572a2835e7812f4d2b0ac9229f2ab63c"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-evaluation-driver.log",
+        "bytes": 98,
+        "sha256": "4bcefcc9f6c645923b9993ccf73ad92e6b400ca25458ea14e095857fc2131342"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-closure.log",
+        "bytes": 954,
+        "sha256": "69b00c9cde480d0f4f7730edd1787f559cee03732663a070629be070be7e9241"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-closure.json",
+        "bytes": 464,
+        "sha256": "f2f933edfd3e46c4ffa7d57d8a04f2ddcfb30a88953a771cafb100ab3fba09c4"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-native-updates.json",
+        "bytes": 5887,
+        "sha256": "f9c6f671ef06f8b98bbc5befe3956350eb68d6481c4fa991a398a758083e72d6"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-native-metadata-update.json",
+        "bytes": 44272,
+        "sha256": "a8c49df76cb344e77fb0cef818534c938de6cebf5dfa78fc9a272467f8df9e5f"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-native-repair-update.json",
+        "bytes": 44346,
+        "sha256": "9959eef9655fab20638344266145c377639d74ad44a429a891c325718654e864"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-decoded-screens.json",
+        "bytes": 7350,
+        "sha256": "aaca99085a46ebfa5957cbcce0d5d7b453e1b63b1c06d785e0b7124433cd20e0"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-reviewed-browser-screens.json",
+        "bytes": 2151,
+        "sha256": "0ef7bcb4578526037277f28d2d68b8e609e15b9198d60a015bf71503688d8661"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-reviewed-validation.json",
+        "bytes": 853,
+        "sha256": "05ed7ac462dada8cc263c2425f5c7be650898df9d96ceb1eee99d0ddf6b89bd1"
+      },
+      {
+        "path": "/tmp/meden-compiled-input-final-fidelity.json",
+        "bytes": 2171,
+        "sha256": "b5a22d32407772896b2e9536f98dafaef36d1e6b865e55cfec1e970b642af8f1"
+      },
+      {
+        "path": "target/compiled-input-closure/src/main.rs",
+        "bytes": 3301,
+        "sha256": "09aaefb68680a676b050ccb2de41a44e5e810eda22e85163c46984df18fe1652"
+      },
+      {
+        "path": "target/compiled-input-closure/Cargo.toml",
+        "bytes": 281,
+        "sha256": "ef3881479aebd526a79225fa75ee0ef0eee879f408a80f26e5335a602647859a"
+      },
+      {
+        "path": "target/compiled-input-closure/Cargo.lock",
+        "bytes": 19228,
+        "sha256": "872b75210b75a412b3d04be2dd87d01556879e27d883793d553e91a1a732c7c6"
+      },
+      {
+        "path": "target/debug/profile-compiled-input-closure",
+        "bytes": 88016608,
+        "sha256": "61530deebdd2645e6d18dc353a9fe47c6b2c8eb06556dbf04a4507f4f59fe8fb"
+      },
+      {
+        "path": "target/compiled-input-cache.mjs",
+        "bytes": 2395,
+        "sha256": "3771d455cfbed655abfed517fbee3a4a5dbf4599490a17a2cda9a979b9a0cd5b"
+      },
+      {
+        "path": "target/compiled-input-before.mjs",
+        "bytes": 2301,
+        "sha256": "29c0e8eecce306edc8785a3d2b7d9ba765414c19488a086c651fe3e12a65fe7c"
+      },
+      {
+        "path": "target/compiled-input-smoke.mjs",
+        "bytes": 11668,
+        "sha256": "b7ebb68e77e37f7c8425941c14d9e864375cdddfc988be1f16bbd21a510034eb"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "stages": [
+        {
+          "stage": "updated",
+          "input_mode": "lake",
+          "cache_hit": false,
+          "file_click_to_ready_ms": 198725.175782,
+          "semantic_workers": [
+            {
+              "name": "atlas.project.extract",
+              "wall_ms": 21950.715
+            },
+            {
+              "name": "atlas.search",
+              "wall_ms": 121226.769
+            },
+            {
+              "name": "analysis.render",
+              "wall_ms": 10877.956
+            }
+          ],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 196231.488,
+                "current_thread_cpu_ms": 3085.629
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1286.904,
+                "current_thread_cpu_ms": 633.926
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 10462.279,
+                "current_thread_cpu_ms": 75.779
+              },
+              {
+                "wall_ms": 8491.956,
+                "current_thread_cpu_ms": 81.64
+              },
+              {
+                "wall_ms": 3904.322,
+                "current_thread_cpu_ms": 62.197
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 7143.044,
+                "current_thread_cpu_ms": 73.764
+              },
+              {
+                "wall_ms": 3953.13,
+                "current_thread_cpu_ms": 59.102
+              },
+              {
+                "wall_ms": 4105.482,
+                "current_thread_cpu_ms": 77.897
+              }
+            ],
+            "atlas.project.extract": [
+              {
+                "wall_ms": 21950.715,
+                "current_thread_cpu_ms": 96.638
+              }
+            ],
+            "atlas.compile": [],
+            "atlas.search": [
+              {
+                "wall_ms": 121226.769,
+                "current_thread_cpu_ms": 448.185
+              }
+            ],
+            "analysis.render": [
+              {
+                "wall_ms": 10877.956,
+                "current_thread_cpu_ms": 609.621
+              }
+            ],
+            "search.validate_input": [
+              {
+                "wall_ms": 0.573,
+                "current_thread_cpu_ms": 0.569
+              }
+            ],
+            "search.freeze_input": [
+              {
+                "wall_ms": 3.301,
+                "current_thread_cpu_ms": 3.29
+              }
+            ],
+            "search.validate_binding": [
+              {
+                "wall_ms": 3.359,
+                "current_thread_cpu_ms": 3.348
+              }
+            ],
+            "search.validate_report": [
+              {
+                "wall_ms": 0.037,
+                "current_thread_cpu_ms": 0.037
+              }
+            ]
+          },
+          "search_differences": [
+            {
+              "id": "PIW.AdelClassFin.mGen_of",
+              "before": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "The file's observation budget was reached; no counterexample verdict is available."
+              },
+              "after": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+              }
+            }
+          ],
+          "observation_id": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4",
+          "search_id": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f",
+          "rendering_id": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "dd2334ff5b0576524940dd97d77eb510618a558daff42bb84155ea03b8d8c6f4",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        },
+        {
+          "stage": "cached",
+          "input_mode": "lake",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 11039.713668999999,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 10304.586,
+                "current_thread_cpu_ms": 1246.586
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1303.573,
+                "current_thread_cpu_ms": 668.181
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 3966.518,
+                "current_thread_cpu_ms": 67.739
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 3859.108,
+                "current_thread_cpu_ms": 57.717
+              }
+            ],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [
+            {
+              "id": "PIW.AdelClassFin.mGen_of",
+              "before": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "The file's observation budget was reached; no counterexample verdict is available."
+              },
+              "after": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+              }
+            }
+          ],
+          "observation_id": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4",
+          "search_id": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f",
+          "rendering_id": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "dd2334ff5b0576524940dd97d77eb510618a558daff42bb84155ea03b8d8c6f4",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        },
+        {
+          "stage": "restarted",
+          "input_mode": "lake",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 12262.829336,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 10009.361,
+                "current_thread_cpu_ms": 1163.091
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1255.412,
+                "current_thread_cpu_ms": 624.982
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 3831.512,
+                "current_thread_cpu_ms": 49.89
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 3772.581,
+                "current_thread_cpu_ms": 47.779
+              }
+            ],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [
+            {
+              "id": "PIW.AdelClassFin.mGen_of",
+              "before": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "The file's observation budget was reached; no counterexample verdict is available."
+              },
+              "after": {
+                "engine": "Plausible",
+                "status": "budget_exhausted",
+                "candidates": [],
+                "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+              }
+            }
+          ],
+          "observation_id": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4",
+          "search_id": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f",
+          "rendering_id": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "dd2334ff5b0576524940dd97d77eb510618a558daff42bb84155ea03b8d8c6f4",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        }
+      ],
+      "complete_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "original_immutable_artifacts_intact": true,
+      "complete_new_chain_reused_after_actual_restart": true,
+      "cameras_retained_original_source_line_selected": true,
+      "quiet_chat_history_and_candidates_retained": true,
+      "authorized": false,
+      "running": false
+    },
+    {
+      "project": "ethlib",
+      "stages": [
+        {
+          "stage": "updated",
+          "input_mode": "frozen",
+          "cache_hit": false,
+          "file_click_to_ready_ms": 53363.20329,
+          "semantic_workers": [
+            {
+              "name": "atlas.compile",
+              "wall_ms": 971.954
+            },
+            {
+              "name": "atlas.search",
+              "wall_ms": 19035.56
+            },
+            {
+              "name": "analysis.render",
+              "wall_ms": 17855.285
+            }
+          ],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 51588.125,
+                "current_thread_cpu_ms": 3407.499
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 2097.963,
+                "current_thread_cpu_ms": 1188.624
+              }
+            ],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [
+              {
+                "wall_ms": 971.954,
+                "current_thread_cpu_ms": 49.864
+              }
+            ],
+            "atlas.search": [
+              {
+                "wall_ms": 19035.56,
+                "current_thread_cpu_ms": 246.378
+              }
+            ],
+            "analysis.render": [
+              {
+                "wall_ms": 17855.285,
+                "current_thread_cpu_ms": 979.345
+              }
+            ],
+            "search.validate_input": [
+              {
+                "wall_ms": 0.288,
+                "current_thread_cpu_ms": 0.287
+              }
+            ],
+            "search.freeze_input": [
+              {
+                "wall_ms": 4.752,
+                "current_thread_cpu_ms": 4.74
+              }
+            ],
+            "search.validate_binding": [
+              {
+                "wall_ms": 4.861,
+                "current_thread_cpu_ms": 4.848
+              }
+            ],
+            "search.validate_report": [
+              {
+                "wall_ms": 0.04,
+                "current_thread_cpu_ms": 0.04
+              }
+            ]
+          },
+          "search_differences": [],
+          "observation_id": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded",
+          "search_id": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee",
+          "rendering_id": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "7e11178f632bc25a60e5acd022f04fefe2d97aaa4dd4cf354c02ab8866ecadf0",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        },
+        {
+          "stage": "cached",
+          "input_mode": "frozen",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 1979.3335339999994,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 873.719,
+                "current_thread_cpu_ms": 476.057
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded",
+          "search_id": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee",
+          "rendering_id": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "7e11178f632bc25a60e5acd022f04fefe2d97aaa4dd4cf354c02ab8866ecadf0",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        },
+        {
+          "stage": "restarted",
+          "input_mode": "frozen",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 2199.0170169999997,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 944.443,
+                "current_thread_cpu_ms": 476.171
+              }
+            ],
+            "analysis.observe": [],
+            "analysis.discover_layout": [],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded",
+          "search_id": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee",
+          "rendering_id": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "7e11178f632bc25a60e5acd022f04fefe2d97aaa4dd4cf354c02ab8866ecadf0",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "b3be7eaaa2d92a9fadb6e3eb2df1db5af2e5577f8ca2efec37698550d6d8ba3a"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "722dfee799ab93886bf4e27abc0f7bd64b1abfc49fa187064d8326e9a638e267",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "58e969c7453fd4c5a5548efbd1745f67e7d3debff24f231efda9eb0f46e22079",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "execution_resources_absent_from_graph": true,
+          "original_frozen_module_descriptor_unchanged": true
+        }
+      ],
+      "complete_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "original_immutable_artifacts_intact": true,
+      "complete_new_chain_reused_after_actual_restart": true,
+      "cameras_retained_original_source_line_selected": true,
+      "quiet_chat_history_and_candidates_retained": true,
+      "authorized": false,
+      "running": false
+    }
+  ],
+  "remaining": "Native heterogeneous preparation selection, backend-local collection/layout namespace audit, remaining full-input hashing/Lake waits, broader role/identity audit, browser detail stalls and retirement remain open. Filesystem/worker attribution is adapter evidence, not new refinement."
+}

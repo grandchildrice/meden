@@ -8,13 +8,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Extraction {
     pub revision: GraphRevision,
     pub upstream: String,
     pub graph: Graph,
     pub resources_sha256: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub compiled_modules: Option<super::Modules>,
 }
 
 #[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
@@ -146,7 +145,6 @@ impl Extraction {
             upstream: super::UPSTREAM.into(),
             graph,
             resources_sha256: super::compiler_resources(resources)?,
-            compiled_modules: None,
         })
     }
 }

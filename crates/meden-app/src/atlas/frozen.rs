@@ -11,8 +11,25 @@ use std::{
 #[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Modules {
-    id: String,
+    id: Id,
     files: BTreeMap<String, String>,
+}
+/// Original content-bound frozen-module identity; no prepared-Lake coercion.
+#[derive(Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
+#[serde(transparent)]
+struct Id(#[schemars(regex(pattern = "^[a-f0-9]{64}$"))] String);
+impl<'de> Deserialize<'de> for Id {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Self, D::Error> {
+        let value = String::deserialize(d)?;
+        if value.len() != 64
+            || !value
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        {
+            return Err(serde::de::Error::custom("Invalid frozen module identity"));
+        }
+        Ok(Self(value))
+    }
 }
 fn files(root: &Path) -> Result<BTreeMap<String, String>> {
     anyhow::ensure!(
@@ -61,30 +78,26 @@ fn files(root: &Path) -> Result<BTreeMap<String, String>> {
     Ok(result)
 }
 impl Configuration {
-    fn modules_directory(&self, id: &str) -> Result<PathBuf> {
-        anyhow::ensure!(
-            id.len() == 64 && id.bytes().all(|b| b.is_ascii_hexdigit()),
-            "Invalid compiled module identity"
-        );
+    fn modules_directory(&self, id: &Id) -> Result<PathBuf> {
         Ok(self
             .cache
             .as_ref()
             .context("Atlas host cache unavailable")?
             .join("compiled-modules")
-            .join(id))
+            .join(&id.0))
     }
     fn modules_id(
         &self,
         files: &BTreeMap<String, String>,
         sources: &BTreeMap<String, String>,
         bindings: &[crate::analysis::layout::Module],
-    ) -> Result<String> {
-        Ok(digest(&serde_json::to_vec(&(
+    ) -> Result<Id> {
+        Ok(Id(digest(&serde_json::to_vec(&(
             self.current_resources()?,
             files,
             sources,
             bindings,
-        ))?))
+        ))?)))
     }
     pub(super) fn retain_modules(
         &self,
@@ -115,14 +128,11 @@ impl Configuration {
         &self,
         snapshot: &crate::adapters::lean::Snapshot,
     ) -> Result<PathBuf> {
-        let graph = snapshot.atlas.as_ref().context("Missing compiled graph")?;
-        let retained = graph
-            .compiled_modules
-            .as_ref()
+        let retained = snapshot
+            .modules()
             .context("Missing retained compiled modules; recompile the file")?;
         let bindings = &snapshot
-            .collection
-            .as_ref()
+            .collection()
             .context("Missing module bindings")?
             .modules;
         anyhow::ensure!(

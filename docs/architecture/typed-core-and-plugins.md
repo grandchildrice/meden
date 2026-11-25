@@ -1067,6 +1067,17 @@ Compiler/search attribution captures their leaf implementation and snapshot data
 so a repair/composition-only executable update reuses the original validated
 compiler, search and rendering objects. Native heterogeneous selection, prepared
 module ownership, remaining latency and the retirement audit remain open.
+The [compiled-input ownership migration](../performance/compiled-input-ownership.md)
+removes execution resources from display graphs. Lean observations now distinguish
+source-only data from complete compilation, which owns its original graph,
+collection and exactly one frozen-module or prepared-Lake input. Source collection
+cannot masquerade as completed compilation. Frozen module identifiers have a
+backend-owned canonical type; original byte/content checks remain. Native TUI/GUI
+composition uses immutable getters, and neutral source/view retention tests no
+longer depend on Lean fixtures. This closes the represented mixed input modes;
+filesystem/worker attribution and native heterogeneous preparation remain separate
+obligations. Remaining native freshness waits, browser stalls and retirement work
+still require completion.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

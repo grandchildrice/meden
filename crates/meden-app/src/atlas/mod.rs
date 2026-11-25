@@ -184,7 +184,7 @@ impl Configuration {
         files: &BTreeMap<String, String>,
         bindings: &[crate::analysis::layout::Module],
         control: &Control,
-    ) -> Result<Extraction> {
+    ) -> Result<(Extraction, Modules)> {
         let (lean, library) = self.selected()?;
         let before = Self::validate(&lean, &library)?;
         let cache = self
@@ -241,9 +241,9 @@ impl Configuration {
                 .context("Atlas module is outside the frozen binding")?;
             node["filePath"] = binding.file.clone().into();
         }
-        let mut extraction = Extraction::new(graph, files, &before)?;
-        extraction.compiled_modules = Some(self.retain_modules(&job, files, bindings)?);
-        Ok(extraction)
+        let extraction = Extraction::new(graph, files, &before)?;
+        let modules = self.retain_modules(&job, files, bindings)?;
+        Ok((extraction, modules))
     }
 }
 

@@ -185,18 +185,19 @@ def main(argv=None):
             assert observation["type"] == "source_snapshot", observation
             snapshot = observation["snapshot"]
             row["source_snapshot"] = snapshot
-            assert not any(node["hasSorry"] for node in snapshot["atlas"]["graph"]["nodes"]), (
+            graph = snapshot["compilation"]["graph"]
+            assert not any(node["hasSorry"] for node in graph["graph"]["nodes"]), (
                 "Dataset proofs contain sorry"
             )
             target = next(
-                node for node in snapshot["atlas"]["graph"]["nodes"] if node["id"] == case["target"]
+                node for node in graph["graph"]["nodes"] if node["id"] == case["target"]
             )
             # Only neutral source, target and requirement cross the public boundary.
             host.send(
                 {
                     "analyze_meaning": dict(
                         source_revision=snapshot["revision"],
-                        graph_revision=snapshot["atlas"]["revision"],
+                        graph_revision=graph["revision"],
                         target=dict(
                             file="Case.lean", line=target["lineStart"], name=case["target"]
                         ),

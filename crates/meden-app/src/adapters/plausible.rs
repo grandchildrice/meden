@@ -86,18 +86,14 @@ impl Searcher for Plausible {
     ) -> Result<Completed<Snapshot, Report>> {
         let original = invocation.request().snapshot();
         let collection = original
-            .collection
-            .as_ref()
+            .collection()
             .context("Missing original module bindings")?;
         let modules = collection
             .modules
             .iter()
             .map(|m| m.name.replace('.', "/"))
             .collect::<Vec<_>>();
-        let graph = original
-            .atlas
-            .as_ref()
-            .context("Missing compiled search input")?;
+        let graph = original.graph().context("Missing compiled search input")?;
         let targets = graph
             .graph
             .nodes
@@ -156,7 +152,7 @@ impl Searcher for Plausible {
             context.control,
             &collection.metadata,
         )?;
-        if let Some(expected) = &collection.prepared {
+        if let Some(expected) = original.prepared() {
             let observed = self.atlas.input_fingerprint(
                 context.workspace.path(),
                 &collection.modules,

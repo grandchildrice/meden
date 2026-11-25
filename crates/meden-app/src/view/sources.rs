@@ -187,10 +187,23 @@ impl super::publication::Data for super::SourcePage {
 mod tests {
     use super::*;
     use crate::identity::snapshots::SourceRevision;
-    use crate::{
-        adapters::lean::Snapshot,
-        analysis::{collect::Collection, observe::Metadata},
-    };
+    #[derive(Clone)]
+    struct Snapshot {
+        source: crate::analysis::sources::Snapshot,
+        external: Vec<String>,
+    }
+    impl crate::analysis::sources::Source for Snapshot {
+        fn sources(&self) -> &crate::analysis::sources::Snapshot {
+            &self.source
+        }
+    }
+    impl crate::view::Projection for Snapshot {
+        fn page(&self) -> Result<crate::view::SourcePage> {
+            let mut page = crate::view::Projection::page(&self.source)?;
+            page.external.clone_from(&self.external);
+            Ok(page)
+        }
+    }
     use anyhow::{Context as _, Result};
     use proptest::prelude::*;
 
@@ -204,8 +217,7 @@ mod tests {
                 revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?)),
                 files,
             },
-            atlas: None,
-            collection: None,
+            external: Vec::new(),
         })
     }
     fn observation(path: &str, text: &str) -> Result<file::FileView> {
@@ -261,20 +273,10 @@ mod tests {
     fn presentation_changes_receive_an_identity_even_with_the_same_source_and_graph() -> Result<()>
     {
         let mut raw = original(&[("A.lean", "def a := 1\n")])?;
-        raw.collection = Some(Collection {
-            roots: vec!["A.lean".into()],
-            external_modules: vec!["First".into()],
-            modules: vec![],
-            packages: vec![],
-            metadata: Metadata::default(),
-            prepared: None,
-        });
+        raw.external = vec!["First".into()];
         let first = PreparedSource::new(raw.clone())?;
         let before = first.publication().reference().revision.clone();
-        raw.collection
-            .as_mut()
-            .context("collection")?
-            .external_modules = vec!["Second".into()];
+        raw.external = vec!["Second".into()];
         let second = PreparedSource::new(raw)?;
         assert_eq!(first.source.revision, second.source.revision);
         assert_ne!(before, second.publication().reference().revision);

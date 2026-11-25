@@ -12,7 +12,7 @@ use std::sync::{
 fn request(name: &str) -> Result<Request> {
     let files = BTreeMap::from([("M.lean", "theorem x : True := True.intro\n")]);
     let snapshot = serde_json::from_value(
-        json!({"revision":format!("sha256:{}",crate::atlas::digest(&serde_json::to_vec(&files)?)),"files":files,"collection":null,"atlas":{"revision":format!("sha256:{}","1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture","graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":name,"shortName":name,"kind":"theorem","filePath":"M.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"True","value":null,"axioms":[],"standardAxioms":[],"externalDependencies":[],"semantic":{"version":1,"origin":"elaborated","sentence":"True","refutation":"False","checker":null}}],"edges":[],"externalReferences":[]}}}),
+        json!({"revision":format!("sha256:{}",crate::atlas::digest(&serde_json::to_vec(&files)?)),"files":files,"compilation":{"inputs":{"kind":"lake","fingerprint":"0".repeat(64)},"collection":{"roots":["M.lean"],"external_modules":[],"modules":[],"packages":[],"metadata":{"files":{},"directories":{}}},"graph":{"revision":format!("sha256:{}","1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture","graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":name,"shortName":name,"kind":"theorem","filePath":"M.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"True","value":null,"axioms":[],"standardAxioms":[],"externalDependencies":[],"semantic":{"version":1,"origin":"elaborated","sentence":"True","refutation":"False","checker":null}}],"edges":[],"externalReferences":[]}}}}),
     )?;
     Ok(Request {
         observation: serde_json::from_value(json!(crate::atlas::digest(name.as_bytes())))?,
@@ -96,7 +96,7 @@ fn raw_descriptions_cannot_be_published_and_checks_must_cover_exact_declarations
     }
     assert!(report("x")?
         .project(raw.snapshot().clone())?
-        .atlas
+        .graph()
         .is_some());
     Ok(())
 }

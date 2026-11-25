@@ -45,10 +45,7 @@ impl Compiler for Lake {
             request.paths(),
             atlas.clone(),
         )?;
-        let collection = snapshot
-            .collection
-            .as_mut()
-            .context("Missing Lake bindings")?;
+        let collection = &mut snapshot.collection;
         crate::analysis::collect::check_metadata(
             context.workspace,
             context.control,
@@ -60,7 +57,6 @@ impl Compiler for Lake {
             crate::atlas::InputMode::Prepare,
             context.control,
         )?;
-        collection.prepared = Some(prepared.clone());
         if let Some(cached) = crate::adapters::lean::cache::compiled_prepared(
             context.workspace,
             context.control,
@@ -109,6 +105,7 @@ impl Compiler for Lake {
         graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
             &graph.revision,
             &collection,
+            &prepared,
         ))?));
         collection.external_modules = external_modules(
             atlas,
@@ -116,8 +113,14 @@ impl Compiler for Lake {
             &collection.modules,
             context.control,
         )?;
-        snapshot.atlas = Some(graph);
-        Ok(request.observe(snapshot))
+        Ok(request.observe(super::lean::Snapshot::compiled(
+            snapshot.source,
+            graph,
+            snapshot.collection,
+            super::lean::snapshot::Inputs::Lake {
+                fingerprint: prepared,
+            },
+        )))
     }
 }
 

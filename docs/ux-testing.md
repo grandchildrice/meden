@@ -68,6 +68,16 @@ HTTP 202 rather than a startup/prerequisite error. Backend definition changes
 require fresh bound artifacts once; subsequent restart must reuse them without
 compilation/search/rendering. Old artifacts must not be relabeled.
 
+Lean compiler observations distinguish source-only data from complete compiled
+input ownership. A complete observation owns either frozen module content or a
+prepared-Lake fingerprint; display graphs carry neither execution reference.
+Codecs refuse mixed modes and old field placements. The native search-settings
+journey checks frozen ownership and real corruption/recompilation recovery; both
+actual executable-update journeys check prepared ownership and exact artifact
+reuse after restart. Neutral source retention/projection tests use their own
+source types, independently of Lean. These are adapter/type checks, not new
+verification evidence or a filesystem refinement proof.
+
 Compiler/search/render cache contexts retain their original bare digests and
 complete parent/body checks. The actual body's type selects its storage role;
 decoded identity spelling does not grant ownership. Public source preparation,

@@ -64,14 +64,13 @@ fn scoped_context_prunes_only_known_proof_edges_and_requires_the_exact_graph() -
         name: "T".into(),
     };
     let context = serde_json::to_value(context(&extraction, &target)?)?;
-    let snapshot = Snapshot {
-        source: crate::analysis::sources::Snapshot {
+    let snapshot = crate::adapters::lean::snapshot::fixture(
+        crate::analysis::sources::Snapshot {
             revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?)),
             files: files.clone(),
         },
-        atlas: Some(extraction.clone()),
-        collection: None,
-    };
+        extraction.clone(),
+    );
     let declarations = context
         .get("declarations")
         .and_then(Value::as_array)

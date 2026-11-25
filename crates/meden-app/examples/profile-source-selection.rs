@@ -57,10 +57,7 @@ fn main() -> Result<()> {
             meden_app::analysis::collect::roots(&workspace, &control, &paths, atlas.clone())?;
         let elapsed_ms = started.elapsed().as_secs_f64() * 1000.0;
         let bytes = serde_json::to_vec(&selected)?;
-        let collection = selected
-            .collection
-            .as_ref()
-            .context("Missing original collection")?;
+        let collection = &selected.collection;
         observations.push(json!({"sample":sample,"elapsed_ms":elapsed_ms,
             "selection_sha256":format!("sha256:{:x}",Sha256::digest(&bytes)),
             "canonical_bytes":bytes.len(),"source_files":selected.source.files.len(),

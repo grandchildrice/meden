@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 pub struct Context {
     method: String,
     resources: Option<String>,
+    prepared: Option<crate::identity::snapshots::PreparedRevision>,
     collection: Option<analysis::collect::Collection>,
 }
 fn method() -> String {
@@ -36,6 +37,7 @@ impl repair::Context for Context {
         match super::semantic::check_binding(
             context,
             self.collection.as_ref(),
+            self.prepared.as_ref(),
             self.resources.as_deref(),
         )? {
             analysis::Freshness::Current => Ok(()),
@@ -52,7 +54,7 @@ impl repair::Context for Context {
 impl repair::Observation for Snapshot {
     type Repair = Context;
     fn repair_context(&self) -> Result<Context> {
-        if let Some(collection) = &self.collection {
+        if let Some(collection) = self.collection() {
             anyhow::ensure!(
                 !collection.roots.is_empty()
                     && collection
@@ -64,18 +66,16 @@ impl repair::Observation for Snapshot {
         }
         Ok(Context {
             method: method(),
-            resources: self
-                .atlas
-                .as_ref()
-                .map(|graph| graph.resources_sha256.clone()),
-            collection: self.collection.clone(),
+            resources: self.graph().map(|graph| graph.resources_sha256.clone()),
+            collection: self.collection().cloned(),
+            prepared: self.prepared().cloned(),
         })
     }
     fn refreshed_input(&self, original: &Input) -> Result<Input> {
         let mut input = original.clone();
         input.source_revision.clone_from(&self.source.revision);
-        input.graph_revision = self.atlas.as_ref().map(|graph| graph.revision.clone());
-        if let Some(graph) = &self.atlas {
+        input.graph_revision = self.graph().map(|graph| graph.revision.clone());
+        if let Some(graph) = self.graph() {
             let mut nodes =
                 graph.graph.nodes.iter().filter(|node| {
                     node.id == input.target.name && node.file_path == input.target.file

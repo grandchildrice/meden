@@ -4,7 +4,6 @@ use super::{
     observe::{relative, Metadata, Reader},
     sources,
 };
-use crate::{adapters::lean::Snapshot, identity::snapshots::PreparedRevision};
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
@@ -14,21 +13,26 @@ use std::{
 };
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Collection {
     pub roots: Vec<String>,
     pub external_modules: Vec<String>,
     pub modules: Vec<Module>,
     pub packages: Vec<PackageView>,
     pub metadata: Metadata,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub prepared: Option<PreparedRevision>,
+}
+#[derive(Serialize)]
+pub struct Collected {
+    #[serde(flatten)]
+    pub source: sources::Snapshot,
+    pub collection: Collection,
 }
 pub fn capture(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
     atlas: crate::atlas::Configuration,
-) -> Result<Snapshot> {
+) -> Result<Collected> {
     let Selection {
         atlas,
         mut reader,
@@ -66,24 +70,25 @@ pub fn capture(
             break;
         }
     }
-    let mut snapshot = Snapshot::source_only(sources::capture(
+    let source = sources::capture(
         workspace,
         control,
         &files.keys().cloned().collect::<Vec<_>>(),
-    )?);
+    )?;
     anyhow::ensure!(
-        snapshot.source.files == files,
+        source.files == files,
         "Sources changed during Lake import collection; reread the graph"
     );
-    snapshot.collection = Some(Collection {
-        roots,
-        external_modules: external.into_iter().collect(),
-        modules: modules.into_values().collect(),
-        packages: layout.packages,
-        metadata: reader.metadata,
-        prepared: None,
-    });
-    Ok(snapshot)
+    Ok(Collected {
+        source,
+        collection: Collection {
+            roots,
+            external_modules: external.into_iter().collect(),
+            modules: modules.into_values().collect(),
+            packages: layout.packages,
+            metadata: reader.metadata,
+        },
+    })
 }
 struct Selection<'a> {
     atlas: crate::atlas::Configuration,
@@ -148,7 +153,7 @@ pub fn roots(
     control: &Control,
     paths: &[String],
     atlas: crate::atlas::Configuration,
-) -> Result<Snapshot> {
+) -> Result<Collected> {
     let _timing = meden_runtime::metrics::Span::start("analysis.select_roots");
     let Selection {
         reader,
@@ -158,24 +163,25 @@ pub fn roots(
         roots,
         ..
     } = select(workspace, control, paths, atlas)?;
-    let mut snapshot = Snapshot::source_only(sources::capture(
+    let source = sources::capture(
         workspace,
         control,
         &files.keys().cloned().collect::<Vec<_>>(),
-    )?);
+    )?;
     anyhow::ensure!(
-        snapshot.source.files == files,
+        source.files == files,
         "Sources changed during Lake root selection"
     );
-    snapshot.collection = Some(Collection {
-        roots,
-        external_modules: Vec::new(),
-        modules: modules.into_values().collect(),
-        packages: layout.packages,
-        metadata: reader.metadata,
-        prepared: None,
-    });
-    Ok(snapshot)
+    Ok(Collected {
+        source,
+        collection: Collection {
+            roots,
+            external_modules: Vec::new(),
+            modules: modules.into_values().collect(),
+            packages: layout.packages,
+            metadata: reader.metadata,
+        },
+    })
 }
 
 fn insert(modules: &mut BTreeMap<String, Module>, module: &Module) -> Result<()> {

@@ -11,21 +11,20 @@ fn observed() -> Result<Snapshot> {
     )]);
     Ok(serde_json::from_value(json!({
         "revision":format!("sha256:{}", hash(&files)?), "files":files,
-        "collection":{"roots":["Spec.lean"],"external_modules":[],"modules":[],"packages":[],"metadata":{"files":{},"directories":{}}},
-        "atlas":{"revision":format!("sha256:{}", "1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture",
+        "compilation":{"inputs":{"kind":"lake","fingerprint":"0".repeat(64)},"collection":{"roots":["Spec.lean"],"external_modules":[],"modules":[],"packages":[],"metadata":{"files":{},"directories":{}}},
+        "graph":{"revision":format!("sha256:{}", "1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture",
             "graph":{"metadata":{"projectName":"cache fixture","leanVersion":"fixture"},"nodes":[{
                 "id":"claim","shortName":"claim","kind":"theorem","filePath":"Spec.lean","lineStart":1,"lineEnd":1,
                 "hasSorry":true,"statement":"False","value":null,"axioms":[],"standardAxioms":[],"externalDependencies":[],
                 "semantic":{"version":1,"origin":"elaborated","sentence":"structural sentence","renderer":"Structural English",
                     "refutation":"original refutation","intermediate":"original formal expression",
                     "checker":{"engine":"fixture","status":"counterexample","candidates":["original witness"],"seed":42}}
-            }],"edges":[],"externalReferences":[]}}
+            }],"edges":[],"externalReferences":[]}}}
     }))?)
 }
 fn semantic(snapshot: &mut Snapshot) -> Result<&mut crate::explanation::Description> {
     snapshot
-        .atlas
-        .as_mut()
+        .graph_mut()
         .and_then(|g| g.graph.nodes.first_mut())
         .and_then(|n| n.semantic.as_mut())
         .context("semantic")
@@ -37,7 +36,7 @@ fn searched_id(observation: &Observation) -> Result<Id<CounterexampleSearch>> {
     }
 }
 fn revision(snapshot: &Snapshot) -> Result<&GraphRevision> {
-    Ok(&snapshot.atlas.as_ref().context("graph")?.revision)
+    Ok(&snapshot.graph().context("graph")?.revision)
 }
 
 #[test]
@@ -102,24 +101,24 @@ fn rendering_cannot_rewrite_check_results_sources_refutations_or_dependencies() 
     let original = observed()?;
     for (path, value) in [
         (
-            "/atlas/graph/nodes/0/semantic/checker/status",
+            "/compilation/graph/graph/nodes/0/semantic/checker/status",
             json!("not_found"),
         ),
         (
-            "/atlas/graph/nodes/0/semantic/checker/candidates",
+            "/compilation/graph/graph/nodes/0/semantic/checker/candidates",
             json!([]),
         ),
         (
-            "/atlas/graph/nodes/0/semantic/refutation",
+            "/compilation/graph/graph/nodes/0/semantic/refutation",
             json!("changed refutation"),
         ),
         (
-            "/atlas/graph/nodes/0/semantic/intermediate",
+            "/compilation/graph/graph/nodes/0/semantic/intermediate",
             json!("changed expression"),
         ),
-        ("/atlas/graph/nodes/0/hasSorry", json!(false)),
+        ("/compilation/graph/graph/nodes/0/hasSorry", json!(false)),
         ("/files/Spec.lean", json!("changed source")),
-        ("/collection/roots", json!([])),
+        ("/compilation/collection/roots", json!([])),
     ] {
         let mut value_snapshot = serde_json::to_value(&original)?;
         *value_snapshot.pointer_mut(path).context("mutation path")? = value;
@@ -474,8 +473,7 @@ fn a_searched_observation_cannot_be_reused_as_an_unsearched_parent() -> Result<(
     // infer stage. The original owner must still forbid a second search parent.
     let mut empty = observed()?;
     empty
-        .atlas
-        .as_mut()
+        .graph_mut()
         .context("empty graph")?
         .graph
         .nodes

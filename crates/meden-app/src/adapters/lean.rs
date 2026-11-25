@@ -6,7 +6,7 @@ pub mod pipeline;
 pub mod repair;
 pub mod search;
 pub mod semantic;
-mod snapshot;
+pub(crate) mod snapshot;
 mod view;
 pub use compiler::Lean;
 pub use snapshot::Snapshot;

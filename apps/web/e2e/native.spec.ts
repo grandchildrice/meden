@@ -3329,10 +3329,26 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
           for (const entry of await readdir(path, { withFileTypes: true })) {
             const file = resolve(path, entry.name);
             if (entry.isDirectory()) await visit(file);
-            else
-              files[file.slice(directory.length + 1)] = createHash("sha256")
-                .update(await readFile(file))
+            else {
+              const bytes = await readFile(file);
+              const relative = file.slice(directory.length + 1);
+              if (relative.startsWith("observations/")) {
+                const observation = JSON.parse(bytes.toString()).snapshot
+                  .compilation;
+                expect(observation.inputs.kind).toBe("lake");
+                expect(observation.inputs.fingerprint).toMatch(
+                  /^[a-f0-9]{64}$/,
+                );
+                expect(observation.inputs).not.toHaveProperty("modules");
+                expect(observation.graph).not.toHaveProperty(
+                  "compiled_modules",
+                );
+                expect(observation.collection).not.toHaveProperty("prepared");
+              }
+              files[relative] = createHash("sha256")
+                .update(bytes)
                 .digest("hex");
+            }
           }
         };
         await visit(directory);
@@ -4600,7 +4616,12 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
         "utf8",
       ),
     );
-    const retained = raw.snapshot.atlas.compiled_modules;
+    expect(raw.snapshot.compilation.inputs.kind).toBe("frozen");
+    expect(raw.snapshot.compilation.graph).not.toHaveProperty(
+      "compiled_modules",
+    );
+    expect(raw.snapshot.compilation.collection).not.toHaveProperty("prepared");
+    const retained = raw.snapshot.compilation.inputs.modules;
     const module = Object.keys(retained.files).find((name) =>
       name.endsWith(".olean"),
     )!;
@@ -4703,7 +4724,8 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       /^[a-f0-9]{64}$/,
     );
     expect(
-      originalArtifact.snapshot.atlas.graph.nodes[0].semantic.checker,
+      originalArtifact.snapshot.compilation.graph.graph.nodes[0].semantic
+        .checker,
     ).toBeNull();
     const originalSearches = await index("searches");
     expect(Object.values(originalSearches)).toHaveLength(1);

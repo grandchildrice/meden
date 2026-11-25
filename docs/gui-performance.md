@@ -20,6 +20,11 @@ while preserving full input validation. New-method preparation and subsequent
 cache-hit waits are recorded separately; this does not establish faster Lean
 execution or remove the remaining native freshness cost.
 
+The [compiled-input ownership validation](performance/compiled-input-ownership.md)
+separates frozen-module and prepared-Lake execution inputs from display graphs.
+Actual native update/corruption/restart journeys retain the original content
+checks; deployed ready times are functional observations, not a new speedup claim.
+
 The [retained-reference comparison](performance/map-reference-updates.md) reduces
 actual EthLib detail-update projection median from 316.544 ms to 42.480 ms over
 the same seven responses, preserving complete scenes and ordered edges. Riemann
