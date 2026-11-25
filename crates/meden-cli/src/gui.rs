@@ -1,4 +1,5 @@
 //! Loopback HTTP adapter. Native sessions, policies and checkpoints remain authoritative.
+use meden_runtime::workspace::SessionId;
 use std::fmt::Write as _;
 use std::io::Read;
 use std::path::{Component, Path};
@@ -140,7 +141,7 @@ impl Serialize for View {
 fn check_submission(
     command: &Command,
     connections: &connections::Connections,
-    session: &[u8],
+    session: &SessionId,
 ) -> Result<()> {
     if let Command::Instruction { text } = command {
         anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
@@ -188,7 +189,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     )?));
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
-        workspace.session_id(),
+        workspace.session_id().as_bytes(),
         args.verifier.as_deref(),
     )?);
     let preview_views = meden_app::view::preview::Previews::default();
@@ -318,7 +319,7 @@ fn initial_view(
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
         sources: meden_app::view::sources::Sources::default(),
-        source_preparation: meden_app::view::jobs::Jobs::new(workspace.session_id()),
+        source_preparation: meden_app::view::jobs::Jobs::new(workspace.session_id().as_bytes()),
         analyses,
         repair_review: None,
         preview,

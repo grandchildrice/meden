@@ -1141,6 +1141,7 @@ impl ProjectTool {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use meden_core::evidence::CheckResult;
     use std::sync::atomic::{AtomicBool, Ordering};

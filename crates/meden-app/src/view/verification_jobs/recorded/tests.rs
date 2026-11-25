@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)]
 use super::*;
 use crate::view::verification_jobs::{Reader, Role};
 use crate::view::{publication::ArtifactId, verification_jobs::Artifact};

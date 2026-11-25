@@ -131,6 +131,7 @@ pub struct State<'a> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use crate::{project::Project, records};
     use anyhow::Result;

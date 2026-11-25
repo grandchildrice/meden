@@ -128,6 +128,7 @@ impl Delivery {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
 
     // Selection comparison only: these private observations do not manufacture

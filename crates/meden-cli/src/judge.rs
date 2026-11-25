@@ -1,6 +1,7 @@
 //! Host-only second-model selection. Each processor keeps its own immutable grant.
 use anyhow::Result;
 use meden_llm::Gateway;
+use meden_runtime::workspace::SessionId;
 use std::sync::Arc;
 
 pub(crate) use meden_app::model::Binding;
@@ -8,7 +9,7 @@ pub(crate) fn binding(gateway: &Gateway) -> Binding {
     meden_app::model::binding(gateway)
 }
 pub(crate) fn prepare(
-    session: &[u8],
+    session: &SessionId,
     primary: &Gateway,
     model: Option<&str>,
 ) -> Result<Option<Arc<Gateway>>> {
@@ -25,6 +26,6 @@ pub(crate) fn prepare(
     model.clone_into(&mut provider.model);
     Ok(Some(Arc::new(Gateway::prepare(session, provider)?)))
 }
-pub(crate) fn authorized(judge: Option<&Gateway>, session: &[u8]) -> bool {
+pub(crate) fn authorized(judge: Option<&Gateway>, session: &SessionId) -> bool {
     judge.is_none_or(|judge| judge.is_authorized(session))
 }

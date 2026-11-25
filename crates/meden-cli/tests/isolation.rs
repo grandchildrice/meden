@@ -18,7 +18,7 @@ use serde_json::{json, Value};
 struct Session(Workspace);
 
 #[test]
-fn prepared_lake_extraction_is_read_only_while_preparation_can_write() {
+fn prepared_lake_query_can_write_while_metadata_and_extraction_are_read_only() {
     // OS mount coverage only: this profile probe uses the actual worker ELF as
     // a dependency-discovery asset, and does not claim compiler/model validation.
     let workspace = tempfile::tempdir().expect("workspace");
@@ -29,15 +29,16 @@ fn prepared_lake_extraction_is_read_only_while_preparation_can_write() {
         .expect("ELF dependency asset");
     fs::write(workspace.path().join("source"), "ORIGINAL").expect("source");
     fs::write(
-        resources.path().join("project-atlas-prepare.sh"),
+        resources.path().join("project-atlas-query.sh"),
         "printf PREPARED > /workspace/prepared",
     )
     .expect("preparation probe");
-    fs::write(resources.path().join("project-atlas-extract.sh"), r"/tools/python3 - <<'PYTHON'
+    let read_only = r"/tools/python3 - <<'PYTHON'
 import errno
 from pathlib import Path
 assert Path('/workspace/prepared').read_text() == 'PREPARED'
-for path in ['/workspace/source', '/workspace/new-file', '/analysis/library/project-atlas-extract.sh']:
+assert not Path('/meden-worker').exists()
+for path in ['/workspace/source', '/workspace/new-file', '/analysis/library/project-atlas-extract.sh', '/analysis/library/project-atlas-prepare.sh']:
     try:
         Path(path).write_text('TAMPERED')
     except OSError as error:
@@ -47,8 +48,15 @@ for path in ['/workspace/source', '/workspace/new-file', '/analysis/library/proj
 Path('/tmp/private-scratch').write_text('allowed')
 print('READ_ONLY_CONFIRMED')
 PYTHON
-").expect("extraction probe");
+";
     for script in ["project-atlas-prepare.sh", "project-atlas-extract.sh"] {
+        fs::write(resources.path().join(script), read_only).expect("read-only probe");
+    }
+    for script in [
+        "project-atlas-query.sh",
+        "project-atlas-prepare.sh",
+        "project-atlas-extract.sh",
+    ] {
         let mut command = meden_runtime::sandbox::Sandbox::lean_command(
             workspace.path(),
             Path::new(env!("CARGO_BIN_EXE_meden")),
@@ -74,7 +82,7 @@ PYTHON
             "{}",
             output.stderr
         );
-        if script == "project-atlas-extract.sh" {
+        if script != "project-atlas-query.sh" {
             assert_eq!(output.stdout.trim(), "READ_ONLY_CONFIRMED");
         }
     }

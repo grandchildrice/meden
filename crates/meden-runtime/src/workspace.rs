@@ -7,6 +7,40 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+/// Original host workspace/process identity, distinct from transport tokens,
+/// publication digests and reviewed contract references. This is not a grant.
+/// There is deliberately no repository/transport deserializer or implicit byte
+/// coercion; adapters project the original bytes at the kernel boundary.
+///
+/// ```compile_fail
+/// use meden_runtime::workspace::SessionId;
+/// fn prepare_model(_: &SessionId) {}
+/// prepare_model(b"untyped session");
+/// ```
+/// Repository JSON cannot reconstruct the host session:
+/// ```compile_fail
+/// use meden_runtime::workspace::SessionId;
+/// let forged: SessionId = serde_json::from_str("[1,2,3]").unwrap();
+/// ```
+/// Nor can a caller construct it without explicit host attribution:
+/// ```compile_fail
+/// use meden_runtime::workspace::SessionId;
+/// let forged = SessionId(vec![1,2,3]);
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SessionId(Vec<u8>);
+impl SessionId {
+    /// Freeze the host's existing identity without normalization or hashing.
+    /// Explicit construction is attribution, never approval or freshness.
+    pub fn from_host_bytes(bytes: &[u8]) -> Self {
+        Self(bytes.to_vec())
+    }
+    /// Exact original input to existing kernel decisions and digest framing.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 /// Host-owned per-repository storage, outside the model's writable tree.
 /// `root` is the canonical repository path selected by the host.
 pub fn state_directory(root: &Path) -> io::Result<PathBuf> {
@@ -22,7 +56,7 @@ pub fn state_directory(root: &Path) -> io::Result<PathBuf> {
 /// The selected repository, exposed only at `/workspace` inside each worker.
 pub struct Workspace {
     root: PathBuf,
-    session: Vec<u8>,
+    session: SessionId,
     #[cfg(target_os = "linux")]
     _lease: Option<nix::fcntl::Flock<fs::File>>,
     #[cfg(target_os = "linux")]
@@ -66,7 +100,7 @@ impl Workspace {
         let directory = tempfile::Builder::new()
             .prefix("run-")
             .tempdir_in(&storage)?;
-        let session = directory.path().as_os_str().as_encoded_bytes().to_vec();
+        let session = SessionId::from_host_bytes(directory.path().as_os_str().as_encoded_bytes());
         let sandbox = crate::sandbox::Sandbox::with_worker(&root, worker)?;
         Ok(Self {
             root,
@@ -134,7 +168,7 @@ impl Workspace {
         }
         let root = temporary.keep();
         Ok(Self {
-            session: root.as_os_str().as_encoded_bytes().to_vec(),
+            session: SessionId::from_host_bytes(root.as_os_str().as_encoded_bytes()),
             root,
             sandbox,
             _lease: None,
@@ -158,7 +192,7 @@ impl Workspace {
 
     /// Fresh process/session binding. Reopening a repository never renews an
     /// earlier processor grant, check job or export approval.
-    pub fn session_id(&self) -> &[u8] {
+    pub fn session_id(&self) -> &SessionId {
         &self.session
     }
 

@@ -282,8 +282,8 @@ pub struct Table<D> {
 impl<D> Default for Table<D> {
     fn default() -> Self {
         Self {
-            values: Default::default(),
-            order: Default::default(),
+            values: std::collections::BTreeMap::default(),
+            order: std::collections::VecDeque::default(),
             bytes: 0,
         }
     }
@@ -327,6 +327,7 @@ impl<D: Domain> Table<D> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
     use super::*;
     use anyhow::Context as _;
     use proptest::prelude::*;
@@ -377,9 +378,9 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn malformed_or_noncanonical_wire_values_never_decode() -> Result<()> {
+    fn malformed_or_noncanonical_wire_values_never_decode() {
         for value in [
-            "".into(),
+            String::new(),
             "sha256:obsolete".into(),
             format!("sha256:{}", "A".repeat(64)),
             format!("sha256:{}", "0".repeat(63)),
@@ -397,12 +398,13 @@ mod tests {
         ] {
             assert!(serde_json::from_value::<ArtifactId<One>>(value).is_err());
         }
-        Ok(())
     }
     proptest! {
         #[test]
         fn every_observed_digest_round_trips_without_changing_context_or_bytes(digest in any::<[u8;32]>()) {
-            let text = format!("sha256:{}", digest.iter().map(|b| format!("{b:02x}")).collect::<String>());
+            use std::fmt::Write as _;
+            let mut text = String::from("sha256:");
+            for byte in digest { prop_assert!(write!(text, "{byte:02x}").is_ok(), "String formatting"); }
             let original = ArtifactId::<One>::parse(&text).unwrap();
             let encoded = serde_json::to_string(&original).unwrap();
             let decoded: ArtifactId<One> = serde_json::from_str(&encoded).unwrap();

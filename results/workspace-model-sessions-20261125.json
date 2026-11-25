@@ -1,0 +1,5608 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "c7ba14b",
+  "scope": "Owned workspace session identity through the shared model port and actual HTTP/local gateway; preserve exact original kernel bytes, grants and source artifacts. Required lint/profile fixture cleanup is separate from authority semantics. The complete typed-core/plugin migration remains active.",
+  "implementation": {
+    "native_attribution": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40/meden",
+      "sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+      "complete_selected_gateway_source_embedded": true,
+      "workspace_session_projection_symbol_present": true,
+      "workspace_crates_force_rebuilt": true
+    },
+    "source_files": [
+      {
+        "path": "crates/meden-app/src/analysis/repair.rs",
+        "sha256": "00284506749f600f506f27f50cb579579b5c853318a3f613ef1cdde0551a912e"
+      },
+      {
+        "path": "crates/meden-app/src/delivery.rs",
+        "sha256": "0093aff8493415eddf650b7bd1b226c07201b4a6c8c397ae0d49acd336fccfa5"
+      },
+      {
+        "path": "crates/meden-app/src/exports.rs",
+        "sha256": "e4b9756c590a6eb47f47d80a3fc6daf1e111c112106902a4f3c4ef31d416f26c"
+      },
+      {
+        "path": "crates/meden-app/src/identity.rs",
+        "sha256": "f97ac37789d7d9c24c32aa6bb5be2a9856b93bf41a58b7c24591ccef0839ae3c"
+      },
+      {
+        "path": "crates/meden-app/src/model.rs",
+        "sha256": "70dfa1759c29b37a7fb31a50a5c6b76bb7dad45ae5807cc3b76c5c662017dd56"
+      },
+      {
+        "path": "crates/meden-app/src/project.rs",
+        "sha256": "1f6a7db9da1b6b7b2b2e49dfe76b5e5527002ffa51e1403954eaddfa65b19241"
+      },
+      {
+        "path": "crates/meden-app/src/project/journal.rs",
+        "sha256": "1726fdb185709b8c24ddb159d6a605c04e35b4ded34eafccf0a99666249de3e8"
+      },
+      {
+        "path": "crates/meden-app/src/project/selection_tests.rs",
+        "sha256": "3f397a5a2d54be5f9f91f1678afcd1b39f262ce7771cbf9b3ca0ff518f59f212"
+      },
+      {
+        "path": "crates/meden-app/src/records/store.rs",
+        "sha256": "53a8aebaea201035a73b034aed8ed03b0f79e0b03515136b2ef0377755f283da"
+      },
+      {
+        "path": "crates/meden-app/src/records/tool.rs",
+        "sha256": "eca7410079458d0125fb5b66faf3d24be0862a801ed7d10d83877133527c4d1e"
+      },
+      {
+        "path": "crates/meden-app/src/view/evidence.rs",
+        "sha256": "062f3ccb843e77e3ad13c32b3f537137d3cadc897a9a03379dcc28165f407f42"
+      },
+      {
+        "path": "crates/meden-app/src/view/evidence/tests.rs",
+        "sha256": "58725220a6d6133350fa1196cee9593d723c4299aa6da3656570ed6dd871a5a9"
+      },
+      {
+        "path": "crates/meden-app/src/view/inventory.rs",
+        "sha256": "6dd99cf760c8c72d464e87036375954c9fea228c7a5d997a2aff3d74cb37c6e9"
+      },
+      {
+        "path": "crates/meden-app/src/view/publication.rs",
+        "sha256": "352f69128b9a35d54046464ab7e95f2f180d7191d13e0f5084a5c1a6f6d4af23"
+      },
+      {
+        "path": "crates/meden-app/src/view/session.rs",
+        "sha256": "933492c3b1aaff7ee14ff084950135b113b1719da2b908477676e1c6d6110770"
+      },
+      {
+        "path": "crates/meden-app/src/view/verification_jobs/recorded/tests.rs",
+        "sha256": "1c06e27fb293cd4a233c8a28c59e0693c08d2c475956575b899394cabad0d32d"
+      },
+      {
+        "path": "crates/meden-app/src/view/verification_jobs/tests.rs",
+        "sha256": "46ba00aed7fa249562714fcb6bb6f4d61421929ab835e3aedc8e16aa56a94a65"
+      },
+      {
+        "path": "crates/meden-cli/src/gui.rs",
+        "sha256": "e13e6acbb7a13d1f0163254c778513fc05fd27abe82972af9475761a76f108a2"
+      },
+      {
+        "path": "crates/meden-cli/src/gui/connections.rs",
+        "sha256": "204762f3d9c68799d0f48a2432df90fbb4b28379371bab83e1cb38a544306193"
+      },
+      {
+        "path": "crates/meden-cli/src/judge.rs",
+        "sha256": "74bd535968e6d732860389dc68709283a6f1a9e37ecc4067618a40b40d9e4a27"
+      },
+      {
+        "path": "crates/meden-cli/src/protocol.rs",
+        "sha256": "6009ecb8e4c6569b64acce35b8cc333eab7d993f8b3c1256e7947c2d2cefb2bd"
+      },
+      {
+        "path": "crates/meden-cli/src/tui.rs",
+        "sha256": "231f64504248884d2ae311560e39c792afd825ed7a2b09df675e87dd0587592f"
+      },
+      {
+        "path": "crates/meden-cli/src/tui/assurance.rs",
+        "sha256": "e7bd874de8c6c5181fdef5a317abce3b373d696b32c92f104f06e10173cd7b32"
+      },
+      {
+        "path": "crates/meden-cli/src/tui/view.rs",
+        "sha256": "106b2a4b0521bcf34ea2da7de687c8f8f23b086b717a62876636ff7a1cd5addb"
+      },
+      {
+        "path": "crates/meden-cli/tests/isolation.rs",
+        "sha256": "3767653c3b269d420732f620b99fe87b8c7e2bf34d7e5ef5195e7681da0421eb"
+      },
+      {
+        "path": "crates/meden-llm/src/gateway.rs",
+        "sha256": "75a83961677866e43caeed0233640e4d57a4c4b2a5f9798af2baa4e4d412525e"
+      },
+      {
+        "path": "crates/meden-llm/src/provider.rs",
+        "sha256": "a9c37334295bdd3bde097cb466542e47aeae05b42ee3f21635716ec1875ec7d7"
+      },
+      {
+        "path": "crates/meden-llm/tests/registered_transport.rs",
+        "sha256": "c1012c8d68a47988d2dc6da5e0403a33ed5e9a97645b32323380367628e7418c"
+      },
+      {
+        "path": "crates/meden-runtime/src/workspace.rs",
+        "sha256": "4683f79b0f61ce9e83a1f8e1410f00110fdb0d0dab8d17b5ba0750bd82a0b6e0"
+      }
+    ],
+    "core_and_refinement_sources_unchanged": true,
+    "unchanged_compiler_sources": [
+      {
+        "path": "crates/meden-app/src/analysis/collect.rs",
+        "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b"
+      },
+      {
+        "path": "crates/meden-app/src/analysis/layout.rs",
+        "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f"
+      },
+      {
+        "path": "crates/meden-app/src/analysis/observe.rs",
+        "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5"
+      },
+      {
+        "path": "crates/meden-app/src/analysis/sources.rs",
+        "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a"
+      },
+      {
+        "path": "crates/meden-app/src/compiler.rs",
+        "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4"
+      },
+      {
+        "path": "crates/meden-app/src/adapters.rs",
+        "sha256": "9baec14412dd0dc1a4242039e90b30370b03a60918496de34aa9e25d54e49684"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/mod.rs",
+        "sha256": "468743fec3063b133c9b2e4eeeeadff27ad860ffcfd97062a2e7cdfec3501fd1"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/resources.rs",
+        "sha256": "47c679a08eb3b1123fbb22e14b0e04f07de3fa3555ce617114e515e98c798b27"
+      },
+      {
+        "path": "crates/meden-runtime/src/sandbox.rs",
+        "sha256": "6e72809b5bdc841dbea1975a0e2c59d7818ea02f3f3ad5efb66bf3fbdadb7467"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/project.rs",
+        "sha256": "8ed871d66607b97e09cc5d7e368b780831067efcbd8506916a974c03d47a49a3"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/lake.rs",
+        "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/graph.rs",
+        "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40"
+      },
+      {
+        "path": "crates/meden-app/src/atlas/frozen.rs",
+        "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10"
+      }
+    ],
+    "new_dependencies": [],
+    "model_implementation_descriptor_changes": true,
+    "historical_method_descriptors_relabelled": false,
+    "new_refinement_claim": false
+  },
+  "validation": {
+    "rust_suites": [
+      {
+        "suite": "Running unittests src/lib.rs (target/debug/deps/meden_agent-a39db3bec341c883)",
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/host_stop.rs (target/debug/deps/host_stop-42deaf56f8899355)",
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running unittests src/lib.rs (target/debug/deps/meden_app-63f657847cf447a9)",
+        "passed": 136,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running unittests src/main.rs (target/debug/deps/meden-9a6267aaa4542066)",
+        "passed": 50,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/conformance.rs (target/debug/deps/conformance-c3776f2c28c67445)",
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/finite.rs (target/debug/deps/finite-3a0d6370cd4c4bba)",
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/isolation.rs (target/debug/deps/isolation-8c87b21bd1a64991)",
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/metadata.rs (target/debug/deps/metadata-1b84c090cb899361)",
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running unittests src/lib.rs (target/debug/deps/meden_core-6eaded1b842a676e)",
+        "passed": 39,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running unittests src/lib.rs (target/debug/deps/meden_llm-87854d0293c62f77)",
+        "passed": 24,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running tests/registered_transport.rs (target/debug/deps/registered_transport-8683daab04530ec4)",
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Running unittests src/lib.rs (target/debug/deps/meden_runtime-2bb577cb178273ac)",
+        "passed": 55,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Doc-tests meden_agent",
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Doc-tests meden_app",
+        "passed": 19,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Doc-tests meden_core",
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Doc-tests meden_llm",
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0
+      },
+      {
+        "suite": "Doc-tests meden_runtime",
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0
+      }
+    ],
+    "total_rust_checks": 375,
+    "generated_session_traces": 3000,
+    "new_compile_examples": {
+      "rejected": 5,
+      "matching": 1
+    },
+    "native_public_gates": [
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "gui": {
+      "path": "target/gui-workspace-session-all-report/index.html",
+      "sha256": "edab3f97b60d5f360af5410f9f2e5c694478d3976f69134005f34179b7af52f0",
+      "stats": {
+        "total": 76,
+        "expected": 76,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "tests": [
+        {
+          "title": "home, three sidebar tabs, source navigation and semantic differences pass automated WCAG AA",
+          "outcome": "expected"
+        },
+        {
+          "title": "registered finite verifier reviews, refutes, repairs and reopens with bounded evidence",
+          "outcome": "expected"
+        },
+        {
+          "title": "proposal observations retry without another check and cannot replace a newer review",
+          "outcome": "expected"
+        },
+        {
+          "title": "verification progress retries as data, cancels issued inputs and rejects delayed observations",
+          "outcome": "expected"
+        },
+        {
+          "title": "chat stays flat, folds long messages and remembers draggable sidebar widths",
+          "outcome": "expected"
+        },
+        {
+          "title": "large history is revisioned outside status polling, retries visibly and rejects late snapshots across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "typed folder listings retain every entry beyond 500, literal names and local retry without poll payloads",
+          "outcome": "expected"
+        },
+        {
+          "title": "inventory publications retry without recapture and reject older bodies across refresh and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepared source publications retry locally, transfer once and refuse delayed older views across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "open file tabs restore source, graph camera and explanations without another inspection",
+          "outcome": "expected"
+        },
+        {
+          "title": "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+          "outcome": "expected"
+        },
+        {
+          "title": "reader publications recover locally and delayed old bodies cannot replace a refreshed file",
+          "outcome": "expected"
+        },
+        {
+          "title": "long Unicode compiler failures stay file-local and status remains readable across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "build logs stream before completion, retain timeout and cancellation output, and retry the real compiler",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+          "outcome": "expected"
+        },
+        {
+          "title": "versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage",
+          "outcome": "expected"
+        },
+        {
+          "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "outcome": "expected"
+        },
+        {
+          "title": "fading map areas keep their paint and focused keyboard target without inert SVG hit targets",
+          "outcome": "expected"
+        },
+        {
+          "title": "project map retains screen-space geometry and avoids rewriting retained areas during zoom",
+          "outcome": "expected"
+        },
+        {
+          "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+          "outcome": "expected"
+        },
+        {
+          "title": "search settings reuse compiled modules and keep separately bound results across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "renderer updates reuse compiled observations, preserve counterexamples and reject changed sources",
+          "outcome": "expected"
+        },
+        {
+          "title": "main targets stay visible at a distance and compiled English/counterexamples annotate source without inference",
+          "outcome": "expected"
+        },
+        {
+          "title": "warm browser assets survive repeated host restart with fresh session review",
+          "outcome": "expected"
+        },
+        {
+          "title": "discover the project Lean without Atlas environment variables, recover after installation and extract in one action",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure",
+          "outcome": "expected"
+        },
+        {
+          "title": "Lake discovers configured roots and dependency sources, follows their paths and recovers from a missing root",
+          "outcome": "expected"
+        },
+        {
+          "title": "compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "declaration kinds and highlighted source stay independent of chat until the user sends",
+          "outcome": "expected"
+        },
+        {
+          "title": "IDE map keeps one camera while revealing cached declarations, opens large source files and selects models from chat",
+          "outcome": "expected"
+        },
+        {
+          "title": "opening a file prepares analysis and keeps a bounded-import failure beside its readable source",
+          "outcome": "expected"
+        },
+        {
+          "title": "missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching",
+          "outcome": "expected"
+        },
+        {
+          "title": "Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI",
+          "outcome": "expected"
+        },
+        {
+          "title": "review frozen delivery bytes, reject another target, send once and restart without a queue",
+          "outcome": "expected"
+        },
+        {
+          "title": "delivery refuses stale reviews, does not follow redirects and leaves uncertain attempts terminal",
+          "outcome": "expected"
+        },
+        {
+          "title": "preview descriptions retry without recapture, retain the live frame and reject delayed replacements",
+          "outcome": "expected"
+        },
+        {
+          "title": "develop and interact with local module assets, refresh edits, recover and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "preview separates browser authority, rejects missing assets and bounds captured files",
+          "outcome": "expected"
+        },
+        {
+          "title": "develop, recover from provider failure, inspect files and restart without restoring grants",
+          "outcome": "expected"
+        },
+        {
+          "title": "visible silent wait, cancellation before model reply and guarded local API",
+          "outcome": "expected"
+        },
+        {
+          "title": "local source graph follows exact code, refreshes after development and rejects unavailable inputs",
+          "outcome": "expected"
+        },
+        {
+          "title": "review a Finding repair, reject it, refuse stale sources and reanalyze the applied exact diff",
+          "outcome": "expected"
+        },
+        {
+          "title": "restarting discards a pending repair approval without changing source",
+          "outcome": "expected"
+        },
+        {
+          "title": "large candidate history transfers once, retries locally and keeps newer selections across delayed reads and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "local meaning history retains requirement and Finding identities across reruns and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "separate judge models are visible, retained and revoked together",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis runs separated real requests, keeps proof unknown and restores a historical result",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after cancel",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after revoke",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after stale",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after provider",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after invalid",
+          "outcome": "expected"
+        },
+        {
+          "title": "portable GUI history survives a real git clone and checks actual Lean without restoring authority",
+          "outcome": "expected"
+        },
+        {
+          "title": "missing GUI assets explain the build step and a built GUI opens with fresh review",
+          "outcome": "expected"
+        },
+        {
+          "title": "unreadable portable history stays intact while the GUI graph and ordinary chat remain usable",
+          "outcome": "expected"
+        },
+        {
+          "title": "opening a cloned workspace shows chat and the whole graph, then selects and switches host connections",
+          "outcome": "expected"
+        },
+        {
+          "title": "the conversation sidebar collapses independently of the artifact panel",
+          "outcome": "expected"
+        },
+        {
+          "title": "home starts with a large composer and Send; instruction creates its title and opens results",
+          "outcome": "expected"
+        },
+        {
+          "title": "home displays the pitch logos below the suggestions at desktop and phone widths",
+          "outcome": "expected"
+        },
+        {
+          "title": "the sidebar keeps one continuous vending history including its original opening request",
+          "outcome": "expected"
+        },
+        {
+          "title": "the full conversation artifact opens preview and keeps proof details readable",
+          "outcome": "expected"
+        },
+        {
+          "title": "proof opens the wider source graph and follows a declaration into its exact Lean source",
+          "outcome": "expected"
+        },
+        {
+          "title": "graph zoom survives pointer movement and canvas resizing until explicit fit",
+          "outcome": "expected"
+        },
+        {
+          "title": "hover keeps dense graph nodes in place until the pointer selects them",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis shows an NG comparison by default, can switch to OK and keeps cancellation working",
+          "outcome": "expected"
+        },
+        {
+          "title": "sending opens the real demo preview; purchase, rejection and refund follow its kernel",
+          "outcome": "expected"
+        },
+        {
+          "title": "unsent input survives navigation and reload without creating a named empty conversation",
+          "outcome": "expected"
+        },
+        {
+          "title": "requirement edits invalidate retained proof and analysis across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "review export remains revision-bound and omits conversations",
+          "outcome": "expected"
+        },
+        {
+          "title": "invalid imports retain the conversation; Atlas metadata stays unconfirmed",
+          "outcome": "expected"
+        },
+        {
+          "title": "original prototype-named declarations import, remain unknown and reopen without losing chat or camera",
+          "outcome": "expected"
+        },
+        {
+          "title": "desktop and compact layouts keep chat and artifact panes usable, with keyboard entry",
+          "outcome": "expected"
+        },
+        {
+          "title": "failed storage retains a sent conversation and recovers through retry",
+          "outcome": "expected"
+        },
+        {
+          "title": "legacy v2 continuations merge permanently and start with the exact supplied request",
+          "outcome": "expected"
+        },
+        {
+          "title": "expanded graph keeps source and statement readers tall, scrollable and synchronized",
+          "outcome": "expected"
+        }
+      ]
+    },
+    "tui": {
+      "summary": {
+        "path": "/tmp/meden-ux-workspace-session-20261125/summary.json",
+        "sha256": "d24b1f7e60bf168c71f8bcac17960d200cb0563e3045955fd21c5860c43b551c"
+      },
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40/meden",
+        "sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40"
+      },
+      "success": true,
+      "selected": 35,
+      "inference": "scripted fixtures; no live-model validation",
+      "decoded_screens": [
+        {
+          "label": "review",
+          "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+          "frames": 164,
+          "seconds": 0.234,
+          "columns": 120,
+          "rows": 30,
+          "screen_sha256": "f0e5b8232e7d7b3a576c4767c8ae15fe0d1d22fd61a17b8e11605a10142b79eb",
+          "observed_lines": [
+            "          Allow Configured server to receive workspace context?",
+            "          │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │",
+            "           y: Allow for this session   n / esc: Back"
+          ]
+        },
+        {
+          "label": "judge",
+          "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+          "frames": 37,
+          "seconds": 0.901,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "5f13f2a61b63c02b7b66ced7b29ef094644968df4d4470df0e70c28cb763edcd",
+          "observed_lines": [
+            "               · Meaning analysis · Historical (candidate, not proof)",
+            "               · Translator: translator-fixture · http://127.0.0.1:37243/v1/chat/completions",
+            "               · Judge: judge-fixture · http://127.0.0.1:37243/v1/chat/completions",
+            "               · Candidate Mismatch",
+            "               · Candidate Mismatch · candidate assessment, not proof"
+          ]
+        },
+        {
+          "label": "resume",
+          "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+          "frames": 39,
+          "seconds": 0.89,
+          "columns": 130,
+          "rows": 40,
+          "screen_sha256": "9049ac62679b1441c062737601c3f9e97f9af1b630abdb3eb67795e0f1d403fc",
+          "observed_lines": [
+            "               · Conversation restored. Work continues in the selected repository; current verification is",
+            "               ● TUI-CONTINUED"
+          ]
+        },
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 777,
+          "seconds": 71.739,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "22bf6f5b74c1381797beb7406e60244d48f5200039c62e999cec604f56a8c0e1",
+          "observed_lines": [
+            "               · Translator: lake-fixture · http://127.0.0.1:39633/v1/chat/completions",
+            "               · Judge: lake-fixture · http://127.0.0.1:39633/v1/chat/completions",
+            "               · Analysis stopped: Lake source inventory changed at src/lib/Store; reread the graph. Use /analysis",
+            "               · Translator: lake-fixture · http://127.0.0.1:39633/v1/chat/completions",
+            "               · Judge: lake-fixture · http://127.0.0.1:39633/v1/chat/completions",
+            "               2). Select an existing file from the workspace.. Use /analysis to inspect the retained outcome."
+          ]
+        },
+        {
+          "label": "repair",
+          "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "frames": 84,
+          "seconds": 5.207,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "1ccfd78aecac44119e2840bf3a75ab79925039ac03e9878b631f9a0514ddfc6d",
+          "observed_lines": [
+            "               · Assistant: LEAN-MODEL-REPAIRED"
+          ]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 148,
+          "seconds": 13.636,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "c7deb71532a6cc4a4c94131d0e7db8c68579a4683b36a874de3510ba4ed6d46d",
+          "observed_lines": [
+            "               · Portable work stopped: Workspace record: Tool execution cancelled",
+            "               · Portable work stopped: offline Lean check failed / interrupted for gossip. Inspect the retained"
+          ]
+        }
+      ]
+    },
+    "logs": [
+      {
+        "path": "/tmp/meden-workspace-session-ready-clippy.log",
+        "sha256": "b3468794887d2142fb7169c45c041a0a23ec3a1afb27101c460285f143dd539f"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-final-schemas.log",
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-final-format.log",
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-final-rust-format.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-accepted-rust.log",
+        "sha256": "cf967f79acd6d98050683c65921511819070202890f6d0e09c8b82526c48736b"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-accepted-property.log",
+        "sha256": "ba19c08be233545186a1ca5ad9c2226c10de57b2e956f0f626030ef16faab0d0"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-gate-architecture.log",
+        "sha256": "8d5d22c8c7f5d1fbb0fa43f77ed0ae69efa1e2cca5f13423f38c4538a622ef6f"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-gate-python-lint.log",
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-gate-tui.log",
+        "sha256": "927b65c7026ce093ebe35343cc76d6c5660f9a6c9e7fe0291f1648e42238c70d"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-gate-gui-all.log",
+        "sha256": "43d572f339c3e311233681b93ed16259c90116e517607c7bf7abec7e66b36b8d"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-clean.log",
+        "sha256": "37c27b71b427532e8f414e8baae6c5fa6e60f047add891e49dd30730e0d9e266"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-rebuild.log",
+        "sha256": "4f1936ea2fb8c9c3d9b78b64bd9bd82ad083c4a50a34c708fb0094a8e757adb2"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-ready-build.log",
+        "sha256": "933d38cbc3843aaa8f42d3c79391b9f9a02ba856564d8e90f4158af9d72f95ce"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-close-format.log",
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-workspace-session-close-rust-format.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "diagnostic_failures": {
+      "stale_candidate": {
+        "binary": "/home/gohan/workspace/meden/target/validation-bin/dac2c2e74393eb3827887c384251817b460fe27b8a51b6d3dc995f3291132d5b/meden",
+        "sha256": "dac2c2e74393eb3827887c384251817b460fe27b8a51b6d3dc995f3291132d5b"
+      },
+      "rejected_before_public_journeys": true,
+      "initial_rust_log": {
+        "path": "/tmp/meden-workspace-session-rust.log",
+        "sha256": "5757369c0853dfe7c5318b0643814718460c8f7fb8595018904a18995baaf4b3"
+      },
+      "initial_clippy_log": {
+        "path": "/tmp/meden-workspace-session-verified-clippy.log",
+        "sha256": "77b30f2bdb3556d66f25b51a7ed29913edc24ce76816cf29d4ae3fececb4ca6f"
+      },
+      "cause": "Shared profiling dep-info referenced a previous test source copy; force-clean/rebuild restored actual attribution. First Rust run exposed the old writable-metadata OS fixture. Required Clippy exposed existing style and fixture-annotation issues; assertions, operation budgets and production authority checks remain."
+    }
+  },
+  "deployed": {
+    "binary_sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+    "assets_sha256": "74cd6b5d0bbde432160f5b8eac1958f186e95e3b789148007498e1ea83a0372e",
+    "browser_files": 88,
+    "javascript_files": 7,
+    "all_assets_unchanged": true,
+    "services": {
+      "riemann": {
+        "service": "meden-riemann-gui.service",
+        "pid": 1861335,
+        "port": 4323
+      },
+      "ethlib": {
+        "service": "meden-ethlib-gui.service",
+        "pid": 1861525,
+        "port": 4322
+      }
+    }
+  },
+  "functional": {
+    "warm": {
+      "fidelity": [
+        {
+          "project": "riemann",
+          "pid": 1858752,
+          "binary_sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+          "cache_hit": true,
+          "preparation_ms": 18296.794876,
+          "source_publication": "sha256:ba9a3a96fc9bd395691d958714a17410e342589b7e3ee81143d1a1203d69557e",
+          "source_hash": "af6ff439f0ea8dac901852de5ed3853dd666b5591c9463a860658e7ab99b7815",
+          "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+          "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+          "inventory_files": 175187,
+          "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+          "overview_headers_exactly_preserved": true,
+          "complete_original_header_metadata_round_trip": true,
+          "unindexed_entries": 175184,
+          "complete_original_navigation_binding": true,
+          "navigation_bytes": 13853,
+          "complete_cached_navigation_matches_original": true,
+          "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+          "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+          "complete_source_data_equal": true,
+          "graph_binding_revision_changed": false,
+          "original_graph_revision": "sha256:08f3f0715f6be03dd8c0685ce354dfb3eae51c45c86ced95701842a547e9e2c3",
+          "current_graph_revision": "sha256:08f3f0715f6be03dd8c0685ce354dfb3eae51c45c86ced95701842a547e9e2c3",
+          "phase": "warm",
+          "conversation_revision_unchanged": true,
+          "candidate_observations_unchanged": true,
+          "hover_and_retained_tab_camera_preserved": true,
+          "node_selection_preserves_camera_chat_and_source_line": true,
+          "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+          "verification_job": {
+            "state": "idle"
+          },
+          "work_job": {
+            "state": "idle"
+          },
+          "job_body_requests": 0,
+          "preview": {
+            "state": "idle"
+          },
+          "preview_body_requests": 0,
+          "commands": [
+            {
+              "type": "inspect",
+              "path": ".",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "directory": false
+            }
+          ],
+          "page_errors": [],
+          "running": false,
+          "authorized": false
+        },
+        {
+          "project": "ethlib",
+          "pid": 1858936,
+          "binary_sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+          "cache_hit": true,
+          "preparation_ms": 2200.1308769999996,
+          "source_publication": "sha256:0d15ff17f7caa14927c7aa4df9151890132eb9f459e793aa554d9924ec63def9",
+          "source_hash": "a25a6e29432f2e10e02e6e2cfa0027924ab56b7c230d6804758d1dcad72a81d7",
+          "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+          "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+          "inventory_files": 2517,
+          "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+          "overview_headers_exactly_preserved": true,
+          "complete_original_header_metadata_round_trip": true,
+          "unindexed_entries": 0,
+          "complete_original_navigation_binding": true,
+          "navigation_bytes": 1516,
+          "complete_cached_navigation_matches_original": true,
+          "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+          "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+          "complete_source_data_equal": true,
+          "graph_binding_revision_changed": false,
+          "original_graph_revision": "sha256:c2e1fecae3c96d001e21bd905fa4c636533c922f7943e21bf254031ba41fd04c",
+          "current_graph_revision": "sha256:c2e1fecae3c96d001e21bd905fa4c636533c922f7943e21bf254031ba41fd04c",
+          "phase": "warm",
+          "conversation_revision_unchanged": true,
+          "candidate_observations_unchanged": true,
+          "hover_and_retained_tab_camera_preserved": true,
+          "node_selection_preserves_camera_chat_and_source_line": true,
+          "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+          "verification_job": {
+            "state": "idle"
+          },
+          "work_job": {
+            "state": "idle"
+          },
+          "job_body_requests": 0,
+          "preview": {
+            "state": "idle"
+          },
+          "preview_body_requests": 0,
+          "commands": [
+            {
+              "type": "inspect",
+              "path": ".",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking/Gossip",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking/Gossip/Parameters.lean",
+              "directory": false
+            }
+          ],
+          "page_errors": [],
+          "running": false,
+          "authorized": false
+        }
+      ],
+      "chains": [
+        {
+          "project": "riemann",
+          "chain": {
+            "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+            "observation_id": "e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e",
+            "search_id": "b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5",
+            "rendering_id": "e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a",
+            "compiler": {
+              "id": "lean.lake",
+              "role": "compiler",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "16ca8eaaf409326156b9d08c5397a81d4310d4026775d674126eb1d140564c5a",
+              "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+              "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+              "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+            },
+            "searcher": {
+              "id": "lean.plausible",
+              "role": "counterexample_search",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ed602464accba4c4cfd5adca20e60c9f59ef3ad4020bdf6e92cd72b77a3ef603",
+              "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+              "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+              "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+            },
+            "renderer": {
+              "id": "informath.gf",
+              "role": "meaning_renderer",
+              "version": "1",
+              "formats": [
+                "dedukti-v1"
+              ],
+              "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+              "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+              "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+              "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+            },
+            "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+            "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+            "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+            "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+            "checksummed_original_objects": true,
+            "complete_graph_revision_chain": true
+          },
+          "complete_source_and_chain_unchanged": true
+        },
+        {
+          "project": "ethlib",
+          "chain": {
+            "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+            "observation_id": "7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e",
+            "search_id": "7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999",
+            "rendering_id": "7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069",
+            "compiler": {
+              "id": "lean.frozen",
+              "role": "compiler",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ff06f3383443e4f85054714c2fbad1354a02c67b17ecaf42495a3cd08e92d75c",
+              "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+              "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+              "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+            },
+            "searcher": {
+              "id": "lean.plausible",
+              "role": "counterexample_search",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ed602464accba4c4cfd5adca20e60c9f59ef3ad4020bdf6e92cd72b77a3ef603",
+              "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+              "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+              "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+            },
+            "renderer": {
+              "id": "informath.gf",
+              "role": "meaning_renderer",
+              "version": "1",
+              "formats": [
+                "dedukti-v1"
+              ],
+              "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+              "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+              "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+              "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+            },
+            "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+            "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+            "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+            "prepared_input_fingerprint": null,
+            "checksummed_original_objects": true,
+            "complete_graph_revision_chain": true
+          },
+          "complete_source_and_chain_unchanged": true
+        }
+      ],
+      "metrics": [
+        {
+          "project": "riemann",
+          "trace": 157,
+          "preparation": {
+            "job": "sha256:181406a797787dc5419bef294a4214e172b0bc08c2082d21d634f24c2fe570b5",
+            "resource": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "phase": "Preparing explanations",
+            "elapsed_ms": 16831,
+            "phase_elapsed_ms": 22,
+            "limit_seconds": 0,
+            "outcome": {
+              "state": "ready",
+              "cache_hit": true
+            },
+            "log": {
+              "revision": "sha256:a1732cd179aee9ed39d40dab769aa4af2bc148c78672f351debcac960bcc116b"
+            }
+          },
+          "no_semantic_workers": false,
+          "complete_cache_hit": false,
+          "scope": "One actual deployed project inspection in concurrent two-project functional fidelity journeys, not a paired latency comparison; native spans are nested and thread CPU excludes children.",
+          "total_trace_records": 195,
+          "records": [
+            {
+              "context": {
+                "trace": 157,
+                "span": 158
+              },
+              "parent": 157,
+              "name": "gui.enqueue",
+              "start_us": 13648328,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 159
+              },
+              "parent": 158,
+              "name": "job.queue",
+              "start_us": 13648329,
+              "wall_us": 27,
+              "thread_cpu_us": null
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 157
+              },
+              "parent": null,
+              "name": "gui.command",
+              "start_us": 13648267,
+              "wall_us": 238,
+              "thread_cpu_us": 201
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 170
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 13700416,
+              "wall_us": 9154,
+              "thread_cpu_us": 9120
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 171
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 13709582,
+              "wall_us": 22244,
+              "thread_cpu_us": 22138
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 172
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 13731906,
+              "wall_us": 9012,
+              "thread_cpu_us": 8988
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 173
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 13740924,
+              "wall_us": 20230,
+              "thread_cpu_us": 20171
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 174
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 13764498,
+              "wall_us": 8787,
+              "thread_cpu_us": 8761
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 175
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 13773292,
+              "wall_us": 20128,
+              "thread_cpu_us": 20042
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 178
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 13795450,
+              "wall_us": 9226,
+              "thread_cpu_us": 9199
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 179
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 13804684,
+              "wall_us": 20053,
+              "thread_cpu_us": 20002
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 183
+              },
+              "parent": 182,
+              "name": "analysis.capture_sources",
+              "start_us": 13826756,
+              "wall_us": 41426,
+              "thread_cpu_us": 961
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 191
+              },
+              "parent": 190,
+              "name": "atlas.resources.select",
+              "start_us": 14001494,
+              "wall_us": 9280,
+              "thread_cpu_us": 9250
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 192
+              },
+              "parent": 190,
+              "name": "atlas.resources.validate",
+              "start_us": 14010781,
+              "wall_us": 20155,
+              "thread_cpu_us": 20071
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 196
+              },
+              "parent": 195,
+              "name": "atlas.resources.validate",
+              "start_us": 14031683,
+              "wall_us": 20371,
+              "thread_cpu_us": 20311
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 195
+              },
+              "parent": 190,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14031443,
+              "wall_us": 20774,
+              "thread_cpu_us": 20710
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 190
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14001492,
+              "wall_us": 50741,
+              "thread_cpu_us": 50441
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 199
+              },
+              "parent": 198,
+              "name": "atlas.resources.select",
+              "start_us": 14093473,
+              "wall_us": 9382,
+              "thread_cpu_us": 9350
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 200
+              },
+              "parent": 198,
+              "name": "atlas.resources.validate",
+              "start_us": 14102861,
+              "wall_us": 20111,
+              "thread_cpu_us": 20038
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 202
+              },
+              "parent": 201,
+              "name": "atlas.resources.validate",
+              "start_us": 14123846,
+              "wall_us": 20105,
+              "thread_cpu_us": 20054
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 201
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14123589,
+              "wall_us": 20519,
+              "thread_cpu_us": 20466
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 198
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14093470,
+              "wall_us": 50653,
+              "thread_cpu_us": 50327
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 210
+              },
+              "parent": 209,
+              "name": "atlas.resources.select",
+              "start_us": 14309233,
+              "wall_us": 8901,
+              "thread_cpu_us": 8874
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 211
+              },
+              "parent": 209,
+              "name": "atlas.resources.validate",
+              "start_us": 14318146,
+              "wall_us": 20173,
+              "thread_cpu_us": 20084
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 213
+              },
+              "parent": 212,
+              "name": "atlas.resources.validate",
+              "start_us": 14339340,
+              "wall_us": 20156,
+              "thread_cpu_us": 20104
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 212
+              },
+              "parent": 209,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14339107,
+              "wall_us": 20565,
+              "thread_cpu_us": 20506
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 209
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14309230,
+              "wall_us": 50456,
+              "thread_cpu_us": 50118
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 217
+              },
+              "parent": 216,
+              "name": "atlas.resources.select",
+              "start_us": 14442077,
+              "wall_us": 9116,
+              "thread_cpu_us": 9058
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 218
+              },
+              "parent": 216,
+              "name": "atlas.resources.validate",
+              "start_us": 14451199,
+              "wall_us": 20307,
+              "thread_cpu_us": 20253
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 220
+              },
+              "parent": 219,
+              "name": "atlas.resources.validate",
+              "start_us": 14472509,
+              "wall_us": 20132,
+              "thread_cpu_us": 20083
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 219
+              },
+              "parent": 216,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14472344,
+              "wall_us": 20450,
+              "thread_cpu_us": 20400
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 216
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14442075,
+              "wall_us": 50733,
+              "thread_cpu_us": 50323
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 228
+              },
+              "parent": 227,
+              "name": "atlas.resources.select",
+              "start_us": 14574954,
+              "wall_us": 9362,
+              "thread_cpu_us": 9335
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 229
+              },
+              "parent": 227,
+              "name": "atlas.resources.validate",
+              "start_us": 14584321,
+              "wall_us": 20071,
+              "thread_cpu_us": 20002
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 231
+              },
+              "parent": 230,
+              "name": "atlas.resources.validate",
+              "start_us": 14605376,
+              "wall_us": 19923,
+              "thread_cpu_us": 19868
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 230
+              },
+              "parent": 227,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14605205,
+              "wall_us": 20251,
+              "thread_cpu_us": 20194
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 227
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14574951,
+              "wall_us": 50517,
+              "thread_cpu_us": 50139
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 235
+              },
+              "parent": 234,
+              "name": "atlas.resources.select",
+              "start_us": 14737977,
+              "wall_us": 8876,
+              "thread_cpu_us": 8828
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 236
+              },
+              "parent": 234,
+              "name": "atlas.resources.validate",
+              "start_us": 14746862,
+              "wall_us": 21818,
+              "thread_cpu_us": 21620
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 238
+              },
+              "parent": 237,
+              "name": "atlas.resources.validate",
+              "start_us": 14770433,
+              "wall_us": 23243,
+              "thread_cpu_us": 23014
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 237
+              },
+              "parent": 234,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14770091,
+              "wall_us": 23771,
+              "thread_cpu_us": 23534
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 234
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14737974,
+              "wall_us": 55902,
+              "thread_cpu_us": 55235
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 242
+              },
+              "parent": 241,
+              "name": "atlas.resources.select",
+              "start_us": 14876363,
+              "wall_us": 10319,
+              "thread_cpu_us": 10220
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 245
+              },
+              "parent": 241,
+              "name": "atlas.resources.validate",
+              "start_us": 14886690,
+              "wall_us": 23137,
+              "thread_cpu_us": 23006
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 247
+              },
+              "parent": 246,
+              "name": "atlas.resources.validate",
+              "start_us": 14911844,
+              "wall_us": 21113,
+              "thread_cpu_us": 21014
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 246
+              },
+              "parent": 241,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 14911504,
+              "wall_us": 21616,
+              "thread_cpu_us": 21515
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 241
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 14876359,
+              "wall_us": 56776,
+              "thread_cpu_us": 56183
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 251
+              },
+              "parent": 250,
+              "name": "atlas.resources.select",
+              "start_us": 15035732,
+              "wall_us": 10593,
+              "thread_cpu_us": 10262
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 252
+              },
+              "parent": 250,
+              "name": "atlas.resources.validate",
+              "start_us": 15046333,
+              "wall_us": 20159,
+              "thread_cpu_us": 20029
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 254
+              },
+              "parent": 253,
+              "name": "atlas.resources.validate",
+              "start_us": 15067701,
+              "wall_us": 20119,
+              "thread_cpu_us": 20055
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 253
+              },
+              "parent": 250,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 15067525,
+              "wall_us": 20455,
+              "thread_cpu_us": 20390
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 250
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 15035728,
+              "wall_us": 52265,
+              "thread_cpu_us": 51459
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 258
+              },
+              "parent": 257,
+              "name": "atlas.resources.select",
+              "start_us": 15170378,
+              "wall_us": 9421,
+              "thread_cpu_us": 9383
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 259
+              },
+              "parent": 257,
+              "name": "atlas.resources.validate",
+              "start_us": 15179807,
+              "wall_us": 19930,
+              "thread_cpu_us": 19869
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 261
+              },
+              "parent": 260,
+              "name": "atlas.resources.validate",
+              "start_us": 15200883,
+              "wall_us": 22002,
+              "thread_cpu_us": 21793
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 260
+              },
+              "parent": 257,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 15200717,
+              "wall_us": 22337,
+              "thread_cpu_us": 22127
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 257
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 15170373,
+              "wall_us": 52694,
+              "thread_cpu_us": 52130
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 267
+              },
+              "parent": 266,
+              "name": "atlas.resources.select",
+              "start_us": 15325404,
+              "wall_us": 9367,
+              "thread_cpu_us": 9327
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 268
+              },
+              "parent": 266,
+              "name": "atlas.resources.validate",
+              "start_us": 15334777,
+              "wall_us": 20194,
+              "thread_cpu_us": 20112
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 270
+              },
+              "parent": 269,
+              "name": "atlas.resources.validate",
+              "start_us": 15356099,
+              "wall_us": 20308,
+              "thread_cpu_us": 20254
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 269
+              },
+              "parent": 266,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 15355936,
+              "wall_us": 20628,
+              "thread_cpu_us": 20573
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 266
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 15325401,
+              "wall_us": 51175,
+              "thread_cpu_us": 50763
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 273
+              },
+              "parent": 272,
+              "name": "atlas.resources.select",
+              "start_us": 15427947,
+              "wall_us": 9429,
+              "thread_cpu_us": 9379
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 274
+              },
+              "parent": 272,
+              "name": "atlas.resources.validate",
+              "start_us": 15437382,
+              "wall_us": 21832,
+              "thread_cpu_us": 21733
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 276
+              },
+              "parent": 275,
+              "name": "atlas.resources.validate",
+              "start_us": 15460410,
+              "wall_us": 20214,
+              "thread_cpu_us": 20147
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 275
+              },
+              "parent": 272,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 15460222,
+              "wall_us": 20560,
+              "thread_cpu_us": 20491
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 272
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 15427944,
+              "wall_us": 52851,
+              "thread_cpu_us": 52471
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 282
+              },
+              "parent": 281,
+              "name": "atlas.resources.select",
+              "start_us": 15563391,
+              "wall_us": 9997,
+              "thread_cpu_us": 9652
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 283
+              },
+              "parent": 281,
+              "name": "atlas.resources.validate",
+              "start_us": 15573398,
+              "wall_us": 20985,
+              "thread_cpu_us": 20858
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 287
+              },
+              "parent": 286,
+              "name": "atlas.resources.validate",
+              "start_us": 15596061,
+              "wall_us": 21194,
+              "thread_cpu_us": 21061
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 286
+              },
+              "parent": 281,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 15595792,
+              "wall_us": 21716,
+              "thread_cpu_us": 21582
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 281
+              },
+              "parent": 186,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 15563389,
+              "wall_us": 54138,
+              "thread_cpu_us": 53293
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 186
+              },
+              "parent": 182,
+              "name": "analysis.discover_layout",
+              "start_us": 13868192,
+              "wall_us": 1749508,
+              "thread_cpu_us": 640805
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 288
+              },
+              "parent": 182,
+              "name": "analysis.capture_sources",
+              "start_us": 15617806,
+              "wall_us": 41962,
+              "thread_cpu_us": 1492
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 182
+              },
+              "parent": 169,
+              "name": "analysis.select_roots",
+              "start_us": 13826749,
+              "wall_us": 1833094,
+              "thread_cpu_us": 643455
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 291
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15659943,
+              "wall_us": 51548,
+              "thread_cpu_us": 628
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 293
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15711577,
+              "wall_us": 50997,
+              "thread_cpu_us": 520
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 295
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15762678,
+              "wall_us": 41071,
+              "thread_cpu_us": 658
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 297
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15803881,
+              "wall_us": 41444,
+              "thread_cpu_us": 854
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 299
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15845400,
+              "wall_us": 51396,
+              "thread_cpu_us": 932
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 301
+              },
+              "parent": 290,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 15896892,
+              "wall_us": 40962,
+              "thread_cpu_us": 604
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 303
+              },
+              "parent": 290,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 15938022,
+              "wall_us": 51912,
+              "thread_cpu_us": 1249
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 290
+              },
+              "parent": 169,
+              "name": "analysis.metadata.validate",
+              "start_us": 15659848,
+              "wall_us": 330249,
+              "thread_cpu_us": 6364
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 307
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 15990130,
+              "wall_us": 8994,
+              "thread_cpu_us": 8961
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 308
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 15999128,
+              "wall_us": 20293,
+              "thread_cpu_us": 20183
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 309
+              },
+              "parent": 169,
+              "name": "atlas.project.query",
+              "start_us": 16019476,
+              "wall_us": 9183205,
+              "thread_cpu_us": 66981
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 391
+              },
+              "parent": 169,
+              "name": "atlas.project.fingerprint",
+              "start_us": 25202859,
+              "wall_us": 4704130,
+              "thread_cpu_us": 54150
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 455
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 29907216,
+              "wall_us": 26346,
+              "thread_cpu_us": 26203
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 457
+              },
+              "parent": 456,
+              "name": "atlas.resources.select",
+              "start_us": 29933914,
+              "wall_us": 8915,
+              "thread_cpu_us": 8876
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 458
+              },
+              "parent": 456,
+              "name": "atlas.resources.validate",
+              "start_us": 29942834,
+              "wall_us": 19910,
+              "thread_cpu_us": 19841
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 460
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 29968639,
+              "wall_us": 41308,
+              "thread_cpu_us": 780
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 462
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 30010076,
+              "wall_us": 51644,
+              "thread_cpu_us": 940
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 464
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 30061851,
+              "wall_us": 51579,
+              "thread_cpu_us": 926
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 468
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 30113606,
+              "wall_us": 41662,
+              "thread_cpu_us": 1147
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 471
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 30155354,
+              "wall_us": 41738,
+              "thread_cpu_us": 1275
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 473
+              },
+              "parent": 459,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 30197312,
+              "wall_us": 51325,
+              "thread_cpu_us": 819
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 475
+              },
+              "parent": 459,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 30248804,
+              "wall_us": 41723,
+              "thread_cpu_us": 1296
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 459
+              },
+              "parent": 456,
+              "name": "analysis.metadata.validate",
+              "start_us": 29968564,
+              "wall_us": 322123,
+              "thread_cpu_us": 8304
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 477
+              },
+              "parent": 456,
+              "name": "analysis.capture_sources",
+              "start_us": 30290713,
+              "wall_us": 41416,
+              "thread_cpu_us": 981
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 456
+              },
+              "parent": 169,
+              "name": "analysis.cache.validate",
+              "start_us": 29933784,
+              "wall_us": 398371,
+              "thread_cpu_us": 43730
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 479
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 30332273,
+              "wall_us": 10448,
+              "thread_cpu_us": 10410
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 480
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 30342726,
+              "wall_us": 29672,
+              "thread_cpu_us": 29524
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 481
+              },
+              "parent": 169,
+              "name": "analysis.cache.retain_observation",
+              "start_us": 30374761,
+              "wall_us": 8809,
+              "thread_cpu_us": 8775
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 482
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 30383702,
+              "wall_us": 8798,
+              "thread_cpu_us": 8759
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 483
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 30392504,
+              "wall_us": 19931,
+              "thread_cpu_us": 19850
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 484
+              },
+              "parent": 169,
+              "name": "atlas.resources.select",
+              "start_us": 30416151,
+              "wall_us": 8865,
+              "thread_cpu_us": 8829
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 485
+              },
+              "parent": 169,
+              "name": "atlas.resources.validate",
+              "start_us": 30425022,
+              "wall_us": 19942,
+              "thread_cpu_us": 19865
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 487
+              },
+              "parent": 486,
+              "name": "atlas.resources.select",
+              "start_us": 30447169,
+              "wall_us": 8752,
+              "thread_cpu_us": 8675
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 488
+              },
+              "parent": 486,
+              "name": "atlas.resources.validate",
+              "start_us": 30455927,
+              "wall_us": 20025,
+              "thread_cpu_us": 19946
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 491
+              },
+              "parent": 486,
+              "name": "atlas.resources.select",
+              "start_us": 30479075,
+              "wall_us": 8737,
+              "thread_cpu_us": 8700
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 492
+              },
+              "parent": 486,
+              "name": "atlas.resources.validate",
+              "start_us": 30487819,
+              "wall_us": 19856,
+              "thread_cpu_us": 19765
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 486
+              },
+              "parent": 169,
+              "name": "analysis.search",
+              "start_us": 30447128,
+              "wall_us": 62680,
+              "thread_cpu_us": 62367
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 494
+              },
+              "parent": 169,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 30522809,
+              "wall_us": 963,
+              "thread_cpu_us": 957
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 169
+              },
+              "parent": 160,
+              "name": "analysis.extract",
+              "start_us": 13700367,
+              "wall_us": 16829588,
+              "thread_cpu_us": 1193599
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 495
+              },
+              "parent": 160,
+              "name": "analysis.materialize_view",
+              "start_us": 30529960,
+              "wall_us": 2111,
+              "thread_cpu_us": 2102
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 499
+              },
+              "parent": 160,
+              "name": "atlas.resources.select",
+              "start_us": 30593168,
+              "wall_us": 8858,
+              "thread_cpu_us": 8828
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 500
+              },
+              "parent": 160,
+              "name": "atlas.resources.validate",
+              "start_us": 30602036,
+              "wall_us": 19813,
+              "thread_cpu_us": 19729
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 501
+              },
+              "parent": 160,
+              "name": "atlas.resources.select",
+              "start_us": 30625269,
+              "wall_us": 8675,
+              "thread_cpu_us": 8638
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 502
+              },
+              "parent": 160,
+              "name": "atlas.resources.validate",
+              "start_us": 30633950,
+              "wall_us": 19764,
+              "thread_cpu_us": 19679
+            },
+            {
+              "context": {
+                "trace": 157,
+                "span": 503
+              },
+              "parent": 160,
+              "name": "analysis.cache.validate",
+              "start_us": 30655680,
+              "wall_us": 95,
+              "thread_cpu_us": 94
+            }
+          ]
+        },
+        {
+          "project": "ethlib",
+          "trace": 478,
+          "preparation": {
+            "job": "sha256:e663b3cf5d83e17869a3e04414e9a1bb7a8b89202b34084a47eb2e9c8be704c9",
+            "resource": "EthLib/Networking/Gossip/Parameters.lean",
+            "phase": "Preparing explanations",
+            "elapsed_ms": 848,
+            "phase_elapsed_ms": 25,
+            "limit_seconds": 0,
+            "outcome": {
+              "state": "ready",
+              "cache_hit": true
+            },
+            "log": {
+              "revision": "sha256:a174d432664abbf4287e94dc05e10dad5e4a75c0941e52f1c03c53e61b94a9aa"
+            }
+          },
+          "no_semantic_workers": false,
+          "complete_cache_hit": false,
+          "scope": "One actual deployed project inspection in concurrent two-project functional fidelity journeys, not a paired latency comparison; native spans are nested and thread CPU excludes children.",
+          "total_trace_records": 91,
+          "records": [
+            {
+              "context": {
+                "trace": 478,
+                "span": 480
+              },
+              "parent": 478,
+              "name": "gui.enqueue",
+              "start_us": 22333681,
+              "wall_us": 0,
+              "thread_cpu_us": 0
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 481
+              },
+              "parent": 480,
+              "name": "job.queue",
+              "start_us": 22333682,
+              "wall_us": 18,
+              "thread_cpu_us": null
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 478
+              },
+              "parent": null,
+              "name": "gui.command",
+              "start_us": 22333633,
+              "wall_us": 160,
+              "thread_cpu_us": 144
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 491
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22375080,
+              "wall_us": 11671,
+              "thread_cpu_us": 11613
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 492
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22386762,
+              "wall_us": 21669,
+              "thread_cpu_us": 21329
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 493
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22408506,
+              "wall_us": 10166,
+              "thread_cpu_us": 10123
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 494
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22418677,
+              "wall_us": 20733,
+              "thread_cpu_us": 20670
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 495
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22442667,
+              "wall_us": 10014,
+              "thread_cpu_us": 9982
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 498
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22452690,
+              "wall_us": 20792,
+              "thread_cpu_us": 20718
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 499
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22475427,
+              "wall_us": 10096,
+              "thread_cpu_us": 10062
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 500
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22485531,
+              "wall_us": 21024,
+              "thread_cpu_us": 20921
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 501
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22508486,
+              "wall_us": 10109,
+              "thread_cpu_us": 10080
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 502
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22518608,
+              "wall_us": 20796,
+              "thread_cpu_us": 20744
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 504
+              },
+              "parent": 503,
+              "name": "atlas.resources.select",
+              "start_us": 22539543,
+              "wall_us": 10228,
+              "thread_cpu_us": 10203
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 505
+              },
+              "parent": 503,
+              "name": "atlas.resources.validate",
+              "start_us": 22549775,
+              "wall_us": 20725,
+              "thread_cpu_us": 20664
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 507
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22577554,
+              "wall_us": 41451,
+              "thread_cpu_us": 1003
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 513
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22619166,
+              "wall_us": 41186,
+              "thread_cpu_us": 760
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 515
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22660462,
+              "wall_us": 41217,
+              "thread_cpu_us": 807
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 519
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22701860,
+              "wall_us": 41905,
+              "thread_cpu_us": 1497
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 521
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22743925,
+              "wall_us": 42124,
+              "thread_cpu_us": 1698
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 523
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22786226,
+              "wall_us": 42232,
+              "thread_cpu_us": 1825
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 525
+              },
+              "parent": 506,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 22828668,
+              "wall_us": 42232,
+              "thread_cpu_us": 1491
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 527
+              },
+              "parent": 506,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 22871757,
+              "wall_us": 68344,
+              "thread_cpu_us": 7512
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 506
+              },
+              "parent": 503,
+              "name": "analysis.metadata.validate",
+              "start_us": 22577471,
+              "wall_us": 363595,
+              "thread_cpu_us": 19454
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 530
+              },
+              "parent": 503,
+              "name": "analysis.capture_sources",
+              "start_us": 22941134,
+              "wall_us": 41570,
+              "thread_cpu_us": 1135
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 503
+              },
+              "parent": 490,
+              "name": "analysis.cache.validate",
+              "start_us": 22539425,
+              "wall_us": 443302,
+              "thread_cpu_us": 58624
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 534
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 22982809,
+              "wall_us": 10854,
+              "thread_cpu_us": 10717
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 535
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 22993677,
+              "wall_us": 21469,
+              "thread_cpu_us": 21374
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 536
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 23017534,
+              "wall_us": 10184,
+              "thread_cpu_us": 10153
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 537
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 23027729,
+              "wall_us": 20860,
+              "thread_cpu_us": 20805
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 538
+              },
+              "parent": 490,
+              "name": "analysis.cache.retain_observation",
+              "start_us": 23050715,
+              "wall_us": 11776,
+              "thread_cpu_us": 11739
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 539
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 23062589,
+              "wall_us": 10140,
+              "thread_cpu_us": 10105
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 540
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 23072734,
+              "wall_us": 21286,
+              "thread_cpu_us": 21202
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 541
+              },
+              "parent": 490,
+              "name": "atlas.resources.select",
+              "start_us": 23097646,
+              "wall_us": 9882,
+              "thread_cpu_us": 9850
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 542
+              },
+              "parent": 490,
+              "name": "atlas.resources.validate",
+              "start_us": 23107537,
+              "wall_us": 20956,
+              "thread_cpu_us": 20879
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 544
+              },
+              "parent": 543,
+              "name": "atlas.resources.select",
+              "start_us": 23130611,
+              "wall_us": 9910,
+              "thread_cpu_us": 9875
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 545
+              },
+              "parent": 543,
+              "name": "atlas.resources.validate",
+              "start_us": 23140528,
+              "wall_us": 21118,
+              "thread_cpu_us": 21034
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 546
+              },
+              "parent": 543,
+              "name": "atlas.resources.select",
+              "start_us": 23164912,
+              "wall_us": 10035,
+              "thread_cpu_us": 10001
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 547
+              },
+              "parent": 543,
+              "name": "atlas.resources.validate",
+              "start_us": 23174955,
+              "wall_us": 20953,
+              "thread_cpu_us": 20867
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 543
+              },
+              "parent": 490,
+              "name": "analysis.search",
+              "start_us": 23130579,
+              "wall_us": 67407,
+              "thread_cpu_us": 67143
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 551
+              },
+              "parent": 490,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 23211051,
+              "wall_us": 2226,
+              "thread_cpu_us": 2221
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 490
+              },
+              "parent": 482,
+              "name": "analysis.extract",
+              "start_us": 22375032,
+              "wall_us": 844830,
+              "thread_cpu_us": 456908
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 552
+              },
+              "parent": 482,
+              "name": "analysis.materialize_view",
+              "start_us": 23219868,
+              "wall_us": 3867,
+              "thread_cpu_us": 3858
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 554
+              },
+              "parent": 482,
+              "name": "atlas.resources.select",
+              "start_us": 23266569,
+              "wall_us": 10177,
+              "thread_cpu_us": 10009
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 555
+              },
+              "parent": 482,
+              "name": "atlas.resources.validate",
+              "start_us": 23276754,
+              "wall_us": 20799,
+              "thread_cpu_us": 20741
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 557
+              },
+              "parent": 482,
+              "name": "atlas.resources.select",
+              "start_us": 23300811,
+              "wall_us": 10018,
+              "thread_cpu_us": 9986
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 560
+              },
+              "parent": 482,
+              "name": "atlas.resources.validate",
+              "start_us": 23310838,
+              "wall_us": 21493,
+              "thread_cpu_us": 21433
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 564
+              },
+              "parent": 563,
+              "name": "atlas.resources.select",
+              "start_us": 23334350,
+              "wall_us": 10870,
+              "thread_cpu_us": 10836
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 565
+              },
+              "parent": 563,
+              "name": "atlas.resources.validate",
+              "start_us": 23345228,
+              "wall_us": 20916,
+              "thread_cpu_us": 20863
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 567
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23373223,
+              "wall_us": 51333,
+              "thread_cpu_us": 773
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 569
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23424664,
+              "wall_us": 41150,
+              "thread_cpu_us": 709
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 571
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23465926,
+              "wall_us": 41268,
+              "thread_cpu_us": 755
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 573
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23507327,
+              "wall_us": 41396,
+              "thread_cpu_us": 941
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 575
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23548818,
+              "wall_us": 41536,
+              "thread_cpu_us": 1111
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 577
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23590459,
+              "wall_us": 41475,
+              "thread_cpu_us": 1073
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 579
+              },
+              "parent": 566,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 23632046,
+              "wall_us": 41189,
+              "thread_cpu_us": 758
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 584
+              },
+              "parent": 566,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 23673549,
+              "wall_us": 44126,
+              "thread_cpu_us": 3639
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 566
+              },
+              "parent": 563,
+              "name": "analysis.metadata.validate",
+              "start_us": 23373132,
+              "wall_us": 345147,
+              "thread_cpu_us": 11425
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 586
+              },
+              "parent": 563,
+              "name": "analysis.capture_sources",
+              "start_us": 23718310,
+              "wall_us": 31174,
+              "thread_cpu_us": 706
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 563
+              },
+              "parent": 482,
+              "name": "analysis.cache.validate",
+              "start_us": 23334237,
+              "wall_us": 415265,
+              "thread_cpu_us": 50973
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 588
+              },
+              "parent": 482,
+              "name": "atlas.resources.select",
+              "start_us": 23763569,
+              "wall_us": 10186,
+              "thread_cpu_us": 10114
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 589
+              },
+              "parent": 482,
+              "name": "atlas.resources.validate",
+              "start_us": 23773763,
+              "wall_us": 20930,
+              "thread_cpu_us": 20851
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 590
+              },
+              "parent": 482,
+              "name": "atlas.resources.select",
+              "start_us": 23798319,
+              "wall_us": 9948,
+              "thread_cpu_us": 9902
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 591
+              },
+              "parent": 482,
+              "name": "atlas.resources.validate",
+              "start_us": 23808276,
+              "wall_us": 20951,
+              "thread_cpu_us": 20869
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 592
+              },
+              "parent": 482,
+              "name": "atlas.resources.select",
+              "start_us": 23832535,
+              "wall_us": 10444,
+              "thread_cpu_us": 10392
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 593
+              },
+              "parent": 482,
+              "name": "atlas.resources.validate",
+              "start_us": 23842991,
+              "wall_us": 20783,
+              "thread_cpu_us": 20716
+            },
+            {
+              "context": {
+                "trace": 478,
+                "span": 594
+              },
+              "parent": 482,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 23865872,
+              "wall_us": 2212,
+              "thread_cpu_us": 2203
+            }
+          ]
+        }
+      ],
+      "metrics_file": {
+        "path": "/tmp/meden-workspace-session-warm-metrics.json",
+        "sha256": "fe28f8b1bb1004a6ef57c280e6b23fe3ff180a0d6c506ec139f9cef7d265ea6e"
+      }
+    },
+    "cached": {
+      "fidelity": [
+        {
+          "project": "riemann",
+          "pid": 1861335,
+          "binary_sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+          "cache_hit": true,
+          "preparation_ms": 12293.640037000001,
+          "source_publication": "sha256:ba9a3a96fc9bd395691d958714a17410e342589b7e3ee81143d1a1203d69557e",
+          "source_hash": "af6ff439f0ea8dac901852de5ed3853dd666b5591c9463a860658e7ab99b7815",
+          "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+          "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+          "inventory_files": 175187,
+          "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+          "overview_headers_exactly_preserved": true,
+          "complete_original_header_metadata_round_trip": true,
+          "unindexed_entries": 175184,
+          "complete_original_navigation_binding": true,
+          "navigation_bytes": 13853,
+          "complete_cached_navigation_matches_original": true,
+          "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+          "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+          "complete_source_data_equal": true,
+          "graph_binding_revision_changed": false,
+          "original_graph_revision": "sha256:08f3f0715f6be03dd8c0685ce354dfb3eae51c45c86ced95701842a547e9e2c3",
+          "current_graph_revision": "sha256:08f3f0715f6be03dd8c0685ce354dfb3eae51c45c86ced95701842a547e9e2c3",
+          "phase": "cached",
+          "conversation_revision_unchanged": true,
+          "candidate_observations_unchanged": true,
+          "hover_and_retained_tab_camera_preserved": true,
+          "node_selection_preserves_camera_chat_and_source_line": true,
+          "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+          "verification_job": {
+            "state": "idle"
+          },
+          "work_job": {
+            "state": "idle"
+          },
+          "job_body_requests": 0,
+          "preview": {
+            "state": "idle"
+          },
+          "preview_body_requests": 0,
+          "commands": [
+            {
+              "type": "inspect",
+              "path": ".",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "directory": false
+            }
+          ],
+          "page_errors": [],
+          "running": false,
+          "authorized": false
+        },
+        {
+          "project": "ethlib",
+          "pid": 1861525,
+          "binary_sha256": "d1bb36d0f27dffcb602c06c5dee83d14c311aa7fe4701a2c62114abe64d97f40",
+          "cache_hit": true,
+          "preparation_ms": 2111.1236790000003,
+          "source_publication": "sha256:0d15ff17f7caa14927c7aa4df9151890132eb9f459e793aa554d9924ec63def9",
+          "source_hash": "a25a6e29432f2e10e02e6e2cfa0027924ab56b7c230d6804758d1dcad72a81d7",
+          "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+          "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+          "inventory_files": 2517,
+          "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+          "overview_headers_exactly_preserved": true,
+          "complete_original_header_metadata_round_trip": true,
+          "unindexed_entries": 0,
+          "complete_original_navigation_binding": true,
+          "navigation_bytes": 1516,
+          "complete_cached_navigation_matches_original": true,
+          "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+          "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+          "complete_source_data_equal": true,
+          "graph_binding_revision_changed": false,
+          "original_graph_revision": "sha256:c2e1fecae3c96d001e21bd905fa4c636533c922f7943e21bf254031ba41fd04c",
+          "current_graph_revision": "sha256:c2e1fecae3c96d001e21bd905fa4c636533c922f7943e21bf254031ba41fd04c",
+          "phase": "cached",
+          "conversation_revision_unchanged": true,
+          "candidate_observations_unchanged": true,
+          "hover_and_retained_tab_camera_preserved": true,
+          "node_selection_preserves_camera_chat_and_source_line": true,
+          "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+          "verification_job": {
+            "state": "idle"
+          },
+          "work_job": {
+            "state": "idle"
+          },
+          "job_body_requests": 0,
+          "preview": {
+            "state": "idle"
+          },
+          "preview_body_requests": 0,
+          "commands": [
+            {
+              "type": "inspect",
+              "path": ".",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking/Gossip",
+              "directory": true
+            },
+            {
+              "type": "inspect",
+              "path": "EthLib/Networking/Gossip/Parameters.lean",
+              "directory": false
+            }
+          ],
+          "page_errors": [],
+          "running": false,
+          "authorized": false
+        }
+      ],
+      "chains": [
+        {
+          "project": "riemann",
+          "chain": {
+            "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+            "observation_id": "e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e",
+            "search_id": "b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5",
+            "rendering_id": "e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a",
+            "compiler": {
+              "id": "lean.lake",
+              "role": "compiler",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "16ca8eaaf409326156b9d08c5397a81d4310d4026775d674126eb1d140564c5a",
+              "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+              "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+              "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+            },
+            "searcher": {
+              "id": "lean.plausible",
+              "role": "counterexample_search",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ed602464accba4c4cfd5adca20e60c9f59ef3ad4020bdf6e92cd72b77a3ef603",
+              "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+              "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+              "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+            },
+            "renderer": {
+              "id": "informath.gf",
+              "role": "meaning_renderer",
+              "version": "1",
+              "formats": [
+                "dedukti-v1"
+              ],
+              "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+              "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+              "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+              "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+            },
+            "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+            "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+            "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+            "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+            "checksummed_original_objects": true,
+            "complete_graph_revision_chain": true
+          },
+          "complete_source_and_chain_unchanged": true
+        },
+        {
+          "project": "ethlib",
+          "chain": {
+            "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+            "observation_id": "7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e",
+            "search_id": "7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999",
+            "rendering_id": "7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069",
+            "compiler": {
+              "id": "lean.frozen",
+              "role": "compiler",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ff06f3383443e4f85054714c2fbad1354a02c67b17ecaf42495a3cd08e92d75c",
+              "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+              "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+              "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+            },
+            "searcher": {
+              "id": "lean.plausible",
+              "role": "counterexample_search",
+              "version": "1",
+              "formats": [
+                "lean-module-v1"
+              ],
+              "implementation_sha256": "ed602464accba4c4cfd5adca20e60c9f59ef3ad4020bdf6e92cd72b77a3ef603",
+              "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+              "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+              "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+            },
+            "renderer": {
+              "id": "informath.gf",
+              "role": "meaning_renderer",
+              "version": "1",
+              "formats": [
+                "dedukti-v1"
+              ],
+              "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+              "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+              "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+              "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+            },
+            "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+            "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+            "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+            "prepared_input_fingerprint": null,
+            "checksummed_original_objects": true,
+            "complete_graph_revision_chain": true
+          },
+          "complete_source_and_chain_unchanged": true
+        }
+      ],
+      "metrics": [
+        {
+          "project": "riemann",
+          "trace": 169,
+          "preparation": {
+            "job": "sha256:e8348760e0bcd3efc2da26360cf320876123987ab6f3e8fc9695169a9e3316a6",
+            "resource": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "phase": "Preparing explanations",
+            "elapsed_ms": 10252,
+            "phase_elapsed_ms": 23,
+            "limit_seconds": 0,
+            "outcome": {
+              "state": "ready",
+              "cache_hit": true
+            },
+            "log": {
+              "revision": "sha256:45518cbe6f92e6a7f2389fcfd6d623d61ac774803bfe2cda62558bd1e7e32d1c"
+            }
+          },
+          "no_semantic_workers": true,
+          "complete_cache_hit": true,
+          "scope": "One actual deployed project inspection in concurrent two-project functional fidelity journeys, not a paired latency comparison; native spans are nested and thread CPU excludes children.",
+          "total_trace_records": 195,
+          "records": [
+            {
+              "context": {
+                "trace": 169,
+                "span": 170
+              },
+              "parent": 169,
+              "name": "gui.enqueue",
+              "start_us": 10187851,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 172
+              },
+              "parent": 170,
+              "name": "job.queue",
+              "start_us": 10187853,
+              "wall_us": 126,
+              "thread_cpu_us": null
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 169
+              },
+              "parent": null,
+              "name": "gui.command",
+              "start_us": 10187778,
+              "wall_us": 210,
+              "thread_cpu_us": 190
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 182
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 10239876,
+              "wall_us": 10146,
+              "thread_cpu_us": 10025
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 183
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 10250038,
+              "wall_us": 21177,
+              "thread_cpu_us": 21090
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 184
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 10271314,
+              "wall_us": 8950,
+              "thread_cpu_us": 8927
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 185
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 10280268,
+              "wall_us": 20024,
+              "thread_cpu_us": 19976
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 186
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 10303663,
+              "wall_us": 9320,
+              "thread_cpu_us": 9286
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 187
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 10312989,
+              "wall_us": 19946,
+              "thread_cpu_us": 19894
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 190
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 10334934,
+              "wall_us": 8811,
+              "thread_cpu_us": 8784
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 191
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 10343753,
+              "wall_us": 20038,
+              "thread_cpu_us": 19983
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 193
+              },
+              "parent": 192,
+              "name": "analysis.capture_sources",
+              "start_us": 10365789,
+              "wall_us": 51672,
+              "thread_cpu_us": 1069
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 203
+              },
+              "parent": 202,
+              "name": "atlas.resources.select",
+              "start_us": 10541565,
+              "wall_us": 9449,
+              "thread_cpu_us": 9382
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 204
+              },
+              "parent": 202,
+              "name": "atlas.resources.validate",
+              "start_us": 10551027,
+              "wall_us": 20077,
+              "thread_cpu_us": 19982
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 208
+              },
+              "parent": 207,
+              "name": "atlas.resources.validate",
+              "start_us": 10571701,
+              "wall_us": 20142,
+              "thread_cpu_us": 20084
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 207
+              },
+              "parent": 202,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 10571468,
+              "wall_us": 20527,
+              "thread_cpu_us": 20469
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 202
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 10541561,
+              "wall_us": 50447,
+              "thread_cpu_us": 50224
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 211
+              },
+              "parent": 210,
+              "name": "atlas.resources.select",
+              "start_us": 10633572,
+              "wall_us": 9904,
+              "thread_cpu_us": 9868
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 212
+              },
+              "parent": 210,
+              "name": "atlas.resources.validate",
+              "start_us": 10643481,
+              "wall_us": 21171,
+              "thread_cpu_us": 21026
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 214
+              },
+              "parent": 213,
+              "name": "atlas.resources.validate",
+              "start_us": 10665418,
+              "wall_us": 20175,
+              "thread_cpu_us": 20083
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 213
+              },
+              "parent": 210,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 10665123,
+              "wall_us": 20623,
+              "thread_cpu_us": 20525
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 210
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 10633569,
+              "wall_us": 52191,
+              "thread_cpu_us": 51907
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 222
+              },
+              "parent": 221,
+              "name": "atlas.resources.select",
+              "start_us": 10860948,
+              "wall_us": 10020,
+              "thread_cpu_us": 9689
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 223
+              },
+              "parent": 221,
+              "name": "atlas.resources.validate",
+              "start_us": 10870972,
+              "wall_us": 20545,
+              "thread_cpu_us": 20392
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 225
+              },
+              "parent": 224,
+              "name": "atlas.resources.validate",
+              "start_us": 10892353,
+              "wall_us": 19883,
+              "thread_cpu_us": 19809
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 224
+              },
+              "parent": 221,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 10892141,
+              "wall_us": 20250,
+              "thread_cpu_us": 20175
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 221
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 10860944,
+              "wall_us": 51459,
+              "thread_cpu_us": 50882
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 229
+              },
+              "parent": 228,
+              "name": "atlas.resources.select",
+              "start_us": 10994756,
+              "wall_us": 9307,
+              "thread_cpu_us": 9239
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 230
+              },
+              "parent": 228,
+              "name": "atlas.resources.validate",
+              "start_us": 11004068,
+              "wall_us": 27460,
+              "thread_cpu_us": 27209
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 232
+              },
+              "parent": 231,
+              "name": "atlas.resources.validate",
+              "start_us": 11032797,
+              "wall_us": 23134,
+              "thread_cpu_us": 22992
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 231
+              },
+              "parent": 228,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11032573,
+              "wall_us": 23553,
+              "thread_cpu_us": 23384
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 228
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 10994753,
+              "wall_us": 61388,
+              "thread_cpu_us": 60892
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 240
+              },
+              "parent": 239,
+              "name": "atlas.resources.select",
+              "start_us": 11148613,
+              "wall_us": 8999,
+              "thread_cpu_us": 8968
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 241
+              },
+              "parent": 239,
+              "name": "atlas.resources.validate",
+              "start_us": 11157618,
+              "wall_us": 20200,
+              "thread_cpu_us": 20120
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 243
+              },
+              "parent": 242,
+              "name": "atlas.resources.validate",
+              "start_us": 11178544,
+              "wall_us": 19950,
+              "thread_cpu_us": 19864
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 242
+              },
+              "parent": 239,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11178390,
+              "wall_us": 20260,
+              "thread_cpu_us": 20171
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 239
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11148610,
+              "wall_us": 50054,
+              "thread_cpu_us": 49849
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 247
+              },
+              "parent": 246,
+              "name": "atlas.resources.select",
+              "start_us": 11280793,
+              "wall_us": 8970,
+              "thread_cpu_us": 8910
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 248
+              },
+              "parent": 246,
+              "name": "atlas.resources.validate",
+              "start_us": 11289769,
+              "wall_us": 20225,
+              "thread_cpu_us": 20090
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 250
+              },
+              "parent": 249,
+              "name": "atlas.resources.validate",
+              "start_us": 11310749,
+              "wall_us": 19928,
+              "thread_cpu_us": 19833
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 249
+              },
+              "parent": 246,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11310586,
+              "wall_us": 20247,
+              "thread_cpu_us": 20151
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 246
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11280790,
+              "wall_us": 50057,
+              "thread_cpu_us": 49761
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 254
+              },
+              "parent": 253,
+              "name": "atlas.resources.select",
+              "start_us": 11433599,
+              "wall_us": 9490,
+              "thread_cpu_us": 9443
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 255
+              },
+              "parent": 253,
+              "name": "atlas.resources.validate",
+              "start_us": 11443102,
+              "wall_us": 21584,
+              "thread_cpu_us": 21432
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 259
+              },
+              "parent": 258,
+              "name": "atlas.resources.validate",
+              "start_us": 11466127,
+              "wall_us": 22943,
+              "thread_cpu_us": 22844
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 258
+              },
+              "parent": 253,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11465841,
+              "wall_us": 23545,
+              "thread_cpu_us": 23440
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 253
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11433597,
+              "wall_us": 55808,
+              "thread_cpu_us": 55498
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 263
+              },
+              "parent": 262,
+              "name": "atlas.resources.select",
+              "start_us": 11572108,
+              "wall_us": 9440,
+              "thread_cpu_us": 9327
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 264
+              },
+              "parent": 262,
+              "name": "atlas.resources.validate",
+              "start_us": 11581559,
+              "wall_us": 19977,
+              "thread_cpu_us": 19687
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 266
+              },
+              "parent": 265,
+              "name": "atlas.resources.validate",
+              "start_us": 11602395,
+              "wall_us": 20079,
+              "thread_cpu_us": 20016
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 265
+              },
+              "parent": 262,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11602228,
+              "wall_us": 20406,
+              "thread_cpu_us": 20342
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 262
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11572104,
+              "wall_us": 50543,
+              "thread_cpu_us": 50065
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 270
+              },
+              "parent": 269,
+              "name": "atlas.resources.select",
+              "start_us": 11705686,
+              "wall_us": 10313,
+              "thread_cpu_us": 9973
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 271
+              },
+              "parent": 269,
+              "name": "atlas.resources.validate",
+              "start_us": 11716010,
+              "wall_us": 19960,
+              "thread_cpu_us": 19842
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 273
+              },
+              "parent": 272,
+              "name": "atlas.resources.validate",
+              "start_us": 11736831,
+              "wall_us": 19986,
+              "thread_cpu_us": 19936
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 272
+              },
+              "parent": 269,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11736675,
+              "wall_us": 20294,
+              "thread_cpu_us": 20244
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 269
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11705682,
+              "wall_us": 51301,
+              "thread_cpu_us": 50788
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 279
+              },
+              "parent": 278,
+              "name": "atlas.resources.select",
+              "start_us": 11859883,
+              "wall_us": 9776,
+              "thread_cpu_us": 9704
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 280
+              },
+              "parent": 278,
+              "name": "atlas.resources.validate",
+              "start_us": 11869667,
+              "wall_us": 20481,
+              "thread_cpu_us": 20370
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 282
+              },
+              "parent": 281,
+              "name": "atlas.resources.validate",
+              "start_us": 11891000,
+              "wall_us": 19874,
+              "thread_cpu_us": 19829
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 281
+              },
+              "parent": 278,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11890844,
+              "wall_us": 20183,
+              "thread_cpu_us": 20138
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 278
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11859880,
+              "wall_us": 51165,
+              "thread_cpu_us": 50932
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 285
+              },
+              "parent": 284,
+              "name": "atlas.resources.select",
+              "start_us": 11952397,
+              "wall_us": 9091,
+              "thread_cpu_us": 9066
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 286
+              },
+              "parent": 284,
+              "name": "atlas.resources.validate",
+              "start_us": 11961492,
+              "wall_us": 20217,
+              "thread_cpu_us": 20151
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 288
+              },
+              "parent": 287,
+              "name": "atlas.resources.validate",
+              "start_us": 11982565,
+              "wall_us": 20605,
+              "thread_cpu_us": 20521
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 287
+              },
+              "parent": 284,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 11982408,
+              "wall_us": 20924,
+              "thread_cpu_us": 20837
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 284
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 11952395,
+              "wall_us": 50951,
+              "thread_cpu_us": 50769
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 294
+              },
+              "parent": 293,
+              "name": "atlas.resources.select",
+              "start_us": 12096063,
+              "wall_us": 9007,
+              "thread_cpu_us": 8974
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 295
+              },
+              "parent": 293,
+              "name": "atlas.resources.validate",
+              "start_us": 12105076,
+              "wall_us": 20194,
+              "thread_cpu_us": 20112
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 297
+              },
+              "parent": 296,
+              "name": "atlas.resources.validate",
+              "start_us": 12126149,
+              "wall_us": 20224,
+              "thread_cpu_us": 20172
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 296
+              },
+              "parent": 293,
+              "name": "atlas.lake_configuration.reuse",
+              "start_us": 12125990,
+              "wall_us": 20535,
+              "thread_cpu_us": 20478
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 293
+              },
+              "parent": 198,
+              "name": "atlas.lake_configuration.resolve",
+              "start_us": 12096060,
+              "wall_us": 50478,
+              "thread_cpu_us": 50305
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 198
+              },
+              "parent": 192,
+              "name": "analysis.discover_layout",
+              "start_us": 10417470,
+              "wall_us": 1729185,
+              "thread_cpu_us": 640725
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 298
+              },
+              "parent": 192,
+              "name": "analysis.capture_sources",
+              "start_us": 12146729,
+              "wall_us": 42097,
+              "thread_cpu_us": 1490
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 192
+              },
+              "parent": 181,
+              "name": "analysis.select_roots",
+              "start_us": 10365783,
+              "wall_us": 1823123,
+              "thread_cpu_us": 643451
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 303
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12189062,
+              "wall_us": 41344,
+              "thread_cpu_us": 858
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 305
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12230524,
+              "wall_us": 31164,
+              "thread_cpu_us": 779
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 307
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12261817,
+              "wall_us": 41353,
+              "thread_cpu_us": 844
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 309
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12303309,
+              "wall_us": 41784,
+              "thread_cpu_us": 1300
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 311
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12345226,
+              "wall_us": 52180,
+              "thread_cpu_us": 1677
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 313
+              },
+              "parent": 302,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 12397583,
+              "wall_us": 41452,
+              "thread_cpu_us": 982
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 315
+              },
+              "parent": 302,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 12439296,
+              "wall_us": 42739,
+              "thread_cpu_us": 2309
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 302
+              },
+              "parent": 181,
+              "name": "analysis.metadata.validate",
+              "start_us": 12188912,
+              "wall_us": 293397,
+              "thread_cpu_us": 10117
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 317
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 12482358,
+              "wall_us": 9463,
+              "thread_cpu_us": 9384
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 318
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 12491834,
+              "wall_us": 19819,
+              "thread_cpu_us": 19768
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 319
+              },
+              "parent": 181,
+              "name": "atlas.project.query",
+              "start_us": 12511708,
+              "wall_us": 3742903,
+              "thread_cpu_us": 50739
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 360
+              },
+              "parent": 181,
+              "name": "atlas.project.fingerprint",
+              "start_us": 16254700,
+              "wall_us": 3630456,
+              "thread_cpu_us": 46227
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 413
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 19885526,
+              "wall_us": 22372,
+              "thread_cpu_us": 22242
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 415
+              },
+              "parent": 414,
+              "name": "atlas.resources.select",
+              "start_us": 19908219,
+              "wall_us": 8897,
+              "thread_cpu_us": 8858
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 416
+              },
+              "parent": 414,
+              "name": "atlas.resources.validate",
+              "start_us": 19917120,
+              "wall_us": 19958,
+              "thread_cpu_us": 19883
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 420
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19942699,
+              "wall_us": 41243,
+              "thread_cpu_us": 749
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 423
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19984071,
+              "wall_us": 52091,
+              "thread_cpu_us": 1456
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 425
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20036603,
+              "wall_us": 52204,
+              "thread_cpu_us": 1446
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 427
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20088981,
+              "wall_us": 42198,
+              "thread_cpu_us": 1674
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 431
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20131311,
+              "wall_us": 42121,
+              "thread_cpu_us": 1629
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 433
+              },
+              "parent": 419,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20173562,
+              "wall_us": 41080,
+              "thread_cpu_us": 671
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 435
+              },
+              "parent": 419,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 20214804,
+              "wall_us": 41892,
+              "thread_cpu_us": 1437
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 419
+              },
+              "parent": 414,
+              "name": "analysis.metadata.validate",
+              "start_us": 19942621,
+              "wall_us": 314245,
+              "thread_cpu_us": 10443
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 437
+              },
+              "parent": 414,
+              "name": "analysis.capture_sources",
+              "start_us": 20256892,
+              "wall_us": 41814,
+              "thread_cpu_us": 1362
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 414
+              },
+              "parent": 181,
+              "name": "analysis.cache.validate",
+              "start_us": 19908103,
+              "wall_us": 390633,
+              "thread_cpu_us": 46250
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 441
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 20298885,
+              "wall_us": 9446,
+              "thread_cpu_us": 9392
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 442
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 20308339,
+              "wall_us": 21352,
+              "thread_cpu_us": 21202
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 443
+              },
+              "parent": 181,
+              "name": "analysis.cache.retain_observation",
+              "start_us": 20332070,
+              "wall_us": 8817,
+              "thread_cpu_us": 8790
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 444
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 20341054,
+              "wall_us": 8903,
+              "thread_cpu_us": 8872
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 445
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 20349962,
+              "wall_us": 19929,
+              "thread_cpu_us": 19868
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 446
+              },
+              "parent": 181,
+              "name": "atlas.resources.select",
+              "start_us": 20373653,
+              "wall_us": 8948,
+              "thread_cpu_us": 8920
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 447
+              },
+              "parent": 181,
+              "name": "atlas.resources.validate",
+              "start_us": 20382609,
+              "wall_us": 20136,
+              "thread_cpu_us": 20072
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 449
+              },
+              "parent": 448,
+              "name": "atlas.resources.select",
+              "start_us": 20404950,
+              "wall_us": 8968,
+              "thread_cpu_us": 8936
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 450
+              },
+              "parent": 448,
+              "name": "atlas.resources.validate",
+              "start_us": 20413924,
+              "wall_us": 20168,
+              "thread_cpu_us": 20102
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 451
+              },
+              "parent": 448,
+              "name": "atlas.resources.select",
+              "start_us": 20437247,
+              "wall_us": 9579,
+              "thread_cpu_us": 9529
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 452
+              },
+              "parent": 448,
+              "name": "atlas.resources.validate",
+              "start_us": 20446837,
+              "wall_us": 20227,
+              "thread_cpu_us": 20091
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 448
+              },
+              "parent": 181,
+              "name": "analysis.search",
+              "start_us": 20404908,
+              "wall_us": 64308,
+              "thread_cpu_us": 64002
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 454
+              },
+              "parent": 181,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 20482563,
+              "wall_us": 1013,
+              "thread_cpu_us": 1005
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 181
+              },
+              "parent": 173,
+              "name": "analysis.extract",
+              "start_us": 10239829,
+              "wall_us": 10250070,
+              "thread_cpu_us": 1164758
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 455
+              },
+              "parent": 173,
+              "name": "analysis.materialize_view",
+              "start_us": 20489905,
+              "wall_us": 2126,
+              "thread_cpu_us": 2114
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 457
+              },
+              "parent": 173,
+              "name": "atlas.resources.select",
+              "start_us": 20550851,
+              "wall_us": 8957,
+              "thread_cpu_us": 8919
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 458
+              },
+              "parent": 173,
+              "name": "atlas.resources.validate",
+              "start_us": 20559817,
+              "wall_us": 20140,
+              "thread_cpu_us": 20040
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 459
+              },
+              "parent": 173,
+              "name": "atlas.resources.select",
+              "start_us": 20583295,
+              "wall_us": 8731,
+              "thread_cpu_us": 8699
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 460
+              },
+              "parent": 173,
+              "name": "atlas.resources.validate",
+              "start_us": 20592032,
+              "wall_us": 19969,
+              "thread_cpu_us": 19881
+            },
+            {
+              "context": {
+                "trace": 169,
+                "span": 461
+              },
+              "parent": 173,
+              "name": "analysis.cache.validate",
+              "start_us": 20613976,
+              "wall_us": 102,
+              "thread_cpu_us": 97
+            }
+          ]
+        },
+        {
+          "project": "ethlib",
+          "trace": 476,
+          "preparation": {
+            "job": "sha256:291218aa770a9fd30b98a4904936c6eb5f502e7ed3f9267a134e559e64987068",
+            "resource": "EthLib/Networking/Gossip/Parameters.lean",
+            "phase": "Preparing explanations",
+            "elapsed_ms": 837,
+            "phase_elapsed_ms": 25,
+            "limit_seconds": 0,
+            "outcome": {
+              "state": "ready",
+              "cache_hit": true
+            },
+            "log": {
+              "revision": "sha256:6c3398686174b62abe39907a14da1ed857234a7d647a8337a83ac8928f5f9a63"
+            }
+          },
+          "no_semantic_workers": true,
+          "complete_cache_hit": true,
+          "scope": "One actual deployed project inspection in concurrent two-project functional fidelity journeys, not a paired latency comparison; native spans are nested and thread CPU excludes children.",
+          "total_trace_records": 91,
+          "records": [
+            {
+              "context": {
+                "trace": 476,
+                "span": 477
+              },
+              "parent": 476,
+              "name": "gui.enqueue",
+              "start_us": 18986869,
+              "wall_us": 4,
+              "thread_cpu_us": 3
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 478
+              },
+              "parent": 477,
+              "name": "job.queue",
+              "start_us": 18986874,
+              "wall_us": 23,
+              "thread_cpu_us": null
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 476
+              },
+              "parent": null,
+              "name": "gui.command",
+              "start_us": 18986788,
+              "wall_us": 222,
+              "thread_cpu_us": 196
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 489
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19028292,
+              "wall_us": 12394,
+              "thread_cpu_us": 12284
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 491
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19040704,
+              "wall_us": 22665,
+              "thread_cpu_us": 22538
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 492
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19063453,
+              "wall_us": 10091,
+              "thread_cpu_us": 10065
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 493
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19073547,
+              "wall_us": 21105,
+              "thread_cpu_us": 21047
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 494
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19097884,
+              "wall_us": 10095,
+              "thread_cpu_us": 10063
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 497
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19107984,
+              "wall_us": 21070,
+              "thread_cpu_us": 20995
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 498
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19130972,
+              "wall_us": 10238,
+              "thread_cpu_us": 10208
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 499
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19141215,
+              "wall_us": 21200,
+              "thread_cpu_us": 21129
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 500
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19164313,
+              "wall_us": 10157,
+              "thread_cpu_us": 10117
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 501
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19174481,
+              "wall_us": 21300,
+              "thread_cpu_us": 21226
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 503
+              },
+              "parent": 502,
+              "name": "atlas.resources.select",
+              "start_us": 19195917,
+              "wall_us": 10058,
+              "thread_cpu_us": 10022
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 504
+              },
+              "parent": 502,
+              "name": "atlas.resources.validate",
+              "start_us": 19205979,
+              "wall_us": 21042,
+              "thread_cpu_us": 20979
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 506
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19234064,
+              "wall_us": 41453,
+              "thread_cpu_us": 1028
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 511
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19275661,
+              "wall_us": 41252,
+              "thread_cpu_us": 783
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 513
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19317018,
+              "wall_us": 51210,
+              "thread_cpu_us": 702
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 517
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19368368,
+              "wall_us": 41868,
+              "thread_cpu_us": 1407
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 520
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19410376,
+              "wall_us": 41741,
+              "thread_cpu_us": 1244
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 522
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19452219,
+              "wall_us": 41569,
+              "thread_cpu_us": 1137
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 524
+              },
+              "parent": 505,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 19493904,
+              "wall_us": 41149,
+              "thread_cpu_us": 667
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 526
+              },
+              "parent": 505,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 19535307,
+              "wall_us": 45733,
+              "thread_cpu_us": 5232
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 505
+              },
+              "parent": 502,
+              "name": "analysis.metadata.validate",
+              "start_us": 19233978,
+              "wall_us": 347780,
+              "thread_cpu_us": 13999
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 528
+              },
+              "parent": 502,
+              "name": "analysis.capture_sources",
+              "start_us": 19581798,
+              "wall_us": 41472,
+              "thread_cpu_us": 849
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 502
+              },
+              "parent": 488,
+              "name": "analysis.cache.validate",
+              "start_us": 19195802,
+              "wall_us": 427483,
+              "thread_cpu_us": 52959
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 532
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19623334,
+              "wall_us": 11142,
+              "thread_cpu_us": 11068
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 533
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19634480,
+              "wall_us": 22092,
+              "thread_cpu_us": 21994
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 534
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19657421,
+              "wall_us": 10829,
+              "thread_cpu_us": 10786
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 535
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19668256,
+              "wall_us": 21061,
+              "thread_cpu_us": 20983
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 536
+              },
+              "parent": 488,
+              "name": "analysis.cache.retain_observation",
+              "start_us": 19691548,
+              "wall_us": 11904,
+              "thread_cpu_us": 11864
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 537
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19703535,
+              "wall_us": 10342,
+              "thread_cpu_us": 10305
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 538
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19713882,
+              "wall_us": 21339,
+              "thread_cpu_us": 21260
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 539
+              },
+              "parent": 488,
+              "name": "atlas.resources.select",
+              "start_us": 19738987,
+              "wall_us": 10653,
+              "thread_cpu_us": 10623
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 541
+              },
+              "parent": 488,
+              "name": "atlas.resources.validate",
+              "start_us": 19749649,
+              "wall_us": 21133,
+              "thread_cpu_us": 21051
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 543
+              },
+              "parent": 542,
+              "name": "atlas.resources.select",
+              "start_us": 19772965,
+              "wall_us": 10350,
+              "thread_cpu_us": 10318
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 544
+              },
+              "parent": 542,
+              "name": "atlas.resources.validate",
+              "start_us": 19783323,
+              "wall_us": 20665,
+              "thread_cpu_us": 20594
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 545
+              },
+              "parent": 542,
+              "name": "atlas.resources.select",
+              "start_us": 19807298,
+              "wall_us": 10275,
+              "thread_cpu_us": 10237
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 546
+              },
+              "parent": 542,
+              "name": "atlas.resources.validate",
+              "start_us": 19817580,
+              "wall_us": 20704,
+              "thread_cpu_us": 20629
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 542
+              },
+              "parent": 488,
+              "name": "analysis.search",
+              "start_us": 19772933,
+              "wall_us": 67498,
+              "thread_cpu_us": 67258
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 548
+              },
+              "parent": 488,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 19853620,
+              "wall_us": 2212,
+              "thread_cpu_us": 2204
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 488
+              },
+              "parent": 479,
+              "name": "analysis.extract",
+              "start_us": 19028242,
+              "wall_us": 833719,
+              "thread_cpu_us": 457624
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 551
+              },
+              "parent": 479,
+              "name": "analysis.materialize_view",
+              "start_us": 19861967,
+              "wall_us": 3856,
+              "thread_cpu_us": 3843
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 553
+              },
+              "parent": 479,
+              "name": "atlas.resources.select",
+              "start_us": 19908579,
+              "wall_us": 11300,
+              "thread_cpu_us": 11106
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 554
+              },
+              "parent": 479,
+              "name": "atlas.resources.validate",
+              "start_us": 19919887,
+              "wall_us": 21743,
+              "thread_cpu_us": 21540
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 555
+              },
+              "parent": 479,
+              "name": "atlas.resources.select",
+              "start_us": 19944930,
+              "wall_us": 10464,
+              "thread_cpu_us": 10433
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 560
+              },
+              "parent": 479,
+              "name": "atlas.resources.validate",
+              "start_us": 19955397,
+              "wall_us": 21858,
+              "thread_cpu_us": 21794
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 562
+              },
+              "parent": 561,
+              "name": "atlas.resources.select",
+              "start_us": 19979303,
+              "wall_us": 10426,
+              "thread_cpu_us": 10395
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 563
+              },
+              "parent": 561,
+              "name": "atlas.resources.validate",
+              "start_us": 19989740,
+              "wall_us": 21636,
+              "thread_cpu_us": 21569
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 565
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20019271,
+              "wall_us": 41504,
+              "thread_cpu_us": 811
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 567
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20060873,
+              "wall_us": 40955,
+              "thread_cpu_us": 503
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 570
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20101926,
+              "wall_us": 41052,
+              "thread_cpu_us": 601
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 572
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20143100,
+              "wall_us": 41938,
+              "thread_cpu_us": 1513
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 574
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20185218,
+              "wall_us": 42231,
+              "thread_cpu_us": 1649
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 576
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20227588,
+              "wall_us": 41677,
+              "thread_cpu_us": 1198
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 578
+              },
+              "parent": 564,
+              "name": "analysis.metadata.directory_batch",
+              "start_us": 20269387,
+              "wall_us": 41094,
+              "thread_cpu_us": 642
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 582
+              },
+              "parent": 564,
+              "name": "analysis.metadata.file_batch",
+              "start_us": 20310710,
+              "wall_us": 44180,
+              "thread_cpu_us": 3715
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 564
+              },
+              "parent": 561,
+              "name": "analysis.metadata.validate",
+              "start_us": 20019173,
+              "wall_us": 336346,
+              "thread_cpu_us": 12336
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 584
+              },
+              "parent": 561,
+              "name": "analysis.capture_sources",
+              "start_us": 20355550,
+              "wall_us": 41254,
+              "thread_cpu_us": 796
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 561
+              },
+              "parent": 479,
+              "name": "analysis.cache.validate",
+              "start_us": 19979186,
+              "wall_us": 417640,
+              "thread_cpu_us": 53048
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 586
+              },
+              "parent": 479,
+              "name": "atlas.resources.select",
+              "start_us": 20410841,
+              "wall_us": 10473,
+              "thread_cpu_us": 10415
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 587
+              },
+              "parent": 479,
+              "name": "atlas.resources.validate",
+              "start_us": 20421322,
+              "wall_us": 22188,
+              "thread_cpu_us": 22099
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 589
+              },
+              "parent": 479,
+              "name": "atlas.resources.select",
+              "start_us": 20447147,
+              "wall_us": 10103,
+              "thread_cpu_us": 10060
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 590
+              },
+              "parent": 479,
+              "name": "atlas.resources.validate",
+              "start_us": 20457254,
+              "wall_us": 20800,
+              "thread_cpu_us": 20715
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 591
+              },
+              "parent": 479,
+              "name": "atlas.resources.select",
+              "start_us": 20481314,
+              "wall_us": 9807,
+              "thread_cpu_us": 9761
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 592
+              },
+              "parent": 479,
+              "name": "atlas.resources.validate",
+              "start_us": 20491126,
+              "wall_us": 20432,
+              "thread_cpu_us": 20368
+            },
+            {
+              "context": {
+                "trace": 476,
+                "span": 593
+              },
+              "parent": 479,
+              "name": "analysis.cache.load_rendering",
+              "start_us": 20513644,
+              "wall_us": 2190,
+              "thread_cpu_us": 2184
+            }
+          ]
+        }
+      ],
+      "metrics_file": {
+        "path": "/tmp/meden-workspace-session-cached-metrics.json",
+        "sha256": "2260d1d19e7fe852b373eeb06b927537a186304eff89a0b654e36a5fe9d817d9"
+      }
+    }
+  },
+  "remaining": [
+    "Backend/source snapshot identity and Lean-oriented internal compiler observations.",
+    "Recorded-work session representations and other raw project/job adapter interfaces.",
+    "Native prepared-input wait, remaining first-detail drawing and the complete retirement audit."
+  ],
+  "limits": [
+    "Type attribution and explicit byte projection confer no authority or proof of host origin. Native implementations and physical I/O remain adapters.",
+    "Generated finite traces are tests; the unchanged kernel retains its existing separately scoped refinement.",
+    "Installed Lean/Lake/GF/Z3 and scripted local loopback inference are not cold installation, paid/live-model quality, or 100–600B local-model validation.",
+    "Functional open times run concurrently across two actual projects and are not a paired latency comparison; no new speedup claim."
+  ]
+}

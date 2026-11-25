@@ -2,6 +2,7 @@
 //! calls grant inference; model metadata is diagnostic provenance.
 use meden_agent::conversation::{ChatModel, Delta, ModelError, Reply};
 use meden_runtime::plugin::{Descriptor, Role};
+use meden_runtime::workspace::SessionId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, schemars::JsonSchema)]
@@ -68,14 +69,31 @@ impl Bound {
 
 /// Application implementation supplied by trusted host composition.
 /// Metadata/status cannot authorize a request or replace the real transport.
+/// Raw bytes and the distinct reviewed-contract session cannot bind a model:
+/// ```compile_fail
+/// use meden_app::model::{bind, Model};
+/// fn wrong(model: &dyn Model) { bind(model, b"raw session"); }
+/// ```
+/// ```compile_fail
+/// use meden_app::{identity::SessionId, model::{bind, Model}};
+/// fn wrong(model: &dyn Model, reviewed: &SessionId) { bind(model, reviewed); }
+/// ```
+/// The host-owned workspace identity is accepted; this grants no approval:
+/// ```
+/// use meden_app::model::{bind, Model};
+/// use meden_runtime::workspace::Workspace;
+/// fn prepare(model: &dyn Model, workspace: &Workspace) {
+///     let caller = bind(model, workspace.session_id());
+/// }
+/// ```
 pub trait Model: Send + Sync {
     /// Original prepared implementation; no approval operation is exposed here.
     fn binding(&self) -> &Bound;
     /// Observe the grant without renewing or replacing it.
-    fn is_authorized(&self, session: &[u8]) -> bool;
+    fn is_authorized(&self, session: &SessionId) -> bool;
     /// Borrow the actual session caller. Implementations still consume their
     /// original processor call on each exchange.
-    fn for_session<'a>(&'a self, session: &'a [u8]) -> Box<dyn ChatModel + 'a>;
+    fn for_session<'a>(&'a self, session: &'a SessionId) -> Box<dyn ChatModel + 'a>;
 }
 
 /// A retained original method and actual caller for one host session.
@@ -120,7 +138,7 @@ impl ChatModel for Session<'_> {
 /// Capture the original method before constructing its actual borrowed caller.
 /// Construction grants nothing; dispatch errors remain conversation failures so
 /// the original user instruction stays in history even when a binding changed.
-pub fn bind<'a>(model: &'a dyn Model, session: &'a [u8]) -> Session<'a> {
+pub fn bind<'a>(model: &'a dyn Model, session: &'a SessionId) -> Session<'a> {
     Session {
         source: model,
         original: model.binding().clone(),
@@ -132,7 +150,7 @@ pub fn binding(model: &dyn Model) -> Binding {
     model.binding().view.clone()
 }
 /// Status preflight; actual dispatch remains authoritative.
-pub fn authorized(judge: Option<&dyn Model>, session: &[u8]) -> bool {
+pub fn authorized(judge: Option<&dyn Model>, session: &SessionId) -> bool {
     judge.is_none_or(|model| model.is_authorized(session))
 }
 fn failed(error: impl std::fmt::Display) -> ModelError {
@@ -144,8 +162,56 @@ mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
     use meden_runtime::plugin::Definition;
+    use proptest::prelude::*;
     use serde_json::json;
     use std::sync::atomic::{AtomicUsize, Ordering};
+
+    proptest! {
+        #[test]
+        fn workspace_identity_preserves_original_processor_traces(
+            original in proptest::collection::vec(any::<u8>(), 0..256),
+            other in proptest::collection::vec(any::<u8>(), 0..256),
+            actions in proptest::collection::vec((0_u8..6, any::<bool>(), any::<u64>()), 0..128),
+            local in any::<bool>(),
+        ) {
+            use meden_core::processor::{Binding, Dispatch, HttpParameters, LocalParameters, ProcessorOrigin, State};
+            fn parameters(call: Option<Dispatch>) -> Option<Binding> {
+                call.map(|call| match call {
+                    Dispatch::Local(call) => Binding::Local(call.into_parameters()),
+                    Dispatch::Http(call) => Binding::Http(call.into_parameters()),
+                })
+            }
+            let session = SessionId::from_host_bytes(&original);
+            let copied = SessionId::from_host_bytes(session.as_bytes());
+            let foreign = SessionId::from_host_bytes(&other);
+            let binding = if local {
+                Binding::Local(LocalParameters::new(b"engine".to_vec(), b"weights".to_vec()))
+            } else {
+                Binding::Http(HttpParameters::new(b"provider".to_vec(), b"https://host/model".to_vec(), b"model".to_vec(), Some(b"key".to_vec())))
+            };
+            let mut expected = State::new(original.clone(), binding.clone());
+            let mut actual = State::new(session.as_bytes().to_vec(), binding);
+            for (action, same, now) in actions {
+                let raw = if same { &original } else { &other };
+                let typed = if same { &copied } else { &foreign };
+                match action {
+                    0 | 1 => {
+                        let origin = if action == 0 { ProcessorOrigin::Host } else { ProcessorOrigin::Model };
+                        prop_assert_eq!(expected.approve(origin, now), actual.approve(origin, now));
+                    }
+                    2 | 3 => {
+                        let origin = if action == 2 { ProcessorOrigin::Host } else { ProcessorOrigin::Model };
+                        prop_assert_eq!(expected.revoke(origin), actual.revoke(origin));
+                    }
+                    4 => prop_assert_eq!(expected.is_authorized(raw, now), actual.is_authorized(typed.as_bytes(), now)),
+                    _ => prop_assert_eq!(parameters(expected.dispatch(raw, now)), parameters(actual.dispatch(typed.as_bytes(), now))),
+                }
+                prop_assert_eq!(expected.phase(), actual.phase());
+                prop_assert_eq!(expected.expires(), actual.expires());
+                prop_assert_eq!(expected.binding(), actual.binding());
+            }
+        }
+    }
 
     fn definition(role: Role, input: serde_json::Value, output: serde_json::Value) -> Descriptor {
         Descriptor::new(Definition {
@@ -214,10 +280,10 @@ mod tests {
                 &self.changed
             }
         }
-        fn is_authorized(&self, _: &[u8]) -> bool {
+        fn is_authorized(&self, _: &SessionId) -> bool {
             true
         }
-        fn for_session<'a>(&'a self, _: &'a [u8]) -> Box<dyn ChatModel + 'a> {
+        fn for_session<'a>(&'a self, _: &'a SessionId) -> Box<dyn ChatModel + 'a> {
             if self.drift_on_prepare {
                 self.phase.store(1, Ordering::SeqCst);
             }
@@ -241,7 +307,8 @@ mod tests {
     #[test]
     fn session_retains_original_method_and_rejects_changes_before_dispatch() {
         let source = Fake::new();
-        let caller = bind(&source, b"session");
+        let session = SessionId::from_host_bytes(b"session");
+        let caller = bind(&source, &session);
         assert_eq!(caller.binding(), &source.original);
         assert_eq!(caller.reply(&[], &[]).expect("reply").tool_calls.len(), 1);
         source.phase.store(1, Ordering::SeqCst);
@@ -255,7 +322,8 @@ mod tests {
             drift_on_prepare: true,
             ..Fake::new()
         };
-        let caller = bind(&source, b"session");
+        let session = SessionId::from_host_bytes(b"session");
+        let caller = bind(&source, &session);
         assert_eq!(caller.binding(), &source.original);
         assert!(caller.reply(&[], &[]).is_err());
         assert_eq!(source.calls.load(Ordering::SeqCst), 0);
@@ -266,7 +334,9 @@ mod tests {
             drift_on_reply: true,
             ..Fake::new()
         };
-        assert!(bind(&source, b"session").reply(&[], &[]).is_err());
+        assert!(bind(&source, &SessionId::from_host_bytes(b"session"))
+            .reply(&[], &[])
+            .is_err());
         assert_eq!(source.calls.load(Ordering::SeqCst), 1);
     }
 }

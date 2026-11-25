@@ -5,7 +5,10 @@ use meden_llm::{
     transport::{Backend, Registry, Wire},
     Gateway, Protocol, Provider,
 };
-use meden_runtime::plugin::{Definition, Descriptor, Role};
+use meden_runtime::{
+    plugin::{Definition, Descriptor, Role},
+    workspace::SessionId,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{
@@ -148,7 +151,11 @@ fn prepare(
 ) -> Result<Gateway, ModelError> {
     let mut registry = Registry::host()?;
     registry.register(Extension::new(phase))?;
-    Gateway::prepare_with_registry(b"session", provider(listener, configuration), &registry)
+    Gateway::prepare_with_registry(
+        &SessionId::from_host_bytes(b"session"),
+        provider(listener, configuration),
+        &registry,
+    )
 }
 fn read_request(stream: &mut TcpStream) -> Vec<u8> {
     stream
@@ -201,15 +208,18 @@ fn public_registration_sends_original_bound_parameters_only_after_host_approval(
     let phase = Arc::new(AtomicUsize::new(0));
     let gateway = prepare(&listener, &phase, json!({"prefix":"typed"})).expect("gateway");
     let port: &dyn meden_app::model::Model = &gateway;
-    let caller = meden_app::model::bind(port, b"session");
+    let session = SessionId::from_host_bytes(b"session");
+    let caller = meden_app::model::bind(port, &session);
     assert_eq!(caller.binding().definition().id(), "test.custom");
     assert!(!gateway.supports_model_listing());
     assert!(caller.reply(&[], &[]).is_err());
     assert!(listener.accept().is_err());
     gateway.approve_from_host().expect("approve");
-    assert!(meden_app::model::bind(port, b"other-session")
-        .reply(&[], &[])
-        .is_err());
+    assert!(
+        meden_app::model::bind(port, &SessionId::from_host_bytes(b"other-session"))
+            .reply(&[], &[])
+            .is_err()
+    );
     assert!(listener.accept().is_err());
     listener.set_nonblocking(false).expect("blocking");
     let server = serve(listener, reply_body(), None);
@@ -246,7 +256,7 @@ fn unknown_duplicate_configuration_role_schema_route_and_authority_headers_are_r
     let phase = Arc::new(AtomicUsize::new(0));
     let mut registry = Registry::host().expect("registry");
     assert!(Gateway::prepare_with_registry(
-        b"session",
+        &SessionId::from_host_bytes(b"session"),
         provider(&listener, json!({"prefix":"x"})),
         &registry
     )
@@ -285,7 +295,7 @@ fn unknown_duplicate_configuration_role_schema_route_and_authority_headers_are_r
         let mut registry = Registry::default();
         registry.register(extension).expect("register");
         assert!(Gateway::prepare_with_registry(
-            b"session",
+            &SessionId::from_host_bytes(b"session"),
             provider(&listener, json!({"prefix":"x"})),
             &registry
         )
@@ -308,9 +318,11 @@ fn changed_method_cannot_be_approved_or_dispatched() {
         }
         phase.store(changed, Ordering::SeqCst);
         assert!(gateway.approve_from_host().is_err());
-        assert!(meden_app::model::bind(&gateway, b"session")
-            .reply(&[], &[])
-            .is_err());
+        assert!(
+            meden_app::model::bind(&gateway, &SessionId::from_host_bytes(b"session"))
+                .reply(&[], &[])
+                .is_err()
+        );
         assert!(listener.accept().is_err());
     }
 }
@@ -333,9 +345,11 @@ fn incomplete_oversized_ignored_and_changed_responses_cannot_admit_tool_calls() 
         let gateway = prepare(&listener, &phase, json!({"prefix":"x"})).expect("gateway");
         gateway.approve_from_host().expect("approve");
         let server = serve(listener, body, declared);
-        assert!(meden_app::model::bind(&gateway, b"session")
-            .reply(&[], &[])
-            .is_err());
+        assert!(
+            meden_app::model::bind(&gateway, &SessionId::from_host_bytes(b"session"))
+                .reply(&[], &[])
+                .is_err()
+        );
         server.join().expect("server");
     }
 }

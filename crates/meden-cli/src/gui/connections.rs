@@ -3,6 +3,7 @@
 use super::lock;
 use anyhow::{Context, Result};
 use meden_llm::{Gateway, Provider};
+use meden_runtime::workspace::SessionId;
 use std::sync::{Arc, Mutex};
 
 use meden_app::view::session::Choice;
@@ -15,7 +16,7 @@ pub(super) struct Connections {
 }
 
 impl Connections {
-    pub fn new(args: &crate::connection::ModelArgs, session: &[u8]) -> Result<Self> {
+    pub fn new(args: &crate::connection::ModelArgs, session: &SessionId) -> Result<Self> {
         let selected = if args.interactive() {
             None
         } else {
@@ -74,7 +75,7 @@ impl Connections {
             .context("Model list unavailable. The configured model is still selectable; enter another model ID if needed.")
     }
 
-    pub fn select(&mut self, session: &[u8], id: &str, model: &str) -> Result<()> {
+    pub fn select(&mut self, session: &SessionId, id: &str, model: &str) -> Result<()> {
         anyhow::ensure!(
             !model.trim().is_empty() && model.len() <= 1024 && !model.chars().any(char::is_control),
             "Supply a valid model ID"
@@ -129,7 +130,7 @@ impl Connections {
 
 pub(super) fn approve(
     connections: &Mutex<Connections>,
-    session: &[u8],
+    session: &SessionId,
     revision: u64,
     endpoint: &str,
     model: &str,
@@ -187,12 +188,16 @@ mod tests {
             revision: u64::MAX - 1,
             judge_model: None,
         });
-        lock(&connections).select(b"workspace", "host", "original")?;
+        lock(&connections).select(
+            &SessionId::from_host_bytes(b"workspace"),
+            "host",
+            "original",
+        )?;
         let gateway = lock(&connections)
             .gateway
             .clone()
             .context("prepared original gateway")?;
-        assert!(!gateway.is_authorized(b"workspace"));
+        assert!(!gateway.is_authorized(&SessionId::from_host_bytes(b"workspace")));
         for (counter, allowed) in [(u64::MAX - 1, false), (u64::MAX, true)] {
             let command: super::super::Command = serde_json::from_value(serde_json::json!({
                 "type":"approve_processor", "connection_revision":counter.to_string(),
@@ -212,7 +217,7 @@ mod tests {
             assert_eq!(
                 approve(
                     &connections,
-                    b"workspace",
+                    &SessionId::from_host_bytes(b"workspace"),
                     connection_revision.value(),
                     &endpoint,
                     &model,
@@ -221,10 +226,17 @@ mod tests {
                 .is_ok(),
                 allowed
             );
-            assert_eq!(gateway.is_authorized(b"workspace"), allowed);
+            assert_eq!(
+                gateway.is_authorized(&SessionId::from_host_bytes(b"workspace")),
+                allowed
+            );
         }
         assert!(lock(&connections)
-            .select(b"workspace", "host", "replacement")
+            .select(
+                &SessionId::from_host_bytes(b"workspace"),
+                "host",
+                "replacement"
+            )
             .is_err());
         let retained = lock(&connections)
             .gateway
@@ -232,7 +244,7 @@ mod tests {
             .context("retained original gateway")?;
         assert!(Arc::ptr_eq(&gateway, &retained));
         assert_eq!(retained.provider().model, "original");
-        assert!(retained.is_authorized(b"workspace"));
+        assert!(retained.is_authorized(&SessionId::from_host_bytes(b"workspace")));
         Ok(())
     }
 
@@ -255,10 +267,10 @@ mod tests {
             revision: 0,
             judge_model: None,
         });
-        lock(&connections).select(b"workspace", "host", "first")?;
+        lock(&connections).select(&SessionId::from_host_bytes(b"workspace"), "host", "first")?;
         approve(
             &connections,
-            b"workspace",
+            &SessionId::from_host_bytes(b"workspace"),
             1,
             "https://example.invalid/v1/chat/completions",
             "first",
@@ -268,14 +280,14 @@ mod tests {
             .gateway
             .clone()
             .context("first gateway")?;
-        assert!(previous.is_authorized(b"workspace"));
-        lock(&connections).select(b"workspace", "host", "second")?;
+        assert!(previous.is_authorized(&SessionId::from_host_bytes(b"workspace")));
+        lock(&connections).select(&SessionId::from_host_bytes(b"workspace"), "host", "second")?;
         assert_eq!(previous.provider().model, "first");
-        assert!(!previous.is_authorized(b"workspace"));
+        assert!(!previous.is_authorized(&SessionId::from_host_bytes(b"workspace")));
         assert!(previous.approve_from_host().is_err());
         assert!(approve(
             &connections,
-            b"workspace",
+            &SessionId::from_host_bytes(b"workspace"),
             1,
             "https://example.invalid/v1/chat/completions",
             "second",
@@ -284,7 +296,7 @@ mod tests {
         .is_err());
         assert!(approve(
             &connections,
-            b"workspace",
+            &SessionId::from_host_bytes(b"workspace"),
             2,
             "https://example.invalid/v1/chat/completions",
             "first",
@@ -293,13 +305,13 @@ mod tests {
         .is_err());
         approve(
             &connections,
-            b"workspace",
+            &SessionId::from_host_bytes(b"workspace"),
             2,
             "https://example.invalid/v1/chat/completions",
             "second",
             None,
         )?;
-        assert!(!previous.is_authorized(b"workspace"));
+        assert!(!previous.is_authorized(&SessionId::from_host_bytes(b"workspace")));
         assert!(!serde_json::to_string(&lock(&connections).choices())?.contains("HOST_SECRET"));
         Ok(())
     }

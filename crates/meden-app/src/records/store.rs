@@ -371,9 +371,15 @@ fn run_check(
     project: Option<&Project>,
     origin: RecordedOrigin,
 ) -> Result<Observation> {
-    let local = Publisher::new(workspace.session_id());
+    let local = Publisher::new(workspace.session_id().as_bytes());
     let publisher = project.map_or(&local, |owner| owner.check_observations(origin));
-    let progress = Progress::recorded(publisher, workspace.session_id(), id, control, origin);
+    let progress = Progress::recorded(
+        publisher,
+        workspace.session_id().as_bytes(),
+        id,
+        control,
+        origin,
+    );
     let _timing = meden_runtime::metrics::Span::start("recorded.check.total");
     let result = (|| {
         if let Some(project) = project {
@@ -511,7 +517,10 @@ pub fn checkpoint(workspace: &Workspace, control: &Control) -> Result<()> {
     if history.transcript.is_empty() {
         return Ok(());
     }
-    let id = format!("conversation_{:x}", Sha256::digest(workspace.session_id()));
+    let id = format!(
+        "conversation_{:x}",
+        Sha256::digest(workspace.session_id().as_bytes())
+    );
     if let Some(old) = document.conversations.iter_mut().find(|c| c.id == id) {
         old.messages = history.transcript;
     } else {

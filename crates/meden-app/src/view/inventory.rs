@@ -288,6 +288,17 @@ pub struct Prepared(Publication<Artifact>);
 impl Prepared {
     /// Validate the complete projection and serialize it once outside host locks.
     pub fn new(snapshot: &Input) -> Result<Self> {
+        #[derive(Serialize)]
+        struct Details<'a> {
+            path: &'a str,
+            symbols: &'a [Symbol],
+        }
+        impl super::publication::Data for Vec<Details<'_>> {
+            type Domain = NavigationArtifact;
+        }
+        // Empty declaration vectors are represented completely by empty headings.
+        // Do not serialize every path/metadata field a second time just to bind
+        // the omitted reference and description records.
         let _timing = meden_runtime::metrics::Span::start("view.inventory.materialize");
         validate_revision(&snapshot.indexer)?;
         anyhow::ensure!(
@@ -306,17 +317,6 @@ impl Prepared {
             generation.to_string() == snapshot.generation,
             "Invalid inventory generation"
         );
-        #[derive(Serialize)]
-        struct Details<'a> {
-            path: &'a str,
-            symbols: &'a [Symbol],
-        }
-        impl super::publication::Data for Vec<Details<'_>> {
-            type Domain = NavigationArtifact;
-        }
-        // Empty declaration vectors are represented completely by empty headings.
-        // Do not serialize every path/metadata field a second time just to bind
-        // the omitted reference and description records.
         let details = snapshot
             .files
             .iter()
@@ -486,6 +486,7 @@ impl super::publication::Data for Chunk {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::indexing_slicing, clippy::unwrap_used)]
     use super::*;
     use anyhow::Context as _;
 

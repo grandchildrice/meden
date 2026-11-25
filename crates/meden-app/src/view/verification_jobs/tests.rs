@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)]
 use super::*;
 use meden_runtime::{process::Control, verification::artifact::Inputs as PreparedInputs};
 use proptest::prelude::*;
@@ -464,6 +465,7 @@ fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> R
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // One complete proposal lifecycle and its refusal matrix.
 fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<()> {
     let summary = summary()?;
     let contract = summary.contract.as_ref().context("contract")?;
@@ -503,11 +505,11 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
             "accepted" => proposed.accepted = true,
             "identity" => {
                 proposed.reference.as_mut().expect("proposal").contract =
-                    ContractId::parse(&"0".repeat(64))?
+                    ContractId::parse(&"0".repeat(64))?;
             }
             "session" => {
                 proposed.reference.as_mut().expect("proposal").session =
-                    SessionId::parse("another session")?
+                    SessionId::parse("another session")?;
             }
             "source" => proposed.source_path = "another.model.json".into(),
             _ => {}

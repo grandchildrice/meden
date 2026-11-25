@@ -343,7 +343,7 @@ mod tests {
     #[test]
     fn failed_persistence_or_unreviewed_acceptance_does_not_commit_a_decision() -> Result<()> {
         let root = tempfile::tempdir()?;
-        let project = super::super::Project::new(root.path()).expect("valid fixture workspace");
+        let project = super::super::Project::new(root.path())?;
         let mut state = project.state.lock().map_err(|_| anyhow::anyhow!("state"))?;
         let contract = Contract::parse(include_str!(
             "../../../../verification/examples/counter.contract.json"

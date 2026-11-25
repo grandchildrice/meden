@@ -103,6 +103,7 @@ impl LeanWork {
 
 #[cfg(all(test, target_os = "linux"))]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use meden_agent::conversation::{execute, ExecutionError, FunctionCall, ToolCall};
     use std::sync::atomic::AtomicBool;

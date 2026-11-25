@@ -932,8 +932,19 @@ observations, never kernel job tickets or completion receipts. Matching and
 rejected compile examples, independent original-digest fixtures and public
 cancellation/retry/restart journeys are recorded in
 [the job-observation validation](../performance/job-observation-identities.md).
-Workspace/raw-processor and recorded-work session representations, backend
-snapshots and the remaining orchestration identities still need their own audit.
+The workspace now owns its raw host session as `workspace::SessionId`. The shared
+model port, registered HTTP/local gateways, judge selection and native connection
+review carry that type through preparation, status and execution. It has no
+repository decoder, implicit byte coercion or grant semantics. Gateways explicitly
+project the original bytes only when constructing/checking/dispatching the
+unchanged processor kernel. Distinct copies of the same original identity remain
+equal; non-UTF-8 bytes are neither normalized nor hashed. TUI bootstrap retains
+its original root identity until an actual workspace is available. This is host
+adapter typing, not a new refinement proof or complete session I/O audit.
+Project/repair/job adapters still explicitly project the original bytes to their
+existing interfaces; recorded-work session representations, backend snapshots and
+the remaining orchestration identities need their own audit. See
+[the workspace/model-session validation](../performance/workspace-model-sessions.md).
 The [prepared-path comparison](../performance/lake-path-observations.md) removes
 repeated Python ancestor traversal in the Linux compiler adapter. It keeps every
 input byte, original ordered fingerprint and existing authority controller,

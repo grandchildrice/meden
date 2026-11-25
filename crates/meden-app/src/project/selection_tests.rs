@@ -1,4 +1,5 @@
 //! Registry/replay conformance fixtures; public TUI/GUI tests run actual Z3.
+#![allow(clippy::expect_used)]
 use super::*;
 use crate::verification::binding_tests;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};

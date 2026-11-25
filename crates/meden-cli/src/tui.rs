@@ -25,7 +25,7 @@ use crossterm::ExecutableCommand;
 use meden_agent::conversation::{Delta, Event, Status};
 use meden_llm::{Gateway, Provider};
 use meden_runtime::process::Control;
-use meden_runtime::workspace::Workspace;
+use meden_runtime::workspace::{SessionId, Workspace};
 use ratatui::prelude::*;
 use ratatui::widgets::ListState;
 
@@ -150,6 +150,7 @@ struct App {
     connection_error: Option<String>,
     local_config: Option<meden_llm::LocalConfig>,
     root: PathBuf,
+    initial_session: SessionId,
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
     judge_model: Option<String>,
@@ -208,6 +209,7 @@ impl App {
             custom_profile: None,
             connection_error: None,
             local_config: None,
+            initial_session: SessionId::from_host_bytes(root.as_os_str().as_encoded_bytes()),
             root,
             workspace: None,
             gateway: None,
@@ -383,11 +385,10 @@ impl App {
                 .min(self.providers.len().saturating_add(1))
         }));
     }
-    fn session_id(&self) -> &[u8] {
-        self.workspace.as_ref().map_or_else(
-            || self.root.as_os_str().as_encoded_bytes(),
-            |workspace| workspace.session_id(),
-        )
+    fn session_id(&self) -> &SessionId {
+        self.workspace
+            .as_ref()
+            .map_or_else(|| &self.initial_session, |workspace| workspace.session_id())
     }
     fn select_processor(&mut self) {
         self.review_area = Rect::default();
@@ -1275,7 +1276,7 @@ pub fn run(
     let mut app = App::new(providers, workspace.path().to_owned())?;
     app.project = Arc::new(crate::project::Project::open_with_registry(
         workspace.path(),
-        workspace.session_id(),
+        workspace.session_id().as_bytes(),
         args.verifier.as_deref(),
         verifiers,
     )?);
@@ -1465,6 +1466,7 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     #[test]
     fn a_review_without_an_original_reference_cannot_accept_and_returns_to_chat() -> Result<()> {

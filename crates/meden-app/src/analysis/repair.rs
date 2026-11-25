@@ -263,7 +263,7 @@ pub fn prepare(
     control.with_active(|| Ok(()))?;
     Ok(Pending {
         state: State::new(
-            workspace.session_id().to_vec(),
+            workspace.session_id().as_bytes().to_vec(),
             format!("/workspace/{}", suggestion.file),
             serde_json::to_vec(&frozen)?,
         ),
@@ -385,7 +385,7 @@ impl Queue {
                     ExportEvent::Review,
                     pending.created.elapsed().as_secs(),
                     1800,
-                    workspace.session_id()
+                    workspace.session_id().as_bytes()
                 )
                 .accepted,
             "Repair could not enter review"
@@ -418,7 +418,7 @@ impl Queue {
             ExportEvent::Reject,
             pending.created.elapsed().as_secs(),
             1800,
-            workspace.session_id(),
+            workspace.session_id().as_bytes(),
         );
         log(workspace.path(), &review, "rejected", None, None)
     }
@@ -447,7 +447,7 @@ impl Queue {
                     ExportEvent::Approve,
                     pending.created.elapsed().as_secs(),
                     1800,
-                    workspace.session_id(),
+                    workspace.session_id().as_bytes(),
                 )
                 .effect
                 .context("Repair approval expired or belongs to another session")?;

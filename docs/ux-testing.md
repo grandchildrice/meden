@@ -46,6 +46,16 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 ## Experience contract
 
+Workspace/model-session changes must preserve the public processor-review,
+connection replacement, failed-provider recovery and restart journeys. Reopening
+retains original conversations and prepared graphs, but requires fresh model
+approval. The host workspace identity stays distinct from reviewed-contract and
+publication identities. Compile examples reject cross-context and raw-byte model
+calls; finite arbitrary-byte processor traces compare the exact original kernel
+parameters/outcomes. An actual loopback HTTP test checks equal copied identities,
+non-UTF-8/NUL differences, no request before approval and terminal revocation.
+These are adapter/type checks, not live-model quality or new kernel refinement.
+
 | Developer goal | Observable acceptance | Executable coverage in `python/tests/` |
 | --- | --- | --- |
 | Retain the correct graph as file details and visibility change | Reuse unchanged declaration indices, preserve every original ordered edge, reject former-generation data, hide/show a newly private/public target while reusing the unchanged referring file without HTTP rereads or compilation, retain quiet chat and reopen unapproved | Native small-map failure/retry/restart journey; complete actual-project scene comparison, independent array/filter oracle, 3,000 generated update traces and rejected global-rebuild performance mutation |

@@ -4,7 +4,7 @@ use anyhow::Result;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
-use std::{borrow::Cow, num::NonZeroU64};
+use std::{borrow::Cow, fmt::Write as _, num::NonZeroU64};
 
 /// Original project/export session spelling, distinct from a contract digest.
 ///
@@ -29,7 +29,11 @@ impl SessionId {
             !bytes.is_empty() && bytes.len() <= 4096,
             "Invalid host session identity"
         );
-        Ok(Self(bytes.iter().map(|b| format!("{b:02x}")).collect()))
+        let mut text = String::new();
+        for byte in bytes {
+            write!(text, "{byte:02x}")?;
+        }
+        Ok(Self(text))
     }
     /// Explicit original spelling for transport or diagnostics.
     pub fn as_str(&self) -> &str {
@@ -169,6 +173,7 @@ impl std::fmt::Display for RequirementRevision {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
     use super::*;
     use proptest::prelude::*;
 

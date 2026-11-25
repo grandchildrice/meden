@@ -139,7 +139,7 @@ pub fn run(
     )?;
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
-        workspace.session_id(),
+        workspace.session_id().as_bytes(),
         resources.verifier,
     )?);
     let exports = Arc::new(Exports::new(Arc::clone(&project)));

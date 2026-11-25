@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used, clippy::unwrap_used)]
 use super::*;
 use proptest::prelude::*;
 use serde_json::{json, Value};
@@ -195,7 +196,7 @@ fn replacement_retains_accepted_meaning_and_contradictions_retire_old_views() ->
         match fault {
             0 => {
                 bad.reference.as_mut().context("proposal")?.contract =
-                    ContractId::parse(&"d".repeat(64))?
+                    ContractId::parse(&"d".repeat(64))?;
             }
             1 => bad.accepted_reference = None,
             2 => {

@@ -235,7 +235,11 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
 /// Model metadata from this host-owned connection only. Credentials and protocol
 /// are never supplied by the browser. Subscription APIs need their configured ID.
 pub fn models(provider: &Provider) -> Option<Vec<String>> {
-    let prepared = crate::Gateway::prepare(b"model-discovery", provider.clone()).ok()?;
+    let prepared = crate::Gateway::prepare(
+        &meden_runtime::workspace::SessionId::from_host_bytes(b"model-discovery"),
+        provider.clone(),
+    )
+    .ok()?;
     let provider = prepared.provider();
     if !prepared.supports_model_listing() {
         return Some(vec![provider.model.clone()]);

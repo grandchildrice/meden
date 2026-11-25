@@ -41,7 +41,8 @@ impl Reference {
     }
 }
 mod revision_text {
-    use super::*;
+    use super::{Deserialize, RequirementRevision, Result, Serialize};
+    #[allow(clippy::trivially_copy_pass_by_ref)] // serde::with requires a borrowed value.
     pub fn serialize<S: serde::Serializer>(
         value: &RequirementRevision,
         serializer: S,
@@ -165,6 +166,34 @@ pub enum Data {
         evidence: Evidence,
     },
 }
+impl Binding {
+    fn observe(summary: &project::Summary) -> Result<Option<Self>> {
+        Ok(
+            match (
+                &summary.artifact,
+                &summary.source_sha256,
+                &summary.artifact_sha256,
+            ) {
+                (Some(path), Some(source), Some(output)) => {
+                    anyhow::ensure!(
+                        digest(source) && digest(output),
+                        "Invalid evidence input/output binding"
+                    );
+                    Some(Binding {
+                        directory: path
+                            .to_str()
+                            .context("Binding path is not UTF-8")?
+                            .to_owned(),
+                        source_sha256: source.clone(),
+                        artifact_sha256: output.clone(),
+                    })
+                }
+                (None, None, None) => None,
+                _ => anyhow::bail!("Incomplete evidence artifact binding"),
+            },
+        )
+    }
+}
 impl Data {
     fn new(summary: &project::Summary) -> Result<Self> {
         let accepted = match (&summary.accepted_contract, &summary.accepted_reference) {
@@ -216,28 +245,7 @@ impl Data {
             accepted.reference == displayed.reference,
             "Accepted/displayed identity mismatch"
         );
-        let artifact = match (
-            &summary.artifact,
-            &summary.source_sha256,
-            &summary.artifact_sha256,
-        ) {
-            (Some(path), Some(source), Some(output)) => {
-                anyhow::ensure!(
-                    digest(source) && digest(output),
-                    "Invalid evidence input/output binding"
-                );
-                Some(Binding {
-                    directory: path
-                        .to_str()
-                        .context("Binding path is not UTF-8")?
-                        .to_owned(),
-                    source_sha256: source.clone(),
-                    artifact_sha256: output.clone(),
-                })
-            }
-            (None, None, None) => None,
-            _ => anyhow::bail!("Incomplete evidence artifact binding"),
-        };
+        let artifact = Binding::observe(summary)?;
         let failure = match (
             summary.verification_failure,
             &summary.verification_diagnostic,

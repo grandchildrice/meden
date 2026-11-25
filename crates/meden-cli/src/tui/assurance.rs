@@ -302,6 +302,7 @@ pub(super) fn changes(summary: &Summary) -> String {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use crate::project::{Project, Reference};
     use crate::tui::{editor::Overlay, Screen};
