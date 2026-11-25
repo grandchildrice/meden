@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:gui": "playwright test --config apps/web/playwright.config.ts",
-    "architecture:check": "node --test tools/architecture/boundaries.test.mjs tools/gui/source-schema.test.mjs && node tools/architecture/check.mjs",
+    "architecture:check": "node --test tools/architecture/boundaries.test.mjs tools/gui/source-schema.test.mjs tools/gui/interaction-report.test.mjs && node tools/architecture/check.mjs",
     "format:check": "prettier --check apps/web packages tools/gui tools/perf tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
     "format": "prettier --write apps/web packages tools/gui tools/perf tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
     "schema:export": "node --experimental-strip-types tools/gui/export-schema.ts",

@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [Worker-paint experiment](../../docs/performance/worker-paint.md) compares
+the same Riemann gestures in current/Worker/Worker/current order. Total long-task
+time falls, but worst stalls do not improve, so the prototype is not promoted.
+The profiler now records each window's document process/thread and excludes
+simultaneous Worker callbacks; ambiguous/missing marks fail capture.
+
 The [current snapshot-boundary event audit](../../docs/performance/snapshot-events.md)
 records all 13 operation windows on both deployed projects, with matching hidden
 source maps and exact native executable attribution. It separates the first-detail

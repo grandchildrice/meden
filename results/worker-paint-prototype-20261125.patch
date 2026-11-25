@@ -1,0 +1,206 @@
+--- a/apps/web/src/features/native/MapAreaCanvas.tsx
++++ b/apps/web/src/features/native/MapAreaCanvas.tsx
+@@ -1,128 +1,40 @@
+ import { memo, useEffect, useLayoutEffect, useRef } from "react";
+ import { useViewport } from "@xyflow/react";
+-import {
+-  visibleMapAreas,
+-  type MapArea,
+-  type MapScene,
+-} from "./project-map-model";
++import { visibleMapAreas, type MapArea, type MapScene } from "./project-map-model";
+ import { mapAreaColor } from "./MapSceneElements";
+-
+-const appearances = new WeakMap<MapArea, { color: string; name: string }>();
+-const appearance = (area: MapArea) => {
+-  let value = appearances.get(area);
+-  if (!value) {
+-    value = { color: mapAreaColor(area), name: area.path.split("/").at(-1)! };
+-    appearances.set(area, value);
++import type { Frame, Init } from "./map-area-worker";
++const appearances=new WeakMap<MapArea,{color:string;name:string}>();
++const appearance=(area:MapArea)=>{let value=appearances.get(area);if(!value){value={color:mapAreaColor(area),name:area.path.split("/").at(-1)!};appearances.set(area,value);}return value;};
++export const MapAreaCanvas=memo(function MapAreaCanvas({scene,width,height}:{scene:MapScene;width:number;height:number}){
++ const element=useRef<HTMLCanvasElement>(null),worker=useRef<Worker>(undefined),lifetime=useRef(0),draw=useRef<()=>void>(()=>{}),family=useRef<string>(undefined),focused=useRef<string>(undefined),sequence=useRef(0),inFlight=useRef(false),pending=useRef<Frame>(undefined);
++ const viewport=useViewport();
++ const prepared=useRef<{index:MapScene["index"];generation:number;ids:WeakMap<MapArea,number>;next:number;definitions:Frame["definitions"]}>(undefined);
++ const send=(frame:Frame)=>{const state=prepared.current!;frame.definitions=state.definitions;state.definitions=[];inFlight.current=true;worker.current!.postMessage(frame,[frame.items.buffer]);};
++ useLayoutEffect(()=>{
++  const mounted=++lifetime.current;
++  if(!worker.current){
++   const selected=new Worker(new URL("./map-area-worker.ts",import.meta.url),{type:"module"});worker.current=selected;
++   const fonts:Init["fonts"]=[],families=(family.current??=getComputedStyle(element.current!).fontFamily);
++   for(const sheet of document.styleSheets) for(const rule of sheet.cssRules) if(rule instanceof CSSFontFaceRule){const style=rule.style,name=style.getPropertyValue("font-family").replace(/^['"]|['"]$/g,"");if(!families.includes(name))continue;fonts.push({family:name,source:style.getPropertyValue("src"),descriptors:{style:style.getPropertyValue("font-style"),weight:style.getPropertyValue("font-weight"),unicodeRange:style.getPropertyValue("unicode-range")}});}
++   const canvas=element.current!.transferControlToOffscreen();selected.postMessage({type:"init",canvas,fonts} satisfies Init,[canvas]);
++   selected.onmessage=()=>{inFlight.current=false;const latest=pending.current;pending.current=undefined;if(latest)send(latest);};
+   }
+-  return value;
+-};
+-
+-/** Area paint only. SVG retains hit targets, keyboard semantics and the complete
+- * declaration/reference layers; no camera sizing mutates every area's DOM.
+- */
+-export const MapAreaCanvas = memo(function MapAreaCanvas({
+-  scene,
+-  width,
+-  height,
+-}: {
+-  scene: MapScene;
+-  width: number;
+-  height: number;
+-}) {
+-  const element = useRef<HTMLCanvasElement>(null),
+-    buffer = useRef<OffscreenCanvas>(undefined),
+-    draw = useRef<() => void>(() => {}),
+-    family = useRef<string>(undefined),
+-    focused = useRef<string>(undefined);
+-  const viewport = useViewport();
+-  useLayoutEffect(() => {
+-    const canvas = element.current!;
+-    const surface = (buffer.current ??= canvas.transferControlToOffscreen());
+-    const context = surface.getContext("2d");
+-    if (!context) throw Error("Project map drawing context unavailable");
+-    const drawCurrent = () => {
+-      const ratio = window.devicePixelRatio || 1;
+-      const w = Math.max(1, Math.round(width * ratio)),
+-        h = Math.max(1, Math.round(height * ratio));
+-      if (surface.width !== w) surface.width = w;
+-      if (surface.height !== h) surface.height = h;
+-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+-      context.clearRect(0, 0, width, height);
+-      context.font =
+-        "14px " + (family.current ??= getComputedStyle(canvas).fontFamily);
+-      context.textBaseline = "alphabetic";
+-      for (const { area, opacity } of visibleMapAreas(scene, viewport, {
+-        width,
+-        height,
+-      })) {
+-        const x = viewport.x + area.x * viewport.zoom,
+-          y = viewport.y + area.y * viewport.zoom,
+-          w = area.width * viewport.zoom,
+-          h = area.height * viewport.zoom;
+-        const paint = appearance(area);
+-        context.beginPath();
+-        context.roundRect(x, y, w, h, Math.min(3, w / 2, h / 2));
+-        context.fillStyle = paint.color;
+-        context.globalAlpha = opacity;
+-        context.fill();
+-        context.strokeStyle =
+-          focused.current === area.path ? "#ffe59c" : "#c7d9ee";
+-        context.lineWidth = 0.6;
+-        context.globalAlpha = 0.75 * opacity;
+-        context.stroke();
+-        if (opacity > 0.65 && w > 65 && h > 28) {
+-          context.fillStyle = "white";
+-          context.globalAlpha = 1;
+-          context.fillText(paint.name, x + 10, y + Math.min(h / 2, 25));
+-        }
+-      }
+-      context.globalAlpha = 1;
+-    };
+-    draw.current = drawCurrent;
+-    drawCurrent();
+-  }, [scene, viewport, width, height]);
+-  useEffect(() => {
+-    const canvas = element.current!,
+-      flow = canvas.closest(".react-flow")!;
+-    let pending = 0,
+-      alive = true;
+-    const redraw = () => {
+-      if (!pending)
+-        pending = requestAnimationFrame(() => {
+-          pending = 0;
+-          if (!alive) return;
+-          const active = document.activeElement;
+-          focused.current =
+-            active instanceof Element &&
+-            active.closest(".react-flow") === flow &&
+-            active.matches(":focus-visible")
+-              ? (active
+-                  .closest("[data-map-path]")
+-                  ?.getAttribute("data-map-path") ?? undefined)
+-              : undefined;
+-          draw.current();
+-        });
+-    };
+-    for (const event of ["focusin", "focusout", "keydown", "pointerdown"])
+-      flow.addEventListener(event, redraw);
+-    window.addEventListener("resize", redraw);
+-    void document.fonts.ready.then(() => {
+-      if (alive) redraw();
+-    });
+-    return () => {
+-      alive = false;
+-      cancelAnimationFrame(pending);
+-      window.removeEventListener("resize", redraw);
+-      for (const event of ["focusin", "focusout", "keydown", "pointerdown"])
+-        flow.removeEventListener(event, redraw);
+-    };
+-  }, []);
+-  return (
+-    <canvas
+-      ref={element}
+-      className="react-flow__background map-area-canvas"
+-      aria-hidden="true"
+-      style={{ width, height }}
+-    />
+-  );
++  return()=>queueMicrotask(()=>{if(lifetime.current===mounted){worker.current?.terminate();worker.current=undefined;}});
++ },[]);
++ useLayoutEffect(()=>{
++  const drawCurrent=()=>{
++   if(prepared.current?.index!==scene.index)prepared.current={index:scene.index,generation:(prepared.current?.generation||0)+1,ids:new WeakMap(),next:1,definitions:[]};
++   const state=prepared.current!,visible=visibleMapAreas(scene,viewport,{width,height}),items=new Float64Array(visible.length*6);
++   visible.forEach(({area,opacity},i)=>{let id=state.ids.get(area);if(!id){id=state.next++;state.ids.set(area,id);state.definitions.push({id,...appearance(area),path:area.path});}items.set([id,viewport.x+area.x*viewport.zoom,viewport.y+area.y*viewport.zoom,area.width*viewport.zoom,area.height*viewport.zoom,opacity],i*6);});
++   const current:Frame={type:"frame",sequence:++sequence.current,width,height,ratio:window.devicePixelRatio||1,font:"14px "+(family.current??=getComputedStyle(element.current!).fontFamily),focus:focused.current,generation:state.generation,definitions:[],items};
++   if(inFlight.current)pending.current=current;else send(current);
++  };draw.current=drawCurrent;drawCurrent();
++ },[scene,viewport,width,height]);
++ useEffect(()=>{
++  const canvas=element.current!,flow=canvas.closest(".react-flow")!;let pending=0,alive=true;
++  const redraw=()=>{if(!pending)pending=requestAnimationFrame(()=>{pending=0;if(!alive)return;const active=document.activeElement;focused.current=active instanceof Element&&active.closest(".react-flow")===flow&&active.matches(":focus-visible")?(active.closest("[data-map-path]")?.getAttribute("data-map-path")??undefined):undefined;draw.current();});};
++  for(const event of["focusin","focusout","keydown","pointerdown"])flow.addEventListener(event,redraw);window.addEventListener("resize",redraw);void document.fonts.ready.then(()=>{if(alive)redraw();});
++  return()=>{alive=false;cancelAnimationFrame(pending);window.removeEventListener("resize",redraw);for(const event of["focusin","focusout","keydown","pointerdown"])flow.removeEventListener(event,redraw);};
++ },[]);
++ return <canvas ref={element} className="react-flow__background map-area-canvas" aria-hidden="true" style={{width,height}}/>;
+ });
+--- /dev/null
++++ b/apps/web/src/features/native/map-area-worker.ts
+@@ -0,0 +1,37 @@
++type Area = { id: number; color: string; name: string; path: string };
++type Frame = { type: "frame"; sequence: number; width: number; height: number; ratio: number; font: string; focus?: string; generation: number; definitions: Area[]; items: Float64Array };
++type Init = { type: "init"; canvas: OffscreenCanvas; fonts: { family: string; source: string; descriptors: FontFaceDescriptors }[] };
++const host = globalThis as unknown as { onmessage: (event: MessageEvent<Init | Frame>) => void; postMessage: (value: unknown) => void; fonts: FontFaceSet };
++let generation=0, areas=new Map<number,Area>();
++let surface: OffscreenCanvas, context: OffscreenCanvasRenderingContext2D, ready = false, frame: Frame | undefined;
++function draw() {
++ if (!ready || !frame) return;
++ const current = frame; frame = undefined;
++ const { width, height, ratio, items } = current;
++ if(generation!==current.generation){generation=current.generation;areas.clear();}
++ for(const area of current.definitions)areas.set(area.id,area);
++ const w = Math.max(1, Math.round(width * ratio)), h = Math.max(1, Math.round(height * ratio));
++ if (surface.width !== w) surface.width = w;
++ if (surface.height !== h) surface.height = h;
++ context.setTransform(ratio,0,0,ratio,0,0); context.clearRect(0,0,width,height);
++ context.font = current.font; context.textBaseline = "alphabetic";
++ for (let i=0;i<items.length;i+=6) {
++  const area=areas.get(items[i])!;
++  const x=items[i+1],y=items[i+2],w=items[i+3],h=items[i+4],opacity=items[i+5];
++  context.beginPath(); context.roundRect(x,y,w,h,Math.min(3,w/2,h/2));
++  context.fillStyle = area.color; context.globalAlpha = opacity; context.fill();
++  context.strokeStyle = current.focus === area.path ? "#ffe59c" : "#c7d9ee";
++  context.lineWidth = 0.6; context.globalAlpha = 0.75 * opacity; context.stroke();
++  if (opacity > 0.65 && w > 65 && h > 28) {context.fillStyle="white";context.globalAlpha=1;context.fillText(area.name,x+10,y+Math.min(h/2,25));}
++ }
++ context.globalAlpha = 1;
++ host.postMessage({ sequence: current.sequence });
++}
++host.onmessage = event => {
++ const message = event.data;
++ if (message.type === "init") {
++  surface = message.canvas; const selected = surface.getContext("2d"); if (!selected) throw Error("Map worker context unavailable"); context=selected;
++  void Promise.allSettled(message.fonts.map(async entry=>{const face=new FontFace(entry.family,entry.source,entry.descriptors);host.fonts.add(face);await face.load();})).then(()=>{ready=true;draw();});
++ } else {frame=message;draw();}
++};
++export type { Frame, Init };

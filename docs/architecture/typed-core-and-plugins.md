@@ -979,6 +979,13 @@ An actual helper-only native update now reuses the original checksummed
 compiler/search/render objects without relabeling them. The two worker stages
 have separate timing observations. Prepared-snapshot ownership and broader
 session/job typing still need their own audit.
+The [Worker-paint comparison](../performance/worker-paint.md) exercises step 5
+against the measured first-detail stall. Transferable drawing buffers reduce
+observed total long-task time, but do not establish lower worst stalls or frame
+gaps. The prototype is not promoted; one current runtime painter remains. The
+profiler now separates document-thread intervals from simultaneous Worker
+callbacks. This is measured experiment/diagnostic progress, not completion of
+generic backend snapshots, native preparation waits or the retirement audit.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

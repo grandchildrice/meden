@@ -1,4 +1,41 @@
 // Local diagnostic exports only; consume the same observations as summary.json.
+// User-timing marks identify the document thread. Worker callbacks can share
+// the same timestamp window, but cannot count as synchronous UI-thread work.
+export function interactionTraceWindow(trace, phase) {
+  const marks = (suffix) =>
+    trace.filter((event) => event.name === `meden:${phase}:${suffix}`);
+  const starts = marks("start"),
+    ends = marks("end");
+  if (starts.length !== 1 || ends.length !== 1)
+    throw Error(`Missing or ambiguous trace window: ${phase}`);
+  const [start] = starts,
+    [end] = ends;
+  if (
+    !Number.isInteger(start.pid) ||
+    !Number.isInteger(start.tid) ||
+    start.pid !== end.pid ||
+    start.tid !== end.tid ||
+    !Number.isFinite(start.ts) ||
+    !Number.isFinite(end.ts) ||
+    end.ts < start.ts
+  )
+    throw Error(`Invalid document trace window: ${phase}`);
+  return {
+    process: start.pid,
+    thread: start.tid,
+    start_us: start.ts,
+    end_us: end.ts,
+    events: trace.filter(
+      (event) =>
+        event.pid === start.pid &&
+        event.tid === start.tid &&
+        event.ts >= start.ts &&
+        event.ts <= end.ts &&
+        event.ph === "X",
+    ),
+  };
+}
+
 export function interactionRows(samples) {
   return Object.entries(samples).flatMap(([phase, sample]) =>
     Object.entries(sample.dispatch).map(([event, handler]) => {
@@ -58,7 +95,7 @@ export function interactionMarkdown(rows, samples) {
     "",
     "## Rendering and work after handlers",
     "",
-    "Trace stages are inclusive and overlap; never sum them as exclusive CPU. Action elapsed times include automation and the deliberate 600 ms settling tail. Browser network and native-stage observations are separate in summary.json.",
+    "Trace stages belong only to the document process/thread identified by the window's user-timing marks. Worker and other-process callbacks are excluded. Stages are inclusive and overlap; never sum them as exclusive CPU. Action elapsed times include automation and the deliberate 600 ms settling tail. Browser network and native-stage observations are separate in summary.json.",
     "",
     ...Object.entries(samples).flatMap(([phase, sample]) => [
       `### ${phase}`,

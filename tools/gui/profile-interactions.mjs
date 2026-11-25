@@ -5,6 +5,7 @@ import { resolve, basename } from "node:path";
 import { createHash } from "node:crypto";
 import { TraceMap, originalPositionFor } from "@jridgewell/trace-mapping";
 import {
+  interactionTraceWindow,
   interactionRows,
   interactionCsv,
   interactionMarkdown,
@@ -633,11 +634,9 @@ try {
       }),
     );
     sample.requests = requests.filter((r) => r.phase === label);
-    const start = trace.find((e) => e.name === "meden:" + label + ":start")?.ts;
-    const end = trace.find((e) => e.name === "meden:" + label + ":end")?.ts;
-    const events = trace.filter(
-      (e) => e.ts >= start && e.ts <= end && e.ph === "X",
-    );
+    const windowTrace = interactionTraceWindow(trace, label);
+    const { events, start_us: start, ...threadWindow } = windowTrace;
+    sample.document_trace = { ...threadWindow, start_us: start };
     // Keep the chronological observations: a first selection and repeated
     // selections of the same node must not masquerade as distinct-node costs.
     sample.dispatch_events = events
@@ -709,7 +708,7 @@ try {
       source_maps_sha256: sourceMaps,
     },
     methodology:
-      "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
+      "Real GUI pointer/wheel/click events with document-thread CDP dispatch spans and sampled CPU profiles. Each window records its original process/thread; ambiguous or missing marks fail instead of producing empty measurements. Worker callbacks are excluded from UI-thread stages. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
     // Include setup and between-phase traffic too: immutable history should be
     // fetched once at startup, independently of subsequent status/navigation.
     requests,
