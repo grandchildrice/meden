@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [saved project-map startup](performance/saved-project-map.md) shows retained
+navigation before normal discovery completes. Actual first-scene/frame proxies
+fall from 17.1 to 2.6 seconds in EthLib and 7.4 to 3.2 seconds in Riemann. Complete
+refresh remains slightly slower; unchanged restart avoids duplicate projection
+and rewriting. This is separate from the interaction costs below.
+
 The [November 26 deployed audit](performance/event-audit-20261126.md) repeats
 all 13 operation windows twice per actual project on `e41a847`. It records
 event dispatch, rendering, input/frame proxies and native preparation separately,

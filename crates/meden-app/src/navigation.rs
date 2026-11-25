@@ -2,6 +2,8 @@
 //! this port cannot compile, search, admit evidence or restore model approval.
 /// Bounded language-independent navigation collection and typed observation ports.
 pub mod collection;
+/// Saved navigation metadata, independent of live input inspection.
+pub mod saved;
 use crate::explanation::Explanation;
 use anyhow::Result;
 use std::collections::BTreeSet;

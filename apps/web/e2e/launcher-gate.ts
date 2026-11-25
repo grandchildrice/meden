@@ -46,7 +46,7 @@ const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
  */
 export async function verificationGate(
   root: string,
-  kind: "z3" | "recorded" | "prepared" = "z3",
+  kind: "z3" | "recorded" | "prepared" | "inventory" = "z3",
 ) {
   const bash = await publicTool("bash"),
     sleep = await publicTool("sleep");
@@ -63,7 +63,7 @@ export async function verificationGate(
     `#!${bash}
 set -eu
 hold=false
-${kind === "z3" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then hold=true; fi' : kind === "recorded" ? 'previous=""; for argument in "$@"; do if [[ "$previous" == "/analysis/library/project.sh" && "$argument" == "build" ]]; then hold=true; fi; previous="$argument"; done' : 'for argument in "$@"; do if [[ "$argument" == "/analysis/library/project-atlas-query.sh" ]]; then hold=true; fi; done'}
+${kind === "inventory" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "worker-file" && "\${@: -1}" == "--batch" ]]; then hold=true; fi' : kind === "z3" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then hold=true; fi' : kind === "recorded" ? 'previous=""; for argument in "$@"; do if [[ "$previous" == "/analysis/library/project.sh" && "$argument" == "build" ]]; then hold=true; fi; previous="$argument"; done' : 'for argument in "$@"; do if [[ "$argument" == "/analysis/library/project-atlas-query.sh" ]]; then hold=true; fi; done'}
 if $hold; then
   printf started > ${quote(started)}
   while [[ ! -e ${quote(release)} ]]; do ${quote(sleep)} 0.02; done

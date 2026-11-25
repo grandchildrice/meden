@@ -1,0 +1,3579 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "9a7cba0",
+  "change": "Application-owned bounded generic saved navigation; show saved metadata before normal workspace observation, retain the map/camera during refresh, and reuse an exactly equal validated publication after fresh observation with a new detail cache. Do not rewrite unchanged saved metadata.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/launcher-gate.ts",
+      "bytes": 3024,
+      "sha256": "a8b502593f4468cb6636fbed3c14d4754651a2485e6445e8d6840328de3c23b5"
+    },
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 359645,
+      "sha256": "368b8c91c92a974f3734a35a07acb43db4dddc4d10ed96045fb6ad1cce18dcc4"
+    },
+    {
+      "path": "apps/web/src/app/NativeApp.tsx",
+      "bytes": 58070,
+      "sha256": "8f59559b692b148b025187ec8e64541c06871bf2ac28b9245d0b33a226b37e31"
+    },
+    {
+      "path": "apps/web/src/app/styles.css",
+      "bytes": 71207,
+      "sha256": "ff2b06f4e8fc4caccd527d91e339d5d69796741b6aa13450a305764095223bfa"
+    },
+    {
+      "path": "apps/web/src/features/native/NativeWorkspaceGraph.tsx",
+      "bytes": 13962,
+      "sha256": "02c299d765f623751b3ca5a503b5169c6d45db35800b361b3eaef149f1bc6f6d"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation.rs",
+      "bytes": 4664,
+      "sha256": "071624d0b4aeb0796f7218f7a336f1dd6ed055595caa583d2dc7ef2398b9147c"
+    },
+    {
+      "path": "crates/meden-app/src/navigation.rs",
+      "bytes": 3885,
+      "sha256": "f6662ed78405287a25dde7eb4e8de536c23865d7395a844b29d1f903bfe56bb4"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/saved.rs",
+      "bytes": 5382,
+      "sha256": "d3d6f644f0d44079e2ce80203c1e3a356dbe1f279a6625f812c913720635482e"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/saved/tests.rs",
+      "bytes": 2997,
+      "sha256": "8bc20e59b0a1cae060c5b619d51269f2dadffd7882fa406e152188d49c81e3f4"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 18299,
+      "sha256": "292bb6d58e9cf89cdab155d4c1b56f83152fdf725226a5c13e6a2b2c94d7a5ef"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "bytes": 12492,
+      "sha256": "9051e00426aec70dfdbde405411698f7a9d4c1f38de4555e247715e285436c5a"
+    }
+  ],
+  "storage": {
+    "limit_bytes": 67108864,
+    "buffer_bytes": 65536,
+    "scope": "Host-scoped disposable navigation only; complete method/content/projection validation, atomic replacement, no fsync durability claim. No source execution input, model session or proof receipt is restored."
+  },
+  "validation": {
+    "phase": "complete",
+    "candidate": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906/meden",
+      "sha256": "67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906"
+    },
+    "gates": [
+      {
+        "phase": "gui-saved",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-availability",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "app",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustfmt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-existing",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "app_unit": 179,
+    "app_doc": 37,
+    "cli": 77,
+    "tui": 37,
+    "gui": 9,
+    "browsers": [
+      {
+        "name": "saved",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "actual-discovery-held",
+                "data": {
+                  "overview": {
+                    "state": "loading",
+                    "scanned": 0,
+                    "total": 1,
+                    "revision": "sha256:14fc8564b3cd45bc079f1b27960a58e7391a03f31f9b3eed09ffb6eb52df0133",
+                    "error": null
+                  },
+                  "running": true,
+                  "authorized": false,
+                  "current_source": null,
+                  "prepared_files": 0
+                }
+              },
+              {
+                "name": "saved-map-before-discovery",
+                "data": {
+                  "saved_while_discovery_held": true,
+                  "same_camera_after_changed_source": true,
+                  "wheel_over_saved_status_reaches_map": true,
+                  "inference_requests": 0
+                }
+              },
+              {
+                "name": "unchanged-restart-reuse",
+                "data": {
+                  "complete_observation": true,
+                  "materializations": 1,
+                  "rewrites": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "availability",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "name": "existing",
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "finite-native-preparation",
+                "data": {
+                  "cold_ms": 4062.6270099999997,
+                  "reopened_ms": 3004.388705000001,
+                  "metrics": {
+                    "capacity": 4096,
+                    "evicted": 0,
+                    "records": [
+                      {
+                        "context": {
+                          "trace": 1,
+                          "span": 2
+                        },
+                        "parent": 1,
+                        "name": "sandbox.public_tools",
+                        "start_us": 96,
+                        "wall_us": 88831,
+                        "thread_cpu_us": 7918
+                      },
+                      {
+                        "context": {
+                          "trace": 1,
+                          "span": 3
+                        },
+                        "parent": 1,
+                        "name": "sandbox.libraries",
+                        "start_us": 89269,
+                        "wall_us": 45034,
+                        "thread_cpu_us": 5312
+                      },
+                      {
+                        "context": {
+                          "trace": 1,
+                          "span": 4
+                        },
+                        "parent": 1,
+                        "name": "sandbox.nix_closure",
+                        "start_us": 134320,
+                        "wall_us": 43041,
+                        "thread_cpu_us": 1558
+                      },
+                      {
+                        "context": {
+                          "trace": 1,
+                          "span": 1
+                        },
+                        "parent": null,
+                        "name": "sandbox.prepare",
+                        "start_us": 0,
+                        "wall_us": 177393,
+                        "thread_cpu_us": 15254
+                      },
+                      {
+                        "context": {
+                          "trace": 5,
+                          "span": 5
+                        },
+                        "parent": null,
+                        "name": "view.evidence.materialize",
+                        "start_us": 198956,
+                        "wall_us": 27,
+                        "thread_cpu_us": 26
+                      },
+                      {
+                        "context": {
+                          "trace": 6,
+                          "span": 6
+                        },
+                        "parent": null,
+                        "name": "view.analysis_history.materialize",
+                        "start_us": 199275,
+                        "wall_us": 182,
+                        "thread_cpu_us": 182
+                      },
+                      {
+                        "context": {
+                          "trace": 7,
+                          "span": 7
+                        },
+                        "parent": null,
+                        "name": "view.analysis.materialize",
+                        "start_us": 199460,
+                        "wall_us": 71,
+                        "thread_cpu_us": 71
+                      },
+                      {
+                        "context": {
+                          "trace": 8,
+                          "span": 8
+                        },
+                        "parent": null,
+                        "name": "view.history.materialize",
+                        "start_us": 199564,
+                        "wall_us": 20,
+                        "thread_cpu_us": 20
+                      },
+                      {
+                        "context": {
+                          "trace": 9,
+                          "span": 9
+                        },
+                        "parent": null,
+                        "name": "atlas.resources.select",
+                        "start_us": 199617,
+                        "wall_us": 2,
+                        "thread_cpu_us": 2
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 10
+                        },
+                        "parent": null,
+                        "name": "gui.enqueue",
+                        "start_us": 199905,
+                        "wall_us": 1,
+                        "thread_cpu_us": 0
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 11
+                        },
+                        "parent": 10,
+                        "name": "job.queue",
+                        "start_us": 199906,
+                        "wall_us": 30,
+                        "thread_cpu_us": null
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 13
+                        },
+                        "parent": 12,
+                        "name": "navigation.saved.load",
+                        "start_us": 200035,
+                        "wall_us": 169,
+                        "thread_cpu_us": 169
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 14
+                        },
+                        "parent": 12,
+                        "name": "view.inventory.materialize",
+                        "start_us": 200245,
+                        "wall_us": 171,
+                        "thread_cpu_us": 171
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 16
+                        },
+                        "parent": 15,
+                        "name": "process.run",
+                        "start_us": 200634,
+                        "wall_us": 20646,
+                        "thread_cpu_us": 363
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 15
+                        },
+                        "parent": 12,
+                        "name": "navigation.collect.paths",
+                        "start_us": 200432,
+                        "wall_us": 21183,
+                        "thread_cpu_us": 899
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 19
+                        },
+                        "parent": 17,
+                        "name": "navigation.collect.worker",
+                        "start_us": 221948,
+                        "wall_us": 5,
+                        "thread_cpu_us": 3
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 20
+                        },
+                        "parent": 17,
+                        "name": "navigation.collect.worker",
+                        "start_us": 221953,
+                        "wall_us": 6,
+                        "thread_cpu_us": 4
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 21
+                        },
+                        "parent": 17,
+                        "name": "navigation.collect.worker",
+                        "start_us": 222022,
+                        "wall_us": 8,
+                        "thread_cpu_us": 5
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 22
+                        },
+                        "parent": 18,
+                        "name": "process.run",
+                        "start_us": 222302,
+                        "wall_us": 40861,
+                        "thread_cpu_us": 439
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 18
+                        },
+                        "parent": 17,
+                        "name": "navigation.collect.worker",
+                        "start_us": 221904,
+                        "wall_us": 42273,
+                        "thread_cpu_us": 1836
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 17
+                        },
+                        "parent": 12,
+                        "name": "navigation.collect.sources",
+                        "start_us": 221625,
+                        "wall_us": 42625,
+                        "thread_cpu_us": 279
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 24
+                        },
+                        "parent": 23,
+                        "name": "navigation.annotations.load",
+                        "start_us": 264274,
+                        "wall_us": 21,
+                        "thread_cpu_us": 20
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 25
+                        },
+                        "parent": 23,
+                        "name": "navigation.annotations.overlay",
+                        "start_us": 264297,
+                        "wall_us": 3,
+                        "thread_cpu_us": 3
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 23
+                        },
+                        "parent": 12,
+                        "name": "navigation.annotations",
+                        "start_us": 264268,
+                        "wall_us": 35,
+                        "thread_cpu_us": 34
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 26
+                        },
+                        "parent": 12,
+                        "name": "view.inventory.materialize",
+                        "start_us": 264372,
+                        "wall_us": 266,
+                        "thread_cpu_us": 265
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 27
+                        },
+                        "parent": 12,
+                        "name": "navigation.saved.retain",
+                        "start_us": 264695,
+                        "wall_us": 375,
+                        "thread_cpu_us": 375
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 28
+                        },
+                        "parent": 12,
+                        "name": "view.evidence.materialize",
+                        "start_us": 265113,
+                        "wall_us": 20,
+                        "thread_cpu_us": 19
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 29
+                        },
+                        "parent": 12,
+                        "name": "view.history.materialize",
+                        "start_us": 265173,
+                        "wall_us": 31,
+                        "thread_cpu_us": 31
+                      },
+                      {
+                        "context": {
+                          "trace": 10,
+                          "span": 12
+                        },
+                        "parent": 10,
+                        "name": "gui.job",
+                        "start_us": 199938,
+                        "wall_us": 65280,
+                        "thread_cpu_us": 2644
+                      },
+                      {
+                        "context": {
+                          "trace": 30,
+                          "span": 31
+                        },
+                        "parent": 30,
+                        "name": "gui.serialize_respond",
+                        "start_us": 415151,
+                        "wall_us": 163,
+                        "thread_cpu_us": 143
+                      },
+                      {
+                        "context": {
+                          "trace": 30,
+                          "span": 30
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 414996,
+                        "wall_us": 330,
+                        "thread_cpu_us": 308
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 33
+                        },
+                        "parent": 32,
+                        "name": "gui.enqueue",
+                        "start_us": 488007,
+                        "wall_us": 1,
+                        "thread_cpu_us": 1
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 34
+                        },
+                        "parent": 33,
+                        "name": "job.queue",
+                        "start_us": 488008,
+                        "wall_us": 29,
+                        "thread_cpu_us": null
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 36
+                        },
+                        "parent": 32,
+                        "name": "gui.serialize_respond",
+                        "start_us": 488044,
+                        "wall_us": 98,
+                        "thread_cpu_us": 82
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 32
+                        },
+                        "parent": null,
+                        "name": "gui.command",
+                        "start_us": 487929,
+                        "wall_us": 216,
+                        "thread_cpu_us": 198
+                      },
+                      {
+                        "context": {
+                          "trace": 39,
+                          "span": 39
+                        },
+                        "parent": null,
+                        "name": "gui.history_respond",
+                        "start_us": 490164,
+                        "wall_us": 147,
+                        "thread_cpu_us": 121
+                      },
+                      {
+                        "context": {
+                          "trace": 40,
+                          "span": 40
+                        },
+                        "parent": null,
+                        "name": "gui.analysis_history_respond",
+                        "start_us": 492513,
+                        "wall_us": 190,
+                        "thread_cpu_us": 167
+                      },
+                      {
+                        "context": {
+                          "trace": 41,
+                          "span": 41
+                        },
+                        "parent": null,
+                        "name": "gui.analysis_respond",
+                        "start_us": 492644,
+                        "wall_us": 177,
+                        "thread_cpu_us": 146
+                      },
+                      {
+                        "context": {
+                          "trace": 42,
+                          "span": 42
+                        },
+                        "parent": null,
+                        "name": "gui.evidence_respond",
+                        "start_us": 492710,
+                        "wall_us": 157,
+                        "thread_cpu_us": 135
+                      },
+                      {
+                        "context": {
+                          "trace": 43,
+                          "span": 43
+                        },
+                        "parent": null,
+                        "name": "gui.inventory_respond",
+                        "start_us": 492836,
+                        "wall_us": 150,
+                        "thread_cpu_us": 116
+                      },
+                      {
+                        "context": {
+                          "trace": 44,
+                          "span": 45
+                        },
+                        "parent": 44,
+                        "name": "gui.serialize_respond",
+                        "start_us": 505358,
+                        "wall_us": 348,
+                        "thread_cpu_us": 318
+                      },
+                      {
+                        "context": {
+                          "trace": 44,
+                          "span": 44
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 505011,
+                        "wall_us": 723,
+                        "thread_cpu_us": 678
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 38
+                        },
+                        "parent": 37,
+                        "name": "process.run",
+                        "start_us": 488352,
+                        "wall_us": 30814,
+                        "thread_cpu_us": 473
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 37
+                        },
+                        "parent": 35,
+                        "name": "view.directory.observe",
+                        "start_us": 488053,
+                        "wall_us": 31405,
+                        "thread_cpu_us": 1049
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 46
+                        },
+                        "parent": 35,
+                        "name": "view.evidence.materialize",
+                        "start_us": 519501,
+                        "wall_us": 19,
+                        "thread_cpu_us": 19
+                      },
+                      {
+                        "context": {
+                          "trace": 32,
+                          "span": 35
+                        },
+                        "parent": 33,
+                        "name": "gui.job",
+                        "start_us": 488043,
+                        "wall_us": 31498,
+                        "thread_cpu_us": 1140
+                      },
+                      {
+                        "context": {
+                          "trace": 47,
+                          "span": 48
+                        },
+                        "parent": 47,
+                        "name": "gui.serialize_respond",
+                        "start_us": 823218,
+                        "wall_us": 217,
+                        "thread_cpu_us": 191
+                      },
+                      {
+                        "context": {
+                          "trace": 47,
+                          "span": 47
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 823020,
+                        "wall_us": 430,
+                        "thread_cpu_us": 402
+                      },
+                      {
+                        "context": {
+                          "trace": 49,
+                          "span": 49
+                        },
+                        "parent": null,
+                        "name": "gui.directory_respond",
+                        "start_us": 828670,
+                        "wall_us": 199,
+                        "thread_cpu_us": 155
+                      },
+                      {
+                        "context": {
+                          "trace": 50,
+                          "span": 50
+                        },
+                        "parent": null,
+                        "name": "gui.inventory_chunk_respond",
+                        "start_us": 832224,
+                        "wall_us": 103,
+                        "thread_cpu_us": 82
+                      },
+                      {
+                        "context": {
+                          "trace": 51,
+                          "span": 51
+                        },
+                        "parent": null,
+                        "name": "gui.inventory_chunk_respond",
+                        "start_us": 877984,
+                        "wall_us": 101,
+                        "thread_cpu_us": 84
+                      },
+                      {
+                        "context": {
+                          "trace": 52,
+                          "span": 53
+                        },
+                        "parent": 52,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1177615,
+                        "wall_us": 427,
+                        "thread_cpu_us": 385
+                      },
+                      {
+                        "context": {
+                          "trace": 52,
+                          "span": 52
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1177300,
+                        "wall_us": 768,
+                        "thread_cpu_us": 722
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 55
+                        },
+                        "parent": 54,
+                        "name": "gui.enqueue",
+                        "start_us": 1232442,
+                        "wall_us": 2,
+                        "thread_cpu_us": 1
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 56
+                        },
+                        "parent": 55,
+                        "name": "job.queue",
+                        "start_us": 1232444,
+                        "wall_us": 23,
+                        "thread_cpu_us": null
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 59
+                        },
+                        "parent": 54,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1232484,
+                        "wall_us": 110,
+                        "thread_cpu_us": 92
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 54
+                        },
+                        "parent": null,
+                        "name": "gui.command",
+                        "start_us": 1232375,
+                        "wall_us": 226,
+                        "thread_cpu_us": 205
+                      },
+                      {
+                        "context": {
+                          "trace": 61,
+                          "span": 62
+                        },
+                        "parent": 61,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1239410,
+                        "wall_us": 254,
+                        "thread_cpu_us": 238
+                      },
+                      {
+                        "context": {
+                          "trace": 61,
+                          "span": 61
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1239145,
+                        "wall_us": 540,
+                        "thread_cpu_us": 517
+                      },
+                      {
+                        "context": {
+                          "trace": 63,
+                          "span": 64
+                        },
+                        "parent": 63,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1249209,
+                        "wall_us": 290,
+                        "thread_cpu_us": 264
+                      },
+                      {
+                        "context": {
+                          "trace": 63,
+                          "span": 63
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1248934,
+                        "wall_us": 585,
+                        "thread_cpu_us": 557
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 60
+                        },
+                        "parent": 58,
+                        "name": "process.run",
+                        "start_us": 1232824,
+                        "wall_us": 20889,
+                        "thread_cpu_us": 614
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 58
+                        },
+                        "parent": 57,
+                        "name": "gui.reader_prepare",
+                        "start_us": 1232477,
+                        "wall_us": 22288,
+                        "thread_cpu_us": 2000
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 68
+                        },
+                        "parent": 67,
+                        "name": "process.run",
+                        "start_us": 1263000,
+                        "wall_us": 20574,
+                        "thread_cpu_us": 279
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 67
+                        },
+                        "parent": 66,
+                        "name": "analysis.capture_sources",
+                        "start_us": 1262789,
+                        "wall_us": 21029,
+                        "thread_cpu_us": 717
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 70
+                        },
+                        "parent": 69,
+                        "name": "process.run",
+                        "start_us": 1284137,
+                        "wall_us": 30677,
+                        "thread_cpu_us": 307
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 71
+                        },
+                        "parent": 69,
+                        "name": "process.run",
+                        "start_us": 1315194,
+                        "wall_us": 20664,
+                        "thread_cpu_us": 328
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 69
+                        },
+                        "parent": 66,
+                        "name": "analysis.capture_sources",
+                        "start_us": 1283954,
+                        "wall_us": 52172,
+                        "thread_cpu_us": 1466
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 66
+                        },
+                        "parent": 65,
+                        "name": "finite.decode_inputs",
+                        "start_us": 1262780,
+                        "wall_us": 74582,
+                        "thread_cpu_us": 3552
+                      },
+                      {
+                        "context": {
+                          "trace": 72,
+                          "span": 73
+                        },
+                        "parent": 72,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1411703,
+                        "wall_us": 282,
+                        "thread_cpu_us": 255
+                      },
+                      {
+                        "context": {
+                          "trace": 72,
+                          "span": 72
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1411454,
+                        "wall_us": 549,
+                        "thread_cpu_us": 520
+                      },
+                      {
+                        "context": {
+                          "trace": 74,
+                          "span": 75
+                        },
+                        "parent": 74,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1531069,
+                        "wall_us": 243,
+                        "thread_cpu_us": 206
+                      },
+                      {
+                        "context": {
+                          "trace": 74,
+                          "span": 74
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1530895,
+                        "wall_us": 432,
+                        "thread_cpu_us": 393
+                      },
+                      {
+                        "context": {
+                          "trace": 76,
+                          "span": 76
+                        },
+                        "parent": null,
+                        "name": "gui.reader_respond",
+                        "start_us": 1537267,
+                        "wall_us": 107,
+                        "thread_cpu_us": 90
+                      },
+                      {
+                        "context": {
+                          "trace": 77,
+                          "span": 78
+                        },
+                        "parent": 77,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1673367,
+                        "wall_us": 215,
+                        "thread_cpu_us": 191
+                      },
+                      {
+                        "context": {
+                          "trace": 77,
+                          "span": 77
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1673055,
+                        "wall_us": 539,
+                        "thread_cpu_us": 502
+                      },
+                      {
+                        "context": {
+                          "trace": 79,
+                          "span": 80
+                        },
+                        "parent": 79,
+                        "name": "gui.serialize_respond",
+                        "start_us": 1883621,
+                        "wall_us": 219,
+                        "thread_cpu_us": 181
+                      },
+                      {
+                        "context": {
+                          "trace": 79,
+                          "span": 79
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 1883441,
+                        "wall_us": 412,
+                        "thread_cpu_us": 372
+                      },
+                      {
+                        "context": {
+                          "trace": 81,
+                          "span": 82
+                        },
+                        "parent": 81,
+                        "name": "gui.serialize_respond",
+                        "start_us": 2183796,
+                        "wall_us": 335,
+                        "thread_cpu_us": 293
+                      },
+                      {
+                        "context": {
+                          "trace": 81,
+                          "span": 81
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 2183547,
+                        "wall_us": 603,
+                        "thread_cpu_us": 559
+                      },
+                      {
+                        "context": {
+                          "trace": 83,
+                          "span": 84
+                        },
+                        "parent": 83,
+                        "name": "gui.serialize_respond",
+                        "start_us": 2236085,
+                        "wall_us": 196,
+                        "thread_cpu_us": 175
+                      },
+                      {
+                        "context": {
+                          "trace": 83,
+                          "span": 83
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 2235865,
+                        "wall_us": 429,
+                        "thread_cpu_us": 405
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 86
+                        },
+                        "parent": 85,
+                        "name": "process.run",
+                        "start_us": 2300780,
+                        "wall_us": 20672,
+                        "thread_cpu_us": 235
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 87
+                        },
+                        "parent": 85,
+                        "name": "process.run",
+                        "start_us": 2321753,
+                        "wall_us": 30838,
+                        "thread_cpu_us": 457
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 85
+                        },
+                        "parent": 65,
+                        "name": "analysis.capture_sources",
+                        "start_us": 2300591,
+                        "wall_us": 52734,
+                        "thread_cpu_us": 1899
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 65
+                        },
+                        "parent": 57,
+                        "name": "analysis.finite.prepare",
+                        "start_us": 1254989,
+                        "wall_us": 1098401,
+                        "thread_cpu_us": 949232
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 88
+                        },
+                        "parent": 57,
+                        "name": "analysis.bind_backend",
+                        "start_us": 2353402,
+                        "wall_us": 1396,
+                        "thread_cpu_us": 1363
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 89
+                        },
+                        "parent": 57,
+                        "name": "analysis.materialize_view",
+                        "start_us": 2354804,
+                        "wall_us": 3153,
+                        "thread_cpu_us": 3125
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 92
+                        },
+                        "parent": 90,
+                        "name": "navigation.collect.worker",
+                        "start_us": 2358190,
+                        "wall_us": 5,
+                        "thread_cpu_us": 3
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 93
+                        },
+                        "parent": 90,
+                        "name": "navigation.collect.worker",
+                        "start_us": 2358286,
+                        "wall_us": 6,
+                        "thread_cpu_us": 4
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 94
+                        },
+                        "parent": 90,
+                        "name": "navigation.collect.worker",
+                        "start_us": 2358307,
+                        "wall_us": 5,
+                        "thread_cpu_us": 3
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 95
+                        },
+                        "parent": 91,
+                        "name": "process.run",
+                        "start_us": 2358724,
+                        "wall_us": 31062,
+                        "thread_cpu_us": 608
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 91
+                        },
+                        "parent": 90,
+                        "name": "navigation.collect.worker",
+                        "start_us": 2358185,
+                        "wall_us": 33160,
+                        "thread_cpu_us": 2654
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 90
+                        },
+                        "parent": 57,
+                        "name": "navigation.collect.sources",
+                        "start_us": 2358032,
+                        "wall_us": 33446,
+                        "thread_cpu_us": 243
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 97
+                        },
+                        "parent": 96,
+                        "name": "navigation.annotations.load",
+                        "start_us": 2391511,
+                        "wall_us": 39,
+                        "thread_cpu_us": 39
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 98
+                        },
+                        "parent": 96,
+                        "name": "navigation.annotations.overlay",
+                        "start_us": 2391555,
+                        "wall_us": 4,
+                        "thread_cpu_us": 4
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 96
+                        },
+                        "parent": 57,
+                        "name": "navigation.annotations",
+                        "start_us": 2391501,
+                        "wall_us": 59,
+                        "thread_cpu_us": 59
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 99
+                        },
+                        "parent": 57,
+                        "name": "view.evidence.materialize",
+                        "start_us": 2391618,
+                        "wall_us": 53,
+                        "thread_cpu_us": 52
+                      },
+                      {
+                        "context": {
+                          "trace": 54,
+                          "span": 57
+                        },
+                        "parent": 55,
+                        "name": "gui.job",
+                        "start_us": 1232469,
+                        "wall_us": 1159231,
+                        "thread_cpu_us": 956508
+                      },
+                      {
+                        "context": {
+                          "trace": 100,
+                          "span": 101
+                        },
+                        "parent": 100,
+                        "name": "gui.serialize_respond",
+                        "start_us": 2590025,
+                        "wall_us": 743,
+                        "thread_cpu_us": 655
+                      },
+                      {
+                        "context": {
+                          "trace": 100,
+                          "span": 100
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 2589447,
+                        "wall_us": 1373,
+                        "thread_cpu_us": 1281
+                      },
+                      {
+                        "context": {
+                          "trace": 102,
+                          "span": 102
+                        },
+                        "parent": null,
+                        "name": "gui.source_respond",
+                        "start_us": 2604810,
+                        "wall_us": 231,
+                        "thread_cpu_us": 187
+                      },
+                      {
+                        "context": {
+                          "trace": 103,
+                          "span": 104
+                        },
+                        "parent": 103,
+                        "name": "gui.serialize_respond",
+                        "start_us": 2945345,
+                        "wall_us": 409,
+                        "thread_cpu_us": 358
+                      },
+                      {
+                        "context": {
+                          "trace": 103,
+                          "span": 103
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 2945019,
+                        "wall_us": 764,
+                        "thread_cpu_us": 706
+                      },
+                      {
+                        "context": {
+                          "trace": 105,
+                          "span": 106
+                        },
+                        "parent": 105,
+                        "name": "gui.serialize_respond",
+                        "start_us": 3205598,
+                        "wall_us": 382,
+                        "thread_cpu_us": 344
+                      },
+                      {
+                        "context": {
+                          "trace": 105,
+                          "span": 105
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 3205269,
+                        "wall_us": 735,
+                        "thread_cpu_us": 695
+                      },
+                      {
+                        "context": {
+                          "trace": 107,
+                          "span": 108
+                        },
+                        "parent": 107,
+                        "name": "gui.serialize_respond",
+                        "start_us": 3218877,
+                        "wall_us": 477,
+                        "thread_cpu_us": 439
+                      },
+                      {
+                        "context": {
+                          "trace": 107,
+                          "span": 107
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 3218498,
+                        "wall_us": 885,
+                        "thread_cpu_us": 845
+                      },
+                      {
+                        "context": {
+                          "trace": 109,
+                          "span": 110
+                        },
+                        "parent": 109,
+                        "name": "gui.serialize_respond",
+                        "start_us": 3277746,
+                        "wall_us": 411,
+                        "thread_cpu_us": 383
+                      },
+                      {
+                        "context": {
+                          "trace": 109,
+                          "span": 109
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 3277394,
+                        "wall_us": 788,
+                        "thread_cpu_us": 757
+                      },
+                      {
+                        "context": {
+                          "trace": 111,
+                          "span": 112
+                        },
+                        "parent": 111,
+                        "name": "gui.serialize_respond",
+                        "start_us": 3299949,
+                        "wall_us": 693,
+                        "thread_cpu_us": 607
+                      },
+                      {
+                        "context": {
+                          "trace": 111,
+                          "span": 111
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 3299403,
+                        "wall_us": 1283,
+                        "thread_cpu_us": 1193
+                      },
+                      {
+                        "context": {
+                          "trace": 113,
+                          "span": 113
+                        },
+                        "parent": null,
+                        "name": "gui.source_respond",
+                        "start_us": 3332048,
+                        "wall_us": 254,
+                        "thread_cpu_us": 193
+                      },
+                      {
+                        "context": {
+                          "trace": 114,
+                          "span": 115
+                        },
+                        "parent": 114,
+                        "name": "gui.serialize_respond",
+                        "start_us": 3394879,
+                        "wall_us": 418,
+                        "thread_cpu_us": 372
+                      },
+                      {
+                        "context": {
+                          "trace": 114,
+                          "span": 114
+                        },
+                        "parent": null,
+                        "name": "gui.state",
+                        "start_us": 3394553,
+                        "wall_us": 776,
+                        "thread_cpu_us": 726
+                      }
+                    ]
+                  },
+                  "scope": "Actual confined Z3 and installed public worker, scripted meaning/repair replies; no Lean installation, live-model quality, native-code correspondence or evidence admission claim."
+                }
+              }
+            ]
+          },
+          {
+            "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "summary-navigation.json",
+                "data": {
+                  "reads": [
+                    "sha256:ff464ab6386cad43d3da7b9e0c7c0e905f3a64c6884bc2f798968a206b523113",
+                    "sha256:ff464ab6386cad43d3da7b9e0c7c0e905f3a64c6884bc2f798968a206b523113",
+                    "sha256:5530e8a844585380e4b1f4b919d7e6291c77e0aeb089f23d3a974f3adcf56034",
+                    "sha256:fb04dab35e6c02cb3a4ee7339950ea0a2b324cef384aa2f95ed52850f6691ffc",
+                    "sha256:6197a0e12b7b5bd7aafed5918c041179879c672d995a175789b80bcacfc9db28",
+                    "sha256:6197a0e12b7b5bd7aafed5918c041179879c672d995a175789b80bcacfc9db28"
+                  ],
+                  "commands": [
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "refresh_workspace"
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "refresh_workspace"
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "refresh_workspace"
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "refresh_workspace"
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "refresh_workspace"
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    },
+                    {
+                      "type": "inspect",
+                      "path": ".",
+                      "directory": true
+                    }
+                  ],
+                  "headings_before_details": true,
+                  "local_retry": true,
+                  "former_body_refused": true,
+                  "restart_unapproved": true,
+                  "private_visibility_rechecked": true,
+                  "unchanged_source_reused_without_request": true
+                }
+              }
+            ]
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": []
+          },
+          {
+            "title": "prepared map annotations retain exact locations, retire after source changes and reopen without inference",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "navigation-annotation-spans",
+                "data": [
+                  {
+                    "name": "navigation.annotations.load",
+                    "wall_us": 272705,
+                    "thread_cpu_us": 230739
+                  },
+                  {
+                    "name": "navigation.annotations.overlay",
+                    "wall_us": 26,
+                    "thread_cpu_us": 25
+                  },
+                  {
+                    "name": "navigation.annotations",
+                    "wall_us": 272756,
+                    "thread_cpu_us": 230788
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "main targets stay visible at a distance and compiled English/counterexamples annotate source without inference",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": []
+          }
+        ]
+      },
+      {
+        "name": "tabs-reduce",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "hidden-file-layout.json",
+                "data": {
+                  "hidden_textarea_style_reads": 0,
+                  "maximum_hidden_reads": 0,
+                  "real_compiled_editor_input": true,
+                  "held_original_navigation_applied": true,
+                  "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+                }
+              },
+              {
+                "name": "navigation-performance",
+                "data": {
+                  "browser": "149.0.7827.53",
+                  "motion": "reduce",
+                  "cold_analysis_store_preparation_ms": 33166.661896,
+                  "warm_tab_two_raf_ms": [
+                    21.099999994039536, 19.100000001490116, 32.69999999552965,
+                    22.100000001490116, 26.5, 18.299999997019768,
+                    27.299999997019768, 27.100000001490116, 27.30000000447035,
+                    26.600000001490116
+                  ],
+                  "p95_ms": 32.69999999552965,
+                  "maximum_p95_ms": 250,
+                  "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "tabs-no-preference",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "hidden-file-layout.json",
+                "data": {
+                  "hidden_textarea_style_reads": 0,
+                  "maximum_hidden_reads": 0,
+                  "real_compiled_editor_input": true,
+                  "held_original_navigation_applied": true,
+                  "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+                }
+              },
+              {
+                "name": "navigation-performance",
+                "data": {
+                  "browser": "149.0.7827.53",
+                  "motion": "no-preference",
+                  "cold_analysis_store_preparation_ms": 33062.865378,
+                  "warm_tab_two_raf_ms": [
+                    24, 25, 30.30000000447035, 17.399999998509884,
+                    33.20000000298023, 22.299999997019768, 42.900000005960464,
+                    23.399999998509884, 26.899999998509884, 39.69999999552965
+                  ],
+                  "p95_ms": 42.900000005960464,
+                  "maximum_p95_ms": 250,
+                  "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "controls": {
+      "original_visibility": {
+        "stats": {
+          "total": 1,
+          "expected": 0,
+          "unexpected": 1,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": false
+        },
+        "tests": [
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "ok": false,
+            "outcome": "unexpected",
+            "attachments": [
+              {
+                "name": "actual-discovery-held",
+                "data": {
+                  "overview": {
+                    "state": "loading",
+                    "scanned": 0,
+                    "total": 0,
+                    "revision": null,
+                    "error": null
+                  },
+                  "running": true,
+                  "authorized": false,
+                  "current_source": null,
+                  "prepared_files": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "prototype_rewriting": {
+        "stats": {
+          "total": 1,
+          "expected": 0,
+          "unexpected": 1,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": false
+        },
+        "tests": [
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "ok": false,
+            "outcome": "unexpected",
+            "attachments": [
+              {
+                "name": "actual-discovery-held",
+                "data": {
+                  "overview": {
+                    "state": "loading",
+                    "scanned": 0,
+                    "total": 1,
+                    "revision": "sha256:14fc8564b3cd45bc079f1b27960a58e7391a03f31f9b3eed09ffb6eb52df0133",
+                    "error": null
+                  },
+                  "running": true,
+                  "authorized": false,
+                  "current_source": null,
+                  "prepared_files": 0
+                }
+              },
+              {
+                "name": "saved-map-before-discovery",
+                "data": {
+                  "saved_while_discovery_held": true,
+                  "same_camera_after_changed_source": true,
+                  "wheel_over_saved_status_reaches_map": true,
+                  "inference_requests": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "decoded_screens": [
+      {
+        "label": "review",
+        "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+        "frames": 164,
+        "observations": [
+          {
+            "label": "Allow Configured server",
+            "seconds": 0.286,
+            "screen_sha256": "f4b71cd95476449dea0f21d2d3f5330981b06cf021cc11ce992035ee980594b3"
+          }
+        ]
+      },
+      {
+        "label": "judge",
+        "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Candidate Mismatch",
+            "seconds": 1.16,
+            "screen_sha256": "d7481962b034b5fd0198fc6936b41b7eb5425da4b2adf79d1e01e584d60612da"
+          }
+        ]
+      },
+      {
+        "label": "resume",
+        "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+        "frames": 41,
+        "observations": [
+          {
+            "label": "TUI-CONTINUED",
+            "seconds": 1.114,
+            "screen_sha256": "7092e9428a581e8626cd93f63cf2ce1e6a2e36ea0f981d11c59c899bb537d622"
+          }
+        ]
+      },
+      {
+        "label": "lake",
+        "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+        "frames": 814,
+        "observations": [
+          {
+            "label": "Lake source inventory changed",
+            "seconds": 76.046,
+            "screen_sha256": "48799aa1e84c77cdc79f28edc5ae8d16ad7b291705637b09f5ccc3490c60ac4b"
+          }
+        ]
+      },
+      {
+        "label": "repair",
+        "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+        "frames": 84,
+        "observations": [
+          {
+            "label": "LEAN-MODEL-REPAIRED",
+            "seconds": 5.613,
+            "screen_sha256": "527c8e69eb48196a4a9078bb7975c8d8dccf7662539d7a5aa96ba821df5fd03f"
+          }
+        ]
+      },
+      {
+        "label": "cancel",
+        "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+        "frames": 152,
+        "observations": [
+          {
+            "label": "Portable work stopped:",
+            "seconds": 14.169,
+            "screen_sha256": "48fa85f65187e77700aec5470799b4032e7974a07834523d6c4300e816be173c"
+          }
+        ]
+      },
+      {
+        "label": "plain-source",
+        "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Sources ready: 1 file",
+            "seconds": 0.41,
+            "screen_sha256": "1293c4ac0e5e0ab9315dc4287c63b79c0194794366a82ee9ac655c892c01466a"
+          },
+          {
+            "label": "Source observation failed for missing.smt2",
+            "seconds": 0.41,
+            "screen_sha256": "1293c4ac0e5e0ab9315dc4287c63b79c0194794366a82ee9ac655c892c01466a"
+          },
+          {
+            "label": "source must be UTF-8",
+            "seconds": 0.41,
+            "screen_sha256": "1293c4ac0e5e0ab9315dc4287c63b79c0194794366a82ee9ac655c892c01466a"
+          },
+          {
+            "label": "Sources ready: 2 files",
+            "seconds": 0.41,
+            "screen_sha256": "1293c4ac0e5e0ab9315dc4287c63b79c0194794366a82ee9ac655c892c01466a"
+          },
+          {
+            "label": "Read the source graph first",
+            "seconds": 0.763,
+            "screen_sha256": "353dfad7fe4659dd14fae813c878455ccae76e8e9c099e7ec67ca3f16634a630"
+          },
+          {
+            "label": "Sources ready: 3 files",
+            "seconds": 0.763,
+            "screen_sha256": "353dfad7fe4659dd14fae813c878455ccae76e8e9c099e7ec67ca3f16634a630"
+          }
+        ]
+      },
+      {
+        "label": "reviewed-repair",
+        "journey": "test_finding_repair_reject_stale_clipped_review_apply_and_restart-26871992ae",
+        "frames": 75,
+        "observations": [
+          {
+            "label": "Apply this repair and reanalyze?",
+            "seconds": 1.099,
+            "screen_sha256": "386c9df25e91f2f23c052a587ded804fc41ceee5fc4765854c82f2a9b3fc1649"
+          },
+          {
+            "label": "Approval unavailable",
+            "seconds": 0.981,
+            "screen_sha256": "70021f2898d4b9e6fc08d6a14bb989ad921ab92caf43cda98efd67d08dbe24e7"
+          },
+          {
+            "label": "Sources changed since the Finding",
+            "seconds": 1.244,
+            "screen_sha256": "7c7bbbdf13fb59fab1bfc1bb273467ac4dd5a4c8253aef43c2f38f3e81c5b683"
+          },
+          {
+            "label": "Repair applied and reanalyzed",
+            "seconds": 1.346,
+            "screen_sha256": "d2ab1a084dfec2fd7a0910bafe3a7cb1bd50f2c7179266a79aa97541c972f895"
+          },
+          {
+            "label": "source revision changed",
+            "seconds": 1.629,
+            "screen_sha256": "60fdeb4f6404ac836e82642a6b39ecb197d7b4ddb715bb6a26ea28fb9b9e9062"
+          }
+        ]
+      },
+      {
+        "label": "finite-source",
+        "journey": "test_native_finite_source_graph_recovers_and_reopens_without_lean_or_m-c794041788",
+        "frames": 76,
+        "observations": [
+          {
+            "label": "Source observation failed for absent.model.json",
+            "seconds": 3.906,
+            "screen_sha256": "5cb512f7f32519e3e60def7d8c502650a4358f9dc48f9477e097d92178685956"
+          },
+          {
+            "label": "Source graph ready: 2 files",
+            "seconds": 5.534,
+            "screen_sha256": "a23f72167cb940df73ca3a7f828293eeae8b6d5fece8091dd9d4525cebcc4c87"
+          },
+          {
+            "label": "transition.value · counter.model.json:",
+            "seconds": 5.534,
+            "screen_sha256": "a23f72167cb940df73ca3a7f828293eeae8b6d5fece8091dd9d4525cebcc4c87"
+          },
+          {
+            "label": "Source observation failed for absent.contract.json",
+            "seconds": 5.534,
+            "screen_sha256": "a23f72167cb940df73ca3a7f828293eeae8b6d5fece8091dd9d4525cebcc4c87"
+          }
+        ]
+      }
+    ],
+    "scope": "Installed real-tool and scripted-provider fixtures, not live inference or cold installation. Original executable fails early saved visibility after real discovery starts; the first cache prototype fails unchanged-file retention. No skipped or flaky case is counted as a pass."
+  },
+  "startup": [
+    {
+      "project": "riemann",
+      "versions": [
+        {
+          "project": "riemann",
+          "phase": "baseline",
+          "binary_sha256": "877613f73da73d419146011ca093e8a6ad1b26048dd05f1815936f6e1fee4d74",
+          "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 980.5779530000001,
+          "first_observed_after_restart_ms": 8511.59071,
+          "first": {
+            "attached_ms": 7439.5,
+            "two_raf_ms": 7446.80000000447,
+            "saved_label": null,
+            "boxes": 7,
+            "revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 8578.257851,
+          "first_observed_state": {
+            "overview": "ready",
+            "running": false,
+            "authorized": false
+          },
+          "final_inventory_sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9",
+          "project_files": 175187,
+          "commands": [
+            {
+              "type": "inspect",
+              "directory": true
+            }
+          ],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 11,
+                "span": 14
+              },
+              "parent": 13,
+              "name": "navigation.collect.paths",
+              "start_us": 699423,
+              "wall_us": 5129394,
+              "thread_cpu_us": 1426085
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 85
+              },
+              "parent": 83,
+              "name": "navigation.collect.worker",
+              "start_us": 6294617,
+              "wall_us": 4,
+              "thread_cpu_us": 2
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 86
+              },
+              "parent": 83,
+              "name": "navigation.collect.worker",
+              "start_us": 6294638,
+              "wall_us": 3,
+              "thread_cpu_us": 2
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 87
+              },
+              "parent": 83,
+              "name": "navigation.collect.worker",
+              "start_us": 6294647,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 84
+              },
+              "parent": 83,
+              "name": "navigation.collect.worker",
+              "start_us": 6294608,
+              "wall_us": 41409,
+              "thread_cpu_us": 991
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 83
+              },
+              "parent": 13,
+              "name": "navigation.collect.sources",
+              "start_us": 6294416,
+              "wall_us": 41699,
+              "thread_cpu_us": 183
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 99
+              },
+              "parent": 13,
+              "name": "view.inventory.materialize",
+              "start_us": 6540297,
+              "wall_us": 772105,
+              "thread_cpu_us": 769583
+            },
+            {
+              "context": {
+                "trace": 114,
+                "span": 114
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 7377990,
+              "wall_us": 44026,
+              "thread_cpu_us": 14968
+            },
+            {
+              "context": {
+                "trace": 128,
+                "span": 128
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 8332059,
+              "wall_us": 33243,
+              "thread_cpu_us": 7910
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 11,
+              "span": 13
+            },
+            "parent": 11,
+            "name": "gui.job",
+            "start_us": 699392,
+            "wall_us": 6624751,
+            "thread_cpu_us": 2874128
+          },
+          "materializations": 1,
+          "retentions": 0
+        },
+        {
+          "project": "riemann",
+          "phase": "saved",
+          "binary_sha256": "e20d4f0d695cf2ae87d98a7485320d6306526c3672dbc98bff3847c4a3c5b75e",
+          "assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 846.66452,
+          "first_observed_after_restart_ms": 4132.756914,
+          "first": {
+            "attached_ms": 3195.10000000149,
+            "two_raf_ms": 3204.89999999851,
+            "saved_label": "Saved map",
+            "boxes": 7,
+            "revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 11095.53428,
+          "first_observed_state": {
+            "overview": "loading",
+            "running": true,
+            "authorized": false
+          },
+          "final_inventory_sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9",
+          "project_files": 175187,
+          "commands": [
+            {
+              "type": "inspect",
+              "directory": true
+            }
+          ],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 11,
+                "span": 14
+              },
+              "parent": 13,
+              "name": "navigation.saved.load",
+              "start_us": 495625,
+              "wall_us": 1351072,
+              "thread_cpu_us": 1343732
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 26
+              },
+              "parent": 13,
+              "name": "view.inventory.materialize",
+              "start_us": 1945763,
+              "wall_us": 776735,
+              "thread_cpu_us": 773675
+            },
+            {
+              "context": {
+                "trace": 39,
+                "span": 39
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 2982285,
+              "wall_us": 60082,
+              "thread_cpu_us": 11645
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 31
+              },
+              "parent": 13,
+              "name": "navigation.collect.paths",
+              "start_us": 2732822,
+              "wall_us": 4148103,
+              "thread_cpu_us": 1359999
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 107
+              },
+              "parent": 104,
+              "name": "navigation.collect.worker",
+              "start_us": 7346604,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 106
+              },
+              "parent": 104,
+              "name": "navigation.collect.worker",
+              "start_us": 7346604,
+              "wall_us": 3,
+              "thread_cpu_us": 2
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 108
+              },
+              "parent": 104,
+              "name": "navigation.collect.worker",
+              "start_us": 7346617,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 105
+              },
+              "parent": 104,
+              "name": "navigation.collect.worker",
+              "start_us": 7346601,
+              "wall_us": 42220,
+              "thread_cpu_us": 1453
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 104
+              },
+              "parent": 13,
+              "name": "navigation.collect.sources",
+              "start_us": 7346299,
+              "wall_us": 42629,
+              "thread_cpu_us": 170
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 120
+              },
+              "parent": 13,
+              "name": "view.inventory.materialize",
+              "start_us": 7586055,
+              "wall_us": 778702,
+              "thread_cpu_us": 776353
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 127
+              },
+              "parent": 13,
+              "name": "navigation.saved.retain",
+              "start_us": 8383837,
+              "wall_us": 1708165,
+              "thread_cpu_us": 1703873
+            },
+            {
+              "context": {
+                "trace": 163,
+                "span": 163
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 10844822,
+              "wall_us": 44970,
+              "thread_cpu_us": 11297
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 11,
+              "span": 13
+            },
+            "parent": 11,
+            "name": "gui.job",
+            "start_us": 495514,
+            "wall_us": 9608750,
+            "thread_cpu_us": 6757928
+          },
+          "materializations": 2,
+          "retentions": 1
+        },
+        {
+          "project": "riemann",
+          "phase": "reused",
+          "binary_sha256": "67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906",
+          "assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 970.022415,
+          "first_observed_after_restart_ms": 4257.961821,
+          "first": {
+            "attached_ms": 3204.5,
+            "two_raf_ms": 3212.1999999955297,
+            "saved_label": "Saved map",
+            "boxes": 7,
+            "revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 9199.327528,
+          "first_observed_state": {
+            "overview": "loading",
+            "running": true,
+            "authorized": false
+          },
+          "final_inventory_sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9",
+          "project_files": 175187,
+          "commands": [
+            {
+              "type": "inspect",
+              "directory": true
+            }
+          ],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 11,
+                "span": 14
+              },
+              "parent": 13,
+              "name": "navigation.saved.load",
+              "start_us": 585266,
+              "wall_us": 1361544,
+              "thread_cpu_us": 1354242
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 26
+              },
+              "parent": 13,
+              "name": "view.inventory.materialize",
+              "start_us": 2039037,
+              "wall_us": 787499,
+              "thread_cpu_us": 785025
+            },
+            {
+              "context": {
+                "trace": 39,
+                "span": 39
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 3093837,
+              "wall_us": 51061,
+              "thread_cpu_us": 14374
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 31
+              },
+              "parent": 13,
+              "name": "navigation.collect.paths",
+              "start_us": 2837102,
+              "wall_us": 4879368,
+              "thread_cpu_us": 1387683
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 112
+              },
+              "parent": 110,
+              "name": "navigation.collect.worker",
+              "start_us": 8181928,
+              "wall_us": 4,
+              "thread_cpu_us": 2
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 113
+              },
+              "parent": 110,
+              "name": "navigation.collect.worker",
+              "start_us": 8181934,
+              "wall_us": 2,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 114
+              },
+              "parent": 110,
+              "name": "navigation.collect.worker",
+              "start_us": 8181949,
+              "wall_us": 3,
+              "thread_cpu_us": 1
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 111
+              },
+              "parent": 110,
+              "name": "navigation.collect.worker",
+              "start_us": 8181923,
+              "wall_us": 41572,
+              "thread_cpu_us": 1106
+            },
+            {
+              "context": {
+                "trace": 11,
+                "span": 110
+              },
+              "parent": 13,
+              "name": "navigation.collect.sources",
+              "start_us": 8181701,
+              "wall_us": 41903,
+              "thread_cpu_us": 210
+            },
+            {
+              "context": {
+                "trace": 147,
+                "span": 147
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 8940187,
+              "wall_us": 50638,
+              "thread_cpu_us": 11727
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 11,
+              "span": 13
+            },
+            "parent": 11,
+            "name": "gui.job",
+            "start_us": 585150,
+            "wall_us": 7772856,
+            "thread_cpu_us": 4227156
+          },
+          "materializations": 1,
+          "retentions": 0
+        }
+      ]
+    },
+    {
+      "project": "ethlib",
+      "versions": [
+        {
+          "project": "ethlib",
+          "phase": "baseline",
+          "binary_sha256": "877613f73da73d419146011ca093e8a6ad1b26048dd05f1815936f6e1fee4d74",
+          "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 1291.6367759999994,
+          "first_observed_after_restart_ms": 18444.271226,
+          "first": {
+            "attached_ms": 17077.5,
+            "two_raf_ms": 17084.59999999404,
+            "saved_label": null,
+            "boxes": 20,
+            "revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 18705.688508,
+          "first_observed_state": {
+            "overview": "ready",
+            "running": true,
+            "authorized": false
+          },
+          "final_inventory_sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237",
+          "project_files": 2517,
+          "commands": [],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 13,
+                "span": 16
+              },
+              "parent": 15,
+              "name": "navigation.collect.paths",
+              "start_us": 894632,
+              "wall_us": 11739552,
+              "thread_cpu_us": 1093378
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 253
+              },
+              "parent": 252,
+              "name": "navigation.collect.worker",
+              "start_us": 12638002,
+              "wall_us": 3109577,
+              "thread_cpu_us": 1921082
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 255
+              },
+              "parent": 252,
+              "name": "navigation.collect.worker",
+              "start_us": 12638045,
+              "wall_us": 3134909,
+              "thread_cpu_us": 1902969
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 256
+              },
+              "parent": 252,
+              "name": "navigation.collect.worker",
+              "start_us": 12638047,
+              "wall_us": 3163281,
+              "thread_cpu_us": 1994328
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 254
+              },
+              "parent": 252,
+              "name": "navigation.collect.worker",
+              "start_us": 12638007,
+              "wall_us": 3188531,
+              "thread_cpu_us": 2057900
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 252
+              },
+              "parent": 15,
+              "name": "navigation.collect.sources",
+              "start_us": 12634191,
+              "wall_us": 3193401,
+              "thread_cpu_us": 4615
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 398
+              },
+              "parent": 15,
+              "name": "view.inventory.materialize",
+              "start_us": 16640295,
+              "wall_us": 967213,
+              "thread_cpu_us": 964908
+            },
+            {
+              "context": {
+                "trace": 412,
+                "span": 412
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 17852840,
+              "wall_us": 3264,
+              "thread_cpu_us": 3094
+            },
+            {
+              "context": {
+                "trace": 429,
+                "span": 429
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 18414587,
+              "wall_us": 3121,
+              "thread_cpu_us": 2952
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 13,
+              "span": 15
+            },
+            "parent": 13,
+            "name": "gui.job",
+            "start_us": 894594,
+            "wall_us": 17515950,
+            "thread_cpu_us": 2905398
+          },
+          "materializations": 1,
+          "retentions": 0
+        },
+        {
+          "project": "ethlib",
+          "phase": "saved",
+          "binary_sha256": "e20d4f0d695cf2ae87d98a7485320d6306526c3672dbc98bff3847c4a3c5b75e",
+          "assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 1305.1302680000008,
+          "first_observed_after_restart_ms": 3981.442545,
+          "first": {
+            "attached_ms": 2597.60000000149,
+            "two_raf_ms": 2611.39999999851,
+            "saved_label": "Saved map",
+            "boxes": 20,
+            "revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 21950.286536,
+          "first_observed_state": {
+            "overview": "loading",
+            "running": true,
+            "authorized": false
+          },
+          "final_inventory_sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237",
+          "project_files": 2517,
+          "commands": [
+            {
+              "type": "inspect",
+              "directory": true
+            }
+          ],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 13,
+                "span": 16
+              },
+              "parent": 15,
+              "name": "navigation.saved.load",
+              "start_us": 968785,
+              "wall_us": 1090347,
+              "thread_cpu_us": 1086027
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 28
+              },
+              "parent": 15,
+              "name": "view.inventory.materialize",
+              "start_us": 2168280,
+              "wall_us": 957083,
+              "thread_cpu_us": 953814
+            },
+            {
+              "context": {
+                "trace": 43,
+                "span": 43
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 3354396,
+              "wall_us": 11239,
+              "thread_cpu_us": 4560
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 36
+              },
+              "parent": 15,
+              "name": "navigation.collect.paths",
+              "start_us": 3160432,
+              "wall_us": 11020461,
+              "thread_cpu_us": 990974
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 298
+              },
+              "parent": 294,
+              "name": "navigation.collect.worker",
+              "start_us": 14190719,
+              "wall_us": 3098793,
+              "thread_cpu_us": 1947601
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 296
+              },
+              "parent": 294,
+              "name": "navigation.collect.worker",
+              "start_us": 14190566,
+              "wall_us": 3109173,
+              "thread_cpu_us": 1918409
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 295
+              },
+              "parent": 294,
+              "name": "navigation.collect.worker",
+              "start_us": 14190509,
+              "wall_us": 3134347,
+              "thread_cpu_us": 2042980
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 297
+              },
+              "parent": 294,
+              "name": "navigation.collect.worker",
+              "start_us": 14190714,
+              "wall_us": 3159288,
+              "thread_cpu_us": 1906837
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 294
+              },
+              "parent": 15,
+              "name": "navigation.collect.sources",
+              "start_us": 14180918,
+              "wall_us": 3170196,
+              "thread_cpu_us": 10269
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 448
+              },
+              "parent": 15,
+              "name": "view.inventory.materialize",
+              "start_us": 18193492,
+              "wall_us": 954573,
+              "thread_cpu_us": 952036
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 458
+              },
+              "parent": 15,
+              "name": "navigation.saved.retain",
+              "start_us": 19182617,
+              "wall_us": 1219603,
+              "thread_cpu_us": 1200357
+            },
+            {
+              "context": {
+                "trace": 502,
+                "span": 502
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 21643210,
+              "wall_us": 11779,
+              "thread_cpu_us": 4916
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 13,
+              "span": 15
+            },
+            "parent": 13,
+            "name": "gui.job",
+            "start_us": 968676,
+            "wall_us": 20262567,
+            "thread_cpu_us": 6188375
+          },
+          "materializations": 2,
+          "retentions": 1
+        },
+        {
+          "project": "ethlib",
+          "phase": "reused",
+          "binary_sha256": "67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906",
+          "assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "motion": "no-preference",
+          "listening_ms": 1276.056156999999,
+          "first_observed_after_restart_ms": 3918.7854530000004,
+          "first": {
+            "attached_ms": 2582.3000000044703,
+            "two_raf_ms": 2590.2000000029802,
+            "saved_label": "Saved map",
+            "boxes": 20,
+            "revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+            "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+          },
+          "ready_ms": 20883.563735999996,
+          "first_observed_state": {
+            "overview": "loading",
+            "running": true,
+            "authorized": false
+          },
+          "final_inventory_sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237",
+          "project_files": 2517,
+          "commands": [
+            {
+              "type": "inspect",
+              "directory": true
+            }
+          ],
+          "original_history_and_candidates_unchanged": true,
+          "native_ring_evicted": 0,
+          "stages": [
+            {
+              "context": {
+                "trace": 13,
+                "span": 16
+              },
+              "parent": 15,
+              "name": "navigation.saved.load",
+              "start_us": 901132,
+              "wall_us": 1123120,
+              "thread_cpu_us": 1118248
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 27
+              },
+              "parent": 15,
+              "name": "view.inventory.materialize",
+              "start_us": 2134389,
+              "wall_us": 969744,
+              "thread_cpu_us": 966184
+            },
+            {
+              "context": {
+                "trace": 42,
+                "span": 42
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 3291421,
+              "wall_us": 3253,
+              "thread_cpu_us": 2876
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 35
+              },
+              "parent": 15,
+              "name": "navigation.collect.paths",
+              "start_us": 3138557,
+              "wall_us": 11808502,
+              "thread_cpu_us": 1106791
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 302
+              },
+              "parent": 300,
+              "name": "navigation.collect.worker",
+              "start_us": 14950412,
+              "wall_us": 3228925,
+              "thread_cpu_us": 2057397
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 303
+              },
+              "parent": 300,
+              "name": "navigation.collect.worker",
+              "start_us": 14950443,
+              "wall_us": 3275536,
+              "thread_cpu_us": 2046088
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 301
+              },
+              "parent": 300,
+              "name": "navigation.collect.worker",
+              "start_us": 14950320,
+              "wall_us": 3276201,
+              "thread_cpu_us": 2105433
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 304
+              },
+              "parent": 300,
+              "name": "navigation.collect.worker",
+              "start_us": 14950453,
+              "wall_us": 3296215,
+              "thread_cpu_us": 1962308
+            },
+            {
+              "context": {
+                "trace": 13,
+                "span": 300
+              },
+              "parent": 15,
+              "name": "navigation.collect.sources",
+              "start_us": 14947071,
+              "wall_us": 3300576,
+              "thread_cpu_us": 4026
+            },
+            {
+              "context": {
+                "trace": 491,
+                "span": 491
+              },
+              "parent": null,
+              "name": "gui.inventory_respond",
+              "start_us": 20560355,
+              "wall_us": 16107,
+              "thread_cpu_us": 6622
+            }
+          ],
+          "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference.",
+          "complete_refresh_job": {
+            "context": {
+              "trace": 13,
+              "span": 15
+            },
+            "parent": 13,
+            "name": "gui.job",
+            "start_us": 901033,
+            "wall_us": 18980019,
+            "thread_cpu_us": 4099346
+          },
+          "materializations": 1,
+          "retentions": 0
+        }
+      ]
+    }
+  ],
+  "deployed": {
+    "binary_sha256": "67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906",
+    "assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+    "assets": 88,
+    "post_inspection_fidelity": [
+      {
+        "project": "riemann",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 66409,
+            "thread_cpu_us": 66076
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 3,
+            "thread_cpu_us": 3
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 67732,
+            "thread_cpu_us": 67394
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 63610,
+            "thread_cpu_us": 63321
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 3,
+            "thread_cpu_us": 3
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 63629,
+            "thread_cpu_us": 63338
+          }
+        ],
+        "collection_spans": [
+          {
+            "name": "navigation.collect.paths",
+            "wall_us": 4441748,
+            "thread_cpu_us": 1275387,
+            "context": {
+              "trace": 11,
+              "span": 18
+            },
+            "parent": 13
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 4,
+            "thread_cpu_us": 2,
+            "context": {
+              "trace": 11,
+              "span": 56
+            },
+            "parent": 54
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 11,
+              "span": 57
+            },
+            "parent": 54
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 11,
+              "span": 58
+            },
+            "parent": 54
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 51614,
+            "thread_cpu_us": 974,
+            "context": {
+              "trace": 11,
+              "span": 55
+            },
+            "parent": 54
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 51769,
+            "thread_cpu_us": 113,
+            "context": {
+              "trace": 11,
+              "span": 54
+            },
+            "parent": 13
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      },
+      {
+        "project": "ethlib",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 745591,
+            "thread_cpu_us": 273873
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 448,
+            "thread_cpu_us": 445
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 746481,
+            "thread_cpu_us": 274741
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 698393,
+            "thread_cpu_us": 252158
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 26,
+            "thread_cpu_us": 26
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 698439,
+            "thread_cpu_us": 252203
+          }
+        ],
+        "collection_spans": [
+          {
+            "name": "navigation.collect.paths",
+            "wall_us": 12951007,
+            "thread_cpu_us": 1151305,
+            "context": {
+              "trace": 13,
+              "span": 23
+            },
+            "parent": 15
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3171847,
+            "thread_cpu_us": 1991800,
+            "context": {
+              "trace": 13,
+              "span": 193
+            },
+            "parent": 191
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3215823,
+            "thread_cpu_us": 1924996,
+            "context": {
+              "trace": 13,
+              "span": 194
+            },
+            "parent": 191
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3219188,
+            "thread_cpu_us": 2040204,
+            "context": {
+              "trace": 13,
+              "span": 195
+            },
+            "parent": 191
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3238704,
+            "thread_cpu_us": 1908255,
+            "context": {
+              "trace": 13,
+              "span": 192
+            },
+            "parent": 191
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 3245618,
+            "thread_cpu_us": 6696,
+            "context": {
+              "trace": 13,
+              "span": 191
+            },
+            "parent": 15
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 453,
+              "span": 551
+            },
+            "parent": 549
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 453,
+              "span": 552
+            },
+            "parent": 549
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 453,
+              "span": 553
+            },
+            "parent": 549
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 42521,
+            "thread_cpu_us": 1996,
+            "context": {
+              "trace": 453,
+              "span": 550
+            },
+            "parent": 549
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 42737,
+            "thread_cpu_us": 146,
+            "context": {
+              "trace": 453,
+              "span": 549
+            },
+            "parent": 456
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      }
+    ],
+    "final_hosts_idle_and_unapproved": true
+  },
+  "methodology": "One sequential baseline/first-prototype/final startup capture per actual project. Public systemd restart and actual browser GUI, fresh isolated browser contexts, normal motion, installed Chrome, existing project/OS/native metadata caches. No concurrent builds/tests/inference/samplers during startup captures. Same first scene revision/camera and complete final inventory digest; post-inspection comparison checks five full original JSON views. Original raw metadata and source captures remain private, represented here by digests.",
+  "limits": [
+    "First scene/two-rAF and restart-to-observation are presentation/polling proxies, not physical paint or field percentiles. Ready polling additionally follows a screenshot; use the correlated native refresh-job wall interval for complete native observation.",
+    "This is earlier map viewing, not faster complete refresh. Saved load/check adds about 1.1–1.4 s; final native complete jobs remain roughly 1.1–1.5 s above this baseline. Directory discovery varies. First uncached preparation is not accelerated.",
+    "The initial prototype double-materialized and rewrote unchanged data; final captures and public regression require one materialization, no retention and a new actual directory observation.",
+    "Native wall intervals overlap; host thread CPU excludes child workers. Saved metadata is the last successful refresh rather than every subsequent file-detail update or an atomic filesystem snapshot.",
+    "Normal input validation and the serial command queue remain; file inspection/model work may still wait for refresh. Large maps use the existing metadata detail cache.",
+    "Generic layout, metadata-cache orchestration, observation-revision correspondence, native freshness costs, first-exposure rendering and retirement remain under the original full five-step plan. No new core rule, compiler/parser implementation, generated wire schema, dependency or proof is claimed.",
+    "Installed-tool/scripted fixtures are not live-model quality, cold-install, local inference or confidentiality validation."
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-saved-map-reuse-state.json",
+      "bytes": 733,
+      "sha256": "4e9106d223760ca8e140f43f6ad248987f53fbaee210fbb2dbf822a9f6e4a0c4"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-reviewed-validation.json",
+      "bytes": 65430,
+      "sha256": "47c432c1ed68391918a3e626397c1c52f49c72ffdf1752008cc22a5a77164e69"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-clippy.log",
+      "bytes": 303,
+      "sha256": "923dd1c25a62f1207c419c9ca7afe45294a28e2285fc4868bb74c2dfe1918e2a"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-build.log",
+      "bytes": 303,
+      "sha256": "027382fdb3636977540d52f94c7afa4a01ab1ee629ada04f4d9c3d6625410e65"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-decoded-screens.json",
+      "bytes": 5419,
+      "sha256": "3d1c68ec4fa855fe2a1caf29918a12fc3f426b90ab3dab33d0cabe507cd89bf9"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-decoded-screens.txt",
+      "bytes": 42840,
+      "sha256": "a39bc4bb79d98c9188847017035c83005673df83b371c269471a6866baafcfa9"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-control.log",
+      "bytes": 4941,
+      "sha256": "1a5713c8ea7af1d0721f16c2ff482084e99e397207ec8d489341e9ab3f22531e"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-tabs-state.json",
+      "bytes": 94,
+      "sha256": "b2b5618e90887c204164b5d6215b04b26cd140900cc2e6d43abecdb609cf9263"
+    },
+    {
+      "path": "/tmp/meden-saved-map-ready-control.log",
+      "bytes": 5340,
+      "sha256": "1f7f9483054c94a3ae5fef3ae9d838bc93f6d6c7f29f30afddf2fc01c7dd4834"
+    },
+    {
+      "path": "/tmp/meden-ux-saved-map-reuse-20261126/summary.json",
+      "bytes": 10727,
+      "sha256": "39fcc3ad7e873878839a491af8252f4b4e7626bf60f0428a4b8f29de0cf3a98e"
+    },
+    {
+      "path": "/tmp/meden-saved-map-final-deployed-fidelity.json",
+      "bytes": 7892,
+      "sha256": "8fed29c0ffa91dcfd7440c4dcfcc1ec30505b6bf92aab7dc56aa8d31f1b543d8"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-verify.log",
+      "bytes": 141,
+      "sha256": "3c8aed168e3431967ddf08a1a43fab06748b97f7b872da9fb5e429cbc4953473"
+    },
+    {
+      "path": "target/saved-map-startup.mjs",
+      "bytes": 7033,
+      "sha256": "071e7c6c98b661b6c0b77c7b3a5e3b000022d7f02cfc711dcbea8c7084d82ab5"
+    },
+    {
+      "path": "target/saved-map-reuse-startup.mjs",
+      "bytes": 7023,
+      "sha256": "9fc4c4aac6db45244637408effcbe2e1af503d3b0eab9c70a5697ad99d9e271f"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-gui-saved.log",
+      "bytes": 2415,
+      "sha256": "f1d5e2fb0b0aabd4a561e260387c1b7791364c874424a70a16f39536731577ea"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-gui-availability.log",
+      "bytes": 2414,
+      "sha256": "40bb1b2ebd2080a1fa09504a405c1a6e81748b8c9ce4a4f6630ea8a4f2a2f2e0"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-app.log",
+      "bytes": 22270,
+      "sha256": "6fc8c4343ad38bf63cd3fdbb7bbcd2d84b485e6f8f82ad091b75b4cc28ea7d99"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-cli.log",
+      "bytes": 8278,
+      "sha256": "83c51c3a866e165af51b3202b5aaeb9cc28e41170339d3d0cc12a1038a380018"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-architecture.log",
+      "bytes": 11470,
+      "sha256": "7e395364825e0221e9e1db428f69177d289ab02174a3346d313e1d86e3a5d6f2"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-tui.log",
+      "bytes": 191,
+      "sha256": "ca22bb36cad50a7f33794f423bd73c48fcf3d9ab708c786c571177b1753d1195"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-gate-gui-existing.log",
+      "bytes": 3338,
+      "sha256": "f90d15218fc1a84b8ac1a3a5630fc373c30bb7c7f588b2038e308ee2308234af"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-tabs-reduce.log",
+      "bytes": 2375,
+      "sha256": "3a2c4ef870de5096b13fac578ce20d72b6f580261bd4ef634d751ea5f0887e98"
+    },
+    {
+      "path": "/tmp/meden-saved-map-reuse-tabs-no-preference.log",
+      "bytes": 2375,
+      "sha256": "ce570362c31a3c36fb71efab1ce512840549fb282601ac3fc0554e33d60689f3"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/baseline.json",
+      "bytes": 7496,
+      "sha256": "0768257c5aaa85b40124f31651eb705f925fec5199d063ee898fbd9f06367d09"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-baseline-first.png",
+      "bytes": 89216,
+      "sha256": "ddb147c7cf8e6e43ed7dc4b049827f185822348d0c441bc496f3e5a3027062fb"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-baseline-inventory.json",
+      "bytes": 7308199,
+      "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-baseline-metrics.json",
+      "bytes": 54964,
+      "sha256": "5c9988d2e2bffc3378573a7b45967085aa3df9b47e533bb97974987b3e8ae02e"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-reused-first.png",
+      "bytes": 91312,
+      "sha256": "40a42279073c27b1a9cf90d69ee1cc0b0e1c871ecd502bf36da145378fa2734a"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-reused-inventory.json",
+      "bytes": 7308199,
+      "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-reused-metrics.json",
+      "bytes": 63001,
+      "sha256": "94b7b666729c541a624cf342c542f413a2237f8f27a5568fb5d30f4c5d0f0a78"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-saved-first.png",
+      "bytes": 91273,
+      "sha256": "90f189c265b8a6572c0d6807144c31e449e12e96c792d2b0661c16fdd1d15962"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-saved-inventory.json",
+      "bytes": 7308199,
+      "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/ethlib-saved-metrics.json",
+      "bytes": 64455,
+      "sha256": "948e1f8ce41258bf3c05faae67ec9b09007313fc18ac319a3abbafac91b62c51"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/reused.json",
+      "bytes": 8099,
+      "sha256": "cd139af7dfd3df2cc38512bc6c0c09f7a3dc09266b1185dffe3fe17d34e2395b"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-baseline-first.png",
+      "bytes": 39941,
+      "sha256": "4f4fc867513ae8cccfa730d73a58cccdfc8aba4ab91bfa105ddbf81ac65ce5c9"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-baseline-inventory.json",
+      "bytes": 25012757,
+      "sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-baseline-metrics.json",
+      "bytes": 16624,
+      "sha256": "a94a21041f8d317bb53164a9dcde22ac88481cce6249b4e1dcc4365df0f1bf01"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-reused-first.png",
+      "bytes": 32619,
+      "sha256": "2f6240fb9f68002ddfbca288b3be30c1d1c8810bd414840f07a5e07238fb55a7"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-reused-inventory.json",
+      "bytes": 25012757,
+      "sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-reused-metrics.json",
+      "bytes": 18813,
+      "sha256": "133dc860847e834ce3835dd1e0e6c57f85a313215774056ce2bcbe6dade930cd"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-saved-first.png",
+      "bytes": 32660,
+      "sha256": "e63835b85ef58a9cf27a42253d0310ebe6ce7a7574bce7e5005c3ef5ce7dd405"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-saved-inventory.json",
+      "bytes": 25012757,
+      "sha256": "30109c2e6a00ff5ca0c9a79be31f9d5c1d0e13d800e223c6852a365151b175a9"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/riemann-saved-metrics.json",
+      "bytes": 21180,
+      "sha256": "aed63a7d7df8fb933bb93f893d0ad55f92c75eab3f6a91e51151053dfe915f06"
+    },
+    {
+      "path": "target/native-profile/saved-map-startup-20261126/saved.json",
+      "bytes": 9090,
+      "sha256": "cc3bba0eb07082618a105c4052fd2d329ce8bf91fdbf5404b5d5b2c0b2f1ecf6"
+    }
+  ]
+}

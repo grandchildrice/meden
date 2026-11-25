@@ -554,7 +554,6 @@ export function NativeApp({ token }: { token: string }) {
         if (command.type === "refresh_workspace") {
           next.sources = { current: null, files: {} };
           mapEpoch.current++;
-          setOverviewView(undefined);
           observedInventory.current = undefined;
           setNavigationError(undefined);
           setOverviewCycle((value) => value + 1);

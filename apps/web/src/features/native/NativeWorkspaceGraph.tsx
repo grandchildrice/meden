@@ -363,6 +363,15 @@ function WorkspaceMap({
             }
           />
         )}
+        {scene && state.overview.state !== "ready" && (
+          <span
+            role="status"
+            className="map-saved-status"
+            title="Previously saved navigation. Current workspace observation has not completed."
+          >
+            Saved map
+          </span>
+        )}
         {(error || state.overview.error) && (
           <Alert className="map-load-error" severity="error">
             {state.overview.state === "failed" && "Could not refresh the map. "}

@@ -112,3 +112,15 @@ impl crate::navigation::collection::Indexer for Syntax {
         })
     }
 }
+
+/// Fingerprint the complete native syntax composition for saved display metadata.
+pub fn identity() -> String {
+    crate::atlas::digest(
+        &[
+            include_bytes!("navigation.rs").as_slice(),
+            source::identity().as_bytes(),
+            super::finite::navigation::identity().as_bytes(),
+        ]
+        .concat(),
+    )
+}

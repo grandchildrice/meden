@@ -3786,3 +3786,16 @@ pre {
   top: 0;
   z-index: -1;
 }
+
+.map-saved-status {
+  position: absolute;
+  pointer-events: none;
+  right: 12px;
+  top: 12px;
+  z-index: 5;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #20343f;
+  color: #d7e7ed;
+  font: 12px sans-serif;
+}

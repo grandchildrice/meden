@@ -277,6 +277,7 @@ export function check() {
     "crates/meden-app/src/compiler.rs",
     "crates/meden-app/src/navigation.rs",
     "crates/meden-app/src/navigation/collection.rs",
+    "crates/meden-app/src/navigation/saved.rs",
     "crates/meden-app/src/search.rs",
     "crates/meden-app/src/explanation/cache.rs",
     "crates/meden-app/src/analysis.rs",

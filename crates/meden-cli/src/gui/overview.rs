@@ -24,13 +24,7 @@ pub(super) use meden_app::view::inventory::{State, Status};
 use meden_app::view::publication::ArtifactId;
 pub(super) type File = collection::File<Symbol>;
 
-#[derive(Clone)]
-pub(super) struct Captured {
-    files: Vec<File>,
-    excluded: Vec<&'static str>,
-    inventory_only: bool,
-    generation: u64,
-}
+pub(super) type Captured = meden_app::navigation::saved::Inventory<Symbol>;
 
 pub(super) struct Snapshot {
     captured: Arc<Captured>,
@@ -99,10 +93,24 @@ pub(super) fn refresh(
         let view = lock(view);
         view.overview_snapshot.is_some() || view.overview.state != State::Loading
     };
+    let mut restored = None;
+    if !fresh {
+        // Saved display metadata is separate from current source/analysis inputs.
+        if let Ok(Some(captured)) = saved(workspace).and_then(|s| s.load()) {
+            if let Ok(snapshot) = Snapshot::new(captured) {
+                let snapshot = Arc::new(snapshot);
+                lock(view).overview_snapshot = Some(Arc::clone(&snapshot));
+                restored = Some(snapshot);
+            }
+        }
+    }
     {
         let mut view = lock(view);
         view.overview = Status::default();
-        view.overview_snapshot = None;
+        if let Some(snapshot) = view.overview_snapshot.clone() {
+            view.overview.revision = Some(snapshot.revision().to_owned());
+            view.overview.total = snapshot.files.len();
+        }
         view.sources.clear();
         view.readers.clear();
         view.directories.clear();
@@ -121,7 +129,20 @@ pub(super) fn refresh(
             super::sources::prepare(view, workspace, control, &path, false)?;
         }
         apply_annotations(workspace, control, &mut snapshot.files);
-        Snapshot::new(snapshot)
+        if let Some(original) = restored.filter(|saved| *saved.captured == snapshot) {
+            // Fresh complete observations match every retained metadata value.
+            // Reuse only the validated publication, with a new detail cache.
+            return Ok(Snapshot {
+                captured: Arc::clone(&original.captured),
+                prepared: original.prepared.clone(),
+                chunks: Mutex::new(inventory::Chunks::new(
+                    original.prepared.reference().clone(),
+                )?),
+            });
+        }
+        let snapshot = Snapshot::new(snapshot)?;
+        let _ = saved(workspace).and_then(|s| s.retain(&snapshot.captured));
+        Ok(snapshot)
     });
     let mut view = lock(view);
     match result {
@@ -170,7 +191,7 @@ fn capture(
     };
     Ok(Captured {
         files,
-        excluded: EXCLUDED.to_vec(),
+        excluded: EXCLUDED.iter().map(ToString::to_string).collect(),
         inventory_only,
         generation,
     })
@@ -542,4 +563,11 @@ fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Res
         cursor = cursor.saturating_add(1);
     }
     Ok(indexed)
+}
+
+fn saved(workspace: &Workspace) -> Result<meden_app::navigation::saved::Store> {
+    meden_app::navigation::saved::Store::host(
+        workspace.path(),
+        crate::adapters::navigation::identity(),
+    )
 }

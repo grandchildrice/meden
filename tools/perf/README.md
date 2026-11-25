@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [saved project-map record](../../docs/performance/saved-project-map.md)
+separates first displayed navigation from complete native refresh. It retains
+baseline/prototype/final startup observations, exact original inventory digests,
+source/reader/navigation/evidence fidelity and both intended negative controls.
+Saved viewing does not remove current-input checks or the serial command queue.
+
 The [November 26 deployed audit](../../docs/performance/event-audit-20261126.md)
 records all 13 interaction windows twice per actual project on `e41a847`, with
 event dispatch, later rendering, input/frame proxies and native preparation

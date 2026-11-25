@@ -102,6 +102,19 @@ visibility after successful cold preparation. Full input validation still runs;
 a saved presentation is not current evidence. See the
 [saved-view measurement](performance/saved-graph-display.md).
 
+Project-map restart must show previously prepared headings while a real directory
+batch is held, with an explicit saved-view status and no prepared source, model
+approval or inference. Zoom must work during that hold; releasing the original
+worker must replace a same-size edited declaration without changing the camera.
+Corrupt the actual saved inventory and recover through normal discovery. The
+original executable must fail saved declaration visibility after the real hold
+has started, rather than failing a prerequisite. Saved metadata remains separate
+from current-input checks and the serial command queue. Actual-workspace startup
+measurements must distinguish first displayed map from completed observation.
+An unchanged restart must still observe directories, show the original
+declaration and retain fresh approval state while preserving the saved file and
+avoiding a second materialization. A changed observation must replace the view.
+
 Compiler/search/render cache contexts retain their original bare digests and
 complete parent/body checks. The actual body's type selects its storage role;
 decoded identity spelling does not grant ownership. Public source preparation,

@@ -14,6 +14,7 @@ import {
   readFile,
   readdir,
   rm,
+  stat,
   symlink,
   writeFile,
 } from "node:fs/promises";
@@ -2884,6 +2885,178 @@ test.describe("native GUI with real offline workers", () => {
       "axiom N_DD_AA",
     );
     expect(requests).toHaveLength(2);
+  });
+
+  test("saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data", async ({
+    page,
+  }, info) => {
+    test.setTimeout(120000);
+    const file = "Sample.rs";
+    await writeFile(
+      resolve(project, file),
+      "pub fn old_name () -> bool { true }\n",
+    );
+    const ready = async () => {
+      await expect
+        .poll(async () => (await nativeState(page)).overview.state, {
+          timeout: 30000,
+        })
+        .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+    };
+    await page.goto(await start());
+    await ready();
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    await expect(
+      map.getByRole("button", { name: /Declaration: old_name/ }),
+    ).toBeVisible();
+    await stop();
+    await writeFile(
+      resolve(project, file),
+      "pub fn new_name () -> bool { true }\n",
+    );
+    const gate = await verificationGate(root, "inventory");
+    await page.goto(await start(0, gate.environment));
+    try {
+      await expect.poll(gate.started).toBe("started");
+      const held = await nativeState(page);
+      await info.attach("actual-discovery-held", {
+        body: JSON.stringify({
+          overview: held.overview,
+          running: held.running,
+          authorized: held.authorized,
+          current_source: held.sources.current,
+          prepared_files: Object.keys(held.source_preparation).length,
+        }),
+        contentType: "application/json",
+      });
+      await expect(
+        map.getByRole("button", { name: /Declaration: old_name/ }),
+      ).toBeVisible();
+      await expect(map.getByRole("status")).toHaveText("Saved map");
+      const before = await nativeState(page);
+      expect(before.overview.state).toBe("loading");
+      expect(before.running).toBe(true);
+      expect(before.authorized).toBe(false);
+      expect(before.sources.current).toBeNull();
+      expect(before.source_preparation).toEqual({});
+      expect(requests).toHaveLength(0);
+      const viewport = map.locator(".react-flow__viewport");
+      const originalCamera = await viewport.getAttribute("style");
+      const badge = await map.getByRole("status").boundingBox();
+      expect(badge).not.toBeNull();
+      await page.mouse.move(
+        badge!.x + badge!.width / 2,
+        badge!.y + badge!.height / 2,
+      );
+      await page.mouse.wheel(0, -80);
+      await expect
+        .poll(() => viewport.getAttribute("style"))
+        .not.toBe(originalCamera);
+      await map.getByRole("button", { name: "Zoom In", exact: true }).click();
+      await expect
+        .poll(() => viewport.getAttribute("style"))
+        .not.toBe(originalCamera);
+      // Let the actual control animation settle before comparing the retained camera.
+      await page.evaluate(
+        () => new Promise((resolve) => setTimeout(resolve, 350)),
+      );
+      const camera = await viewport.getAttribute("style");
+      await page.screenshot({
+        path: info.outputPath("saved-map-before-discovery.png"),
+      });
+      await gate.release();
+      await ready();
+      await expect(
+        map.getByRole("button", { name: /Declaration: new_name/ }),
+      ).toBeVisible();
+      await expect(
+        map.getByRole("button", { name: /Declaration: old_name/ }),
+      ).toHaveCount(0);
+      await expect(map.getByRole("status")).toHaveCount(0);
+      expect(await viewport.getAttribute("style")).toBe(camera);
+      expect((await nativeState(page)).overview.revision).not.toBe(
+        before.overview.revision,
+      );
+      expect((await nativeState(page)).sources.current).toBeNull();
+      expect(requests).toHaveLength(0);
+      await info.attach("saved-map-before-discovery", {
+        body: JSON.stringify({
+          saved_while_discovery_held: true,
+          same_camera_after_changed_source: true,
+          wheel_over_saved_status_reaches_map: true,
+          inference_requests: requests.length,
+        }),
+        contentType: "application/json",
+      });
+    } finally {
+      await gate.release();
+    }
+    await stop();
+    const savedFiles = async (path: string): Promise<string[]> => {
+      const children = await readdir(path, { withFileTypes: true });
+      return (
+        await Promise.all(
+          children.map((e) =>
+            e.isDirectory()
+              ? savedFiles(resolve(path, e.name))
+              : Promise.resolve(
+                  path.endsWith("/navigation") && e.name.endsWith(".json")
+                    ? [resolve(path, e.name)]
+                    : [],
+                ),
+          ),
+        )
+      ).flat();
+    };
+    const records = await savedFiles(resolve(root, "data"));
+    expect(records).toHaveLength(1);
+    await writeFile(records[0]!, "{corrupt saved navigation");
+    await page.goto(await start());
+    await ready();
+    await expect(
+      map.getByRole("button", { name: /Declaration: new_name/ }),
+    ).toBeVisible();
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await stop();
+    const retained = await stat(records[0]!);
+    await page.goto(await start());
+    await ready();
+    await expect(
+      map.getByRole("button", { name: /Declaration: new_name/ }),
+    ).toBeVisible();
+    const unchanged = await stat(records[0]!);
+    expect(unchanged.ino).toBe(retained.ino);
+    expect(unchanged.mtimeMs).toBe(retained.mtimeMs);
+    const timings = await page.evaluate(async () => {
+      const response = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      if (!response.ok) throw Error("Native metrics unavailable");
+      return response.json();
+    });
+    expect(timings.evicted).toBe(0);
+    const count = (name: string) =>
+      timings.records.filter((r: { name: string }) => r.name === name).length;
+    expect(count("navigation.collect.paths")).toBe(1);
+    expect(count("view.inventory.materialize")).toBe(1);
+    expect(count("navigation.saved.retain")).toBe(0);
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await info.attach("unchanged-restart-reuse", {
+      body: JSON.stringify({
+        complete_observation: true,
+        materializations: 1,
+        rewrites: 0,
+      }),
+      contentType: "application/json",
+    });
   });
 
   test("bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis", async ({

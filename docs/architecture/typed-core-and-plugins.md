@@ -1153,3 +1153,12 @@ identities and wire shapes remain unchanged; response-cardinality failures and
 other invalid inputs cannot publish a successful prefix. Worker spans retain the
 coordinator's correlation. This advances collection ownership in steps 3/4;
 generic layout, metadata-cache orchestration and the remaining exits stay open.
+
+[Saved project-map display](../performance/saved-project-map.md) retains generic
+navigation metadata in the application and publishes it before current directory
+observation completes. The native composition binds its method; complete bounded
+decoding, content checks and the existing projection precede viewing. The GUI
+labels saved navigation and preserves the camera through refresh, without
+restoring execution inputs, model authority or proof evidence. Normal complete
+observation and the serial command queue remain. This advances early navigation
+in step 4; it does not complete freshness, layout, rendering or retirement exits.
