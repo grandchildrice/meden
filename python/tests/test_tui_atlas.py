@@ -108,12 +108,12 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
         terminal.paste(text)
         terminal.send("\r")
         if text.startswith("/atlas"):
-            terminal.wait(lambda view: "Reading sources / meaning analysis" in view)
+            terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
             terminal.pump()
             if (result in terminal.view() and "shift+enter" in terminal.view()
-                    and "Reading sources / meaning analysis" not in terminal.view()):
+                    and "Reading sources / preparing local compiler" not in terminal.view()):
                 screens[text] = terminal.view()
                 return
             assert terminal.process.poll() is None, terminal.view()

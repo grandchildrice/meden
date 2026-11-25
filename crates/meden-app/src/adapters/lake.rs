@@ -24,6 +24,7 @@ pub fn enabled() -> Result<bool> {
 }
 
 impl Compiler for Lake {
+    type Output = super::lean::Snapshot;
     fn descriptor(&self) -> Result<meden_runtime::plugin::Descriptor> {
         super::compiler_definition(
             "lean.lake",
@@ -32,7 +33,11 @@ impl Compiler for Lake {
             &serde_json::json!({"imports":"prepared-boundaries","build_timeout_seconds":self.atlas.build_timeout()?.as_secs(),"extraction_timeout_seconds":600,"source_files":32,"source_bytes":16_777_216}),
         )
     }
-    fn compile(&self, context: &Context<'_>, request: Invocation) -> Result<Compiled> {
+    fn compile(
+        &self,
+        context: &Context<'_>,
+        request: Invocation<super::lean::Snapshot>,
+    ) -> Result<Compiled<super::lean::Snapshot>> {
         let atlas = &self.atlas;
         let mut snapshot = crate::analysis::collect::roots(
             context.workspace,
@@ -91,22 +96,26 @@ impl Compiler for Lake {
             context.control,
             &collection.metadata,
         )?;
-        let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
+        let paths = snapshot.source.files.keys().cloned().collect::<Vec<_>>();
         anyhow::ensure!(
             crate::analysis::sources::capture(context.workspace, context.control, &paths)?.files
-                == snapshot.files,
+                == snapshot.source.files,
             "Selected sources changed during prepared extraction"
         );
         let mut graph: serde_json::Value = serde_json::from_str(&output)
             .context("Prepared Atlas did not return a complete graph")?;
         bind_nodes(&mut graph, &collection.modules)?;
-        let mut graph = atlas.admit_project(graph, &snapshot.files)?;
+        let mut graph = atlas.admit_project(graph, &snapshot.source.files)?;
         graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
             &graph.revision,
             &collection,
         ))?));
-        collection.external_modules =
-            external_modules(atlas, &snapshot.files, &collection.modules, context.control)?;
+        collection.external_modules = external_modules(
+            atlas,
+            &snapshot.source.files,
+            &collection.modules,
+            context.control,
+        )?;
         snapshot.atlas = Some(graph);
         Ok(request.observe(snapshot))
     }

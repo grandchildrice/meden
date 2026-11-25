@@ -1,7 +1,7 @@
 //! GUI presentation for shared policy-bound source observations.
 use crate::analysis::sources::capture;
 use anyhow::Result;
-pub(super) use meden_app::view::PreparedSource as Snapshot;
+pub(super) type Snapshot = meden_app::view::PreparedSource<crate::adapters::lean::Snapshot>;
 use meden_runtime::{process::Control, workspace::Workspace};
 
 mod preparation;
@@ -116,7 +116,10 @@ pub(super) fn refresh(
     paths: &[String],
 ) -> Result<()> {
     super::lock(view).sources.clear_current();
-    let snapshot = match capture(workspace, control, paths).and_then(Snapshot::new) {
+    let snapshot = match capture(workspace, control, paths)
+        .map(crate::adapters::lean::Snapshot::source_only)
+        .and_then(Snapshot::new)
+    {
         Ok(snapshot) => snapshot,
         Err(error) => {
             for path in paths {
@@ -127,7 +130,8 @@ pub(super) fn refresh(
     };
     let mut view = super::lock(view);
     if view.analyses.data().current.as_ref().is_some_and(|record| {
-        record.input.source_revision != snapshot.revision || record.input.graph_revision.is_some()
+        record.input.source_revision != snapshot.source.revision
+            || record.input.graph_revision.is_some()
     }) {
         view.analyses.invalidate();
     }

@@ -45,19 +45,14 @@ use view::draw;
 
 enum Task {
     PrepareRepair {
-        snapshot: Box<crate::analysis::sources::Snapshot>,
+        snapshot: Box<crate::adapters::lean::Snapshot>,
         record: Box<crate::analysis::Record>,
     },
     ApplyRepair(crate::analysis::repair::Reference),
     RejectRepair(crate::analysis::repair::Reference),
     Instruction(String),
-    Sources {
-        paths: Vec<String>,
-        atlas: bool,
-    },
-    PrepareAtlas,
     Analyze {
-        snapshot: Box<crate::analysis::sources::Snapshot>,
+        snapshot: Box<crate::adapters::lean::Snapshot>,
         input: crate::semantic::Input,
     },
 }
@@ -65,8 +60,8 @@ enum Task {
 enum Update {
     WorkResume(String),
     RepairReview(Box<crate::analysis::repair::Review>),
-    RepairApplied(Box<(crate::analysis::sources::Snapshot, crate::analysis::Record)>),
-    Sources(Box<crate::analysis::sources::Snapshot>),
+    RepairApplied(Box<(crate::adapters::lean::Snapshot, crate::analysis::Record)>),
+    Sources(Box<crate::adapters::lean::Snapshot>),
     Analysis(Box<crate::analysis::Record>),
     AnalysisDone {
         text: String,
@@ -176,7 +171,7 @@ struct App {
     reasoning: Option<usize>,
     rx: Option<Receiver<Update>>,
     worker: Option<Sender<Task>>,
-    source_snapshot: Option<crate::analysis::sources::Snapshot>,
+    source_snapshot: Option<crate::adapters::lean::Snapshot>,
     analysis: Option<crate::analysis::Record>,
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
@@ -989,7 +984,11 @@ impl App {
                 Update::RepairReview(review) => self.show_repair(*review),
                 Update::RepairApplied(applied) => self.repair_applied(*applied),
                 Update::AnalysisDone { text, failed } => self.analysis_done(text, failed),
-                Update::Sources(snapshot) => self.observed_sources(*snapshot),
+                Update::Sources(snapshot) => {
+                    if !self.processes.flag().load(Ordering::SeqCst) {
+                        self.observed_sources(*snapshot);
+                    }
+                }
                 Update::Analysis(record) => {
                     self.activity = Some(format!("Meaning analysis · {:?}", record.state));
                     self.analysis = Some(*record);

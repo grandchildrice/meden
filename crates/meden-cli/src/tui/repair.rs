@@ -10,7 +10,7 @@ use crate::analysis::repair::{Queue, Review};
 impl App {
     pub(super) fn repair_applied(
         &mut self,
-        (snapshot, record): (crate::analysis::sources::Snapshot, crate::analysis::Record),
+        (snapshot, record): (crate::adapters::lean::Snapshot, crate::analysis::Record),
     ) {
         self.source_snapshot = Some(snapshot);
         self.analysis = Some(record);

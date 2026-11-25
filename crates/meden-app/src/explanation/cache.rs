@@ -1,7 +1,7 @@
 //! Independent immutable compiler/search observations and renderer projections.
 //! Neither layer carries accepted-contract evidence or restores an approval.
 use super::Explanation;
-use crate::analysis::sources::Snapshot;
+use crate::adapters::lean::Snapshot;
 use crate::identity::snapshots::{GraphRevision, PreparedRevision, SourceRevision};
 use anyhow::{Context, Result};
 use meden_runtime::{process::Control, workspace::Workspace};
@@ -365,17 +365,17 @@ impl Artifact {
             .context("Missing compiled observations")?;
         anyhow::ensure!(
             self.version == 2
-                && !snapshot.files.is_empty()
-                && snapshot.files.len() <= 32
-                && snapshot.revision
+                && !snapshot.source.files.is_empty()
+                && snapshot.source.files.len() <= 32
+                && snapshot.source.revision
                     == SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
-                        &snapshot.files
+                        &snapshot.source.files
                     )?))
                 && !collection.roots.is_empty()
                 && collection
                     .roots
                     .iter()
-                    .all(|p| snapshot.files.contains_key(p))
+                    .all(|p| snapshot.source.files.contains_key(p))
                 && graph.graph.nodes.len() <= 5000,
             "Invalid compiler observation binding"
         );
@@ -442,7 +442,7 @@ fn bind_revision<T>(snapshot: &mut Snapshot, rendering: &Id<T>) -> Result<()> {
 
 pub fn retain_observation(
     workspace: &Workspace,
-    compiled: crate::compiler::Compiled,
+    compiled: crate::compiler::Compiled<Snapshot>,
 ) -> Result<Observation> {
     let reused = compiled.reused();
     let (definition, snapshot) = compiled.into_parts();
@@ -522,11 +522,17 @@ fn artifacts(
         {
             continue;
         }
-        let paths = artifact.snapshot.files.keys().cloned().collect::<Vec<_>>();
+        let paths = artifact
+            .snapshot
+            .source
+            .files
+            .keys()
+            .cloned()
+            .collect::<Vec<_>>();
         let Ok(current) = crate::analysis::sources::capture(workspace, control, &paths) else {
             continue;
         };
-        if current.revision != artifact.snapshot.revision {
+        if current.revision != artifact.snapshot.source.revision {
             continue;
         }
         observations.push((id, artifact));
@@ -602,8 +608,8 @@ pub fn compiled(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
-    invocation: &crate::compiler::Invocation,
-) -> Result<Option<crate::compiler::Compiled>> {
+    invocation: &crate::compiler::Invocation<Snapshot>,
+) -> Result<Option<crate::compiler::Compiled<Snapshot>>> {
     compiled_for(workspace, control, paths, None, invocation)
 }
 /// Only a freshly prepared exact compiler-input fingerprint may reuse Lake observations.
@@ -612,8 +618,8 @@ pub fn compiled_prepared(
     control: &Control,
     paths: &[String],
     fingerprint: &PreparedRevision,
-    invocation: &crate::compiler::Invocation,
-) -> Result<Option<crate::compiler::Compiled>> {
+    invocation: &crate::compiler::Invocation<Snapshot>,
+) -> Result<Option<crate::compiler::Compiled<Snapshot>>> {
     compiled_for(workspace, control, paths, Some(fingerprint), invocation)
 }
 fn compiled_for(
@@ -621,8 +627,8 @@ fn compiled_for(
     control: &Control,
     paths: &[String],
     prepared: Option<&PreparedRevision>,
-    invocation: &crate::compiler::Invocation,
-) -> Result<Option<crate::compiler::Compiled>> {
+    invocation: &crate::compiler::Invocation<Snapshot>,
+) -> Result<Option<crate::compiler::Compiled<Snapshot>>> {
     let Some((_, artifact)) = artifacts(
         workspace,
         control,

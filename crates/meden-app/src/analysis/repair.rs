@@ -174,7 +174,7 @@ pub fn prepare(
     gateway: &dyn Model,
     control: &Control,
     policy: &Policy,
-    snapshot: &sources::Snapshot,
+    snapshot: &crate::adapters::lean::Snapshot,
     record: &Record,
     project: &crate::project::Summary,
 ) -> Result<Pending> {
@@ -192,7 +192,7 @@ pub fn prepare(
     );
     semantic::Prepared::new(
         record.input.clone(),
-        snapshot.files.clone(),
+        snapshot.source.files.clone(),
         snapshot.atlas.as_ref(),
     )?;
     let metadata = snapshot
@@ -209,14 +209,14 @@ pub fn prepare(
         workspace,
         control,
         &record.input,
-        &snapshot.files,
+        &snapshot.source.files,
         resources.as_deref(),
     )?;
     anyhow::ensure!(!control.flag().load(Ordering::SeqCst), "Repair cancelled");
     let caller = crate::model::bind(gateway, workspace.session_id());
     let reply = caller.reply(&[
         json!({"role":"system","content":include_str!("repair.md")}),
-        json!({"role":"user","content":json!({"input":record.input,"finding":record.assessment,"accepted_contract":project.accepted_contract,"files":snapshot.files}).to_string()}),
+        json!({"role":"user","content":json!({"input":record.input,"finding":record.assessment,"accepted_contract":project.accepted_contract,"files":snapshot.source.files}).to_string()}),
     ], &[json!({"type":"function","function":{"name":"propose_repair","description":"Return a single data-only source replacement for host review.","parameters":{"type":"object","properties":{
         "file":{"type":"string"},"old_text":{"type":"string"},"new_text":{"type":"string"},"explanation":{"type":"string"}},"required":["file","old_text","new_text","explanation"],"additionalProperties":false}}})])?;
     let suggestion: Suggestion = semantic::decode(reply, "propose_repair")?;
@@ -226,6 +226,7 @@ pub fn prepare(
     );
     let replacement = replacement(snapshot, &record.input, &suggestion)?;
     let original = snapshot
+        .source
         .files
         .get(&suggestion.file)
         .context("repair source unavailable")?;
@@ -248,7 +249,7 @@ pub fn prepare(
         requirement_id: record.requirement_id.clone(),
         input: record.input.clone(),
         accepted_reference: project.accepted_reference.clone(),
-        files: snapshot.files.clone(),
+        files: snapshot.source.files.clone(),
         resources,
         metadata,
         roots: snapshot
@@ -272,12 +273,12 @@ pub fn prepare(
 }
 
 fn replacement(
-    snapshot: &sources::Snapshot,
+    snapshot: &crate::adapters::lean::Snapshot,
     input: &Input,
     suggestion: &Suggestion,
 ) -> Result<String> {
     anyhow::ensure!(
-        snapshot.files.contains_key(&suggestion.file)
+        snapshot.source.files.contains_key(&suggestion.file)
             && !suggestion.old_text.is_empty()
             && suggestion.old_text != suggestion.new_text
             && !suggestion.explanation.trim().is_empty()
@@ -285,6 +286,7 @@ fn replacement(
         "Repair must change one observed file and explain the change"
     );
     let original = snapshot
+        .source
         .files
         .get(&suggestion.file)
         .context("repair source unavailable")?;
@@ -305,6 +307,7 @@ fn replacement(
     }
     anyhow::ensure!(
         snapshot
+            .source
             .files
             .values()
             .map(String::len)

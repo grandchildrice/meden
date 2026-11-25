@@ -140,7 +140,7 @@ def test_finding_repair_reject_stale_clipped_review_apply_and_restart(tmp_path, 
         terminal.wait(lambda view: "Connection details" in view)
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/sources stock.rs", "Source graph ready")
+        command("/sources stock.rs", "Sources ready")
         command(f"/analyze stock.rs:1 stock -- {requirement}", "Candidate Mismatch")
         repair(3)
         assert source.read_text() == original, "preparing a diff must not edit the repository"
@@ -158,7 +158,7 @@ def test_finding_repair_reject_stale_clipped_review_apply_and_restart(tmp_path, 
         )
         assert source.read_text() == concurrent
         assert len(requests) == 4, "stale review cannot apply or trigger new inference"
-        command("/sources stock.rs", "Source graph ready")
+        command("/sources stock.rs", "Sources ready")
         terminal.paste(f"/analyze stock.rs:1 stock -- {requirement}")
         terminal.send("\r")
         terminal.wait(
@@ -225,7 +225,7 @@ def test_finding_repair_reject_stale_clipped_review_apply_and_restart(tmp_path, 
         assert len(requests) == 9
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/sources stock.rs", "Source graph ready")
+        command("/sources stock.rs", "Sources ready")
         command(f"/analysis {entries[-2]['finding_id']}", f"Run: {entries[-2]['id']}")
         command("/repair", "source revision changed")
         assert len(requests) == 9

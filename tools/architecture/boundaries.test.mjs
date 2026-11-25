@@ -4,9 +4,32 @@ import { resolve } from "node:path";
 import {
   cargoViolations,
   compilerEntryViolations,
+  neutralObservationViolations,
   programFor,
   sourceViolations,
 } from "./check.mjs";
+
+test("common observations accept typed source owners and pure generic projections", () => {
+  assert.deepEqual(
+    neutralObservationViolations(
+      "pub trait Observation: sources::Source { fn validate(&self) -> Result<()>; }\n/// Example: lean::Snapshot\n#[cfg(test)]\nmod tests { use crate::adapters::lean::Snapshot; }",
+    ),
+    [],
+  );
+});
+for (const concrete of [
+  "use crate::adapters::lean::Snapshot;",
+  "pub struct Snapshot { pub atlas: Option<atlas::Extraction> }",
+  "let graph = snapshot.atlas.as_ref();",
+  "let metadata = snapshot.collection.as_ref();",
+]) {
+  test(`common observation guard refuses ${concrete}`, () => {
+    assert.match(
+      neutralObservationViolations(concrete).join(),
+      /must not own a backend AST/,
+    );
+  });
+}
 
 test("compiler entry keeps domain availability independent of native metadata schemas", () => {
   assert.deepEqual(

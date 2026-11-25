@@ -34,7 +34,7 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
         "Prepare the installed Lean Atlas library offline",
     ),
     ("/atlas", "Read Lean declarations: /atlas FILE.lean ..."),
-    ("/sources", "Read source files: /sources FILE.rs ..."),
+    ("/sources", "Read source files: /sources FILE ..."),
     ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
     (
         "/repair",
@@ -233,11 +233,9 @@ impl App {
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
             ("/work", _) => self.work_command(text.strip_prefix("/work").unwrap_or_default().trim()),
-            ("/atlas-prepare", []) => self.analysis_task(Task::PrepareAtlas),
+            ("/atlas-prepare", []) => self.source_task(super::analysis::SourceTask::Prepare),
             ("/atlas" | "/sources", paths) if !paths.is_empty() || command == "/atlas" => {
-                self.source_snapshot = None;
-                self.invalidate_analysis();
-                self.analysis_task(Task::Sources { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });
+                self.source_task(super::analysis::SourceTask::Read { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });
             }
             ("/analyze", _) => {
                 match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {

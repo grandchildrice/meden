@@ -176,7 +176,7 @@ def main(argv=None):
             terminal.send("y")
             terminal.wait(lambda view: "shift+enter" in view)
             terminal.command("/sources eligibility.rs")
-            terminal.wait(lambda view: "Source graph ready" in view and "shift+enter" in view)
+            terminal.wait(lambda view: "Sources ready" in view and "shift+enter" in view)
             terminal.command(f"/analyze eligibility.rs:1 eligible -- {REQUIREMENT}")
             terminal.wait(
                 lambda view: (

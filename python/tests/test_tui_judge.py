@@ -135,7 +135,7 @@ def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifi
                 )
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/sources stock.rs", "Source graph ready", 0)
+        command("/sources stock.rs", "Sources ready", 0)
         command(
             "/analyze stock.rs:2 stock -- REQUIREMENT_ONLY: decrement every input",
             "Analysis stopped",

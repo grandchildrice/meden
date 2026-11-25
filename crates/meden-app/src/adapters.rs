@@ -6,6 +6,8 @@ pub mod lake;
 pub mod lean;
 pub mod plausible;
 pub mod source;
+#[path = "adapters/source/view.rs"]
+mod source_view;
 
 pub type Observer = std::sync::Arc<
     dyn Fn(&str, std::time::Duration, Option<&meden_runtime::process::OutputProgress>)
@@ -23,7 +25,7 @@ pub struct Context<'a> {
 /// happens before dispatch; model/workspace data cannot register an executable.
 pub fn compilers(
     atlas: crate::atlas::Configuration,
-) -> anyhow::Result<(crate::compiler::Registry, &'static str)> {
+) -> anyhow::Result<(crate::compiler::Registry<lean::Snapshot>, &'static str)> {
     let selected = if lake::enabled()? {
         "lean.lake"
     } else {
@@ -78,7 +80,7 @@ fn compiler_definition(
             implementation: &implementation,
             configuration: serde_json::json!({"method":configuration,"resources_sha256":atlas.current_resources()?}),
             input: crate::compiler::input_schema()?,
-            output: crate::compiler::output_schema()?,
+            output: crate::compiler::output_schema::<crate::adapters::lean::Snapshot>()?,
         },
     )?)
 }

@@ -61,14 +61,14 @@ impl<T: Data> Data for &T {
 /// A reader identity cannot be used to query the source owner:
 /// ```compile_fail
 /// use meden_app::view::{publication::ArtifactId, readers, sources};
-/// fn wrong(owner: &sources::Sources, id: &ArtifactId<readers::Artifact>) {
+/// fn wrong<P: meden_app::view::Projection>(owner: &sources::Sources<P>, id: &ArtifactId<readers::Artifact>) {
 ///     owner.bytes(id);
 /// }
 /// ```
 /// The matching source identity is accepted:
 /// ```
 /// use meden_app::view::{publication::ArtifactId, sources};
-/// fn read(owner: &sources::Sources, id: &ArtifactId<sources::Artifact>) {
+/// fn read<P: meden_app::view::Projection>(owner: &sources::Sources<P>, id: &ArtifactId<sources::Artifact>) {
 ///     owner.bytes(id);
 /// }
 /// ```

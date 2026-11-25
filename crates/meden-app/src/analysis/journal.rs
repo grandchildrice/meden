@@ -214,7 +214,10 @@ pub fn select(root: &Path, id: &str) -> Result<Record> {
 }
 
 /// Retained data only. Historical artifacts never restore a running snapshot or approval.
-pub(super) fn retain_sources(root: &Path, snapshot: &super::sources::Snapshot) -> Result<String> {
+pub(super) fn retain_sources(
+    root: &Path,
+    snapshot: &crate::adapters::lean::Snapshot,
+) -> Result<String> {
     let value = serde_json::to_value(snapshot)?;
     let digest = format!("{:x}", Sha256::digest(serde_json::to_vec(&value)?));
     let path = crate::storage::directory(root)?

@@ -16,6 +16,12 @@ pub(super) enum WorkTask {
     Resume(String),
 }
 
+/// Local source operations never select, approve or invoke a model.
+pub(super) enum SourceTask {
+    Read { paths: Vec<String>, atlas: bool },
+    Prepare,
+}
+
 impl App {
     pub(super) fn work_command(&mut self, arguments: &str) {
         let parts: Vec<_> = arguments.split_whitespace().collect();
@@ -137,11 +143,66 @@ impl App {
             let _ = tx.send(Update::AnalysisDone { text, failed });
         });
     }
+    pub(super) fn source_task(&mut self, task: SourceTask) {
+        let Some(workspace) = self.workspace.as_ref().map(std::sync::Arc::clone) else {
+            self.say(
+                "No isolated workspace available.",
+                Style::new().fg(Color::Red),
+            );
+            return;
+        };
+        if matches!(task, SourceTask::Read { .. }) {
+            self.source_snapshot = None;
+            self.invalidate_analysis();
+        }
+        self.worker = None;
+        self.worker_gateway = None;
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.rx = Some(rx);
+        self.processes.flag().store(false, Ordering::SeqCst);
+        let control = std::sync::Arc::clone(&self.processes);
+        let project = std::sync::Arc::clone(&self.project);
+        self.busy = true;
+        self.last_stop = None;
+        self.turn_started = Some(Instant::now());
+        self.activity = Some("Reading sources / preparing local compiler".into());
+        self.screen = Screen::Running;
+        self.scroll_back = 0;
+        std::thread::spawn(move || {
+            let result = (|| -> Result<String> {
+                match task {
+                    SourceTask::Read { paths, atlas } => {
+                        let source =
+                            crate::analysis::read_sources(&workspace, &control, &paths, atlas)?;
+                        control.with_active(|| {
+                            let _ = tx.send(Update::Sources(Box::new(source)));
+                            Ok(())
+                        })?;
+                        Ok(String::new())
+                    }
+                    SourceTask::Prepare => {
+                        crate::atlas::Configuration::host(workspace.path()).prepare(&control)?;
+                        Ok("Atlas is ready. Use /atlas FILE.lean to read declarations.".into())
+                    }
+                }
+            })();
+            if let Ok(summary) = project.status(&workspace, &control) {
+                let _ = tx.send(Update::Project(Box::new(summary)));
+            }
+            let failed = result.is_err();
+            let text = result.unwrap_or_else(|error| {
+                format!(
+                    "Source preparation stopped: {error:#}. Rerun the source command explicitly."
+                )
+            });
+            let _ = tx.send(Update::AnalysisDone { text, failed });
+        });
+    }
     pub(super) fn analysis_task(&mut self, task: Task) {
         if !matches!(task, Task::ApplyRepair(_) | Task::RejectRepair(_)) && !self.prepare_worker() {
             return;
         }
-        if matches!(task, Task::ApplyRepair(_) | Task::Sources { .. }) {
+        if matches!(task, Task::ApplyRepair(_)) {
             self.source_snapshot = None;
             self.invalidate_analysis();
         }
@@ -216,7 +277,7 @@ impl App {
             ),
         };
         let input = crate::semantic::Input {
-            source_revision: snapshot.revision.clone(),
+            source_revision: snapshot.source.revision.clone(),
             graph_revision: snapshot.atlas.as_ref().map(|atlas| atlas.revision.clone()),
             target,
             requirement: requirement.trim().into(),
@@ -228,12 +289,22 @@ impl App {
         })
     }
 
-    pub(super) fn observed_sources(&mut self, snapshot: crate::analysis::sources::Snapshot) {
+    pub(super) fn observed_sources(&mut self, snapshot: crate::adapters::lean::Snapshot) {
         self.invalidate_analysis();
+        let label = if snapshot.atlas.is_some() {
+            "Source graph ready"
+        } else {
+            "Sources ready"
+        };
         let mut text = format!(
-            "Source graph ready: {} files\nRevision: {}",
-            snapshot.files.len(),
-            snapshot.revision
+            "{label}: {} file{}\nRevision: {}",
+            snapshot.source.files.len(),
+            if snapshot.source.files.len() == 1 {
+                ""
+            } else {
+                "s"
+            },
+            snapshot.source.revision
         );
         if let Some(collection) = &snapshot.collection {
             let _ = write!(
@@ -364,15 +435,6 @@ pub(super) fn execute(
     }
     let result = (|| -> Result<String> {
         match task {
-            Task::Sources { paths, atlas } => {
-                let snapshot = session.sources(&paths, atlas)?;
-                let _ = tx.send(Update::Sources(Box::new(snapshot)));
-                Ok(String::new())
-            }
-            Task::PrepareAtlas => {
-                session.prepare_atlas()?;
-                Ok("Atlas is ready. Use /atlas FILE.lean to read declarations.".into())
-            }
             Task::Analyze { snapshot, input } => {
                 let record = session.analyze(&snapshot, input, &|record| {
                     let _ = tx.send(Update::Analysis(Box::new(record.clone())));

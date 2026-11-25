@@ -2,7 +2,7 @@
 //! contract nor carries a verification receipt. Backend observations and current
 //! accepted-project evidence remain separate application contexts.
 use crate::identity::snapshots::{GraphRevision, PreparedRevision, SourceRevision};
-use crate::{analysis::sources::Snapshot, explanation::Explanation};
+use crate::{analysis::sources::Source, explanation::Explanation};
 use anyhow::{Context, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -143,16 +143,30 @@ pub enum Site {
     Unknown,
 }
 
+/// Backend-owned pure projection. Preparation interprets its decoded data once;
+/// reading frozen publications never calls a compiler, model or this method.
+pub trait Projection: Source {
+    /// A complete generic source/graph view, without authority or proof receipts.
+    fn page(&self) -> Result<SourcePage>;
+}
+
 /// Immutable publication binding: retain the original backend snapshot for
 /// explicit analysis, serialize only the materialized presentation projection.
-#[derive(Clone)]
-pub struct PreparedSource {
-    snapshot: std::sync::Arc<Snapshot>,
+pub struct PreparedSource<O> {
+    snapshot: std::sync::Arc<O>,
     publication: publication::Publication<sources::Artifact>,
 }
-impl PreparedSource {
+impl<O> Clone for PreparedSource<O> {
+    fn clone(&self) -> Self {
+        Self {
+            snapshot: self.snapshot.clone(),
+            publication: self.publication.clone(),
+        }
+    }
+}
+impl<O: Projection> PreparedSource<O> {
     /// Materialize and validate once before the GUI publishes a source view.
-    pub fn new(snapshot: Snapshot) -> Result<Self> {
+    pub fn new(snapshot: O) -> Result<Self> {
         let _timing = meden_runtime::metrics::Span::start("analysis.materialize_view");
         let page = SourcePage::from_snapshot(&snapshot)?;
         let publication = publication::Publication::new(&page)?;
@@ -162,7 +176,7 @@ impl PreparedSource {
         })
     }
     /// Borrow the exact original backend inputs; view data cannot replace them.
-    pub fn snapshot(&self) -> &Snapshot {
+    pub fn snapshot(&self) -> &O {
         &self.snapshot
     }
     /// Complete frozen presentation, separately identified from input sources.
@@ -170,13 +184,13 @@ impl PreparedSource {
         &self.publication
     }
 }
-impl std::ops::Deref for PreparedSource {
-    type Target = Snapshot;
-    fn deref(&self) -> &Snapshot {
+impl<O> std::ops::Deref for PreparedSource<O> {
+    type Target = O;
+    fn deref(&self) -> &O {
         &self.snapshot
     }
 }
-impl Serialize for PreparedSource {
+impl<O> Serialize for PreparedSource<O> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.publication.serialize(serializer)
     }
@@ -232,100 +246,19 @@ pub struct SourcePage {
 
 impl SourcePage {
     /// Project exact immutable inputs. This performs no compiler/model/file I/O.
-    pub fn from_snapshot(snapshot: &Snapshot) -> Result<Self> {
-        Self::project(snapshot, true)
-    }
-    pub(crate) fn validate_compilation(snapshot: &Snapshot) -> Result<()> {
-        Self::project(snapshot, false).map(|_| ())
-    }
-    fn project(snapshot: &Snapshot, searched: bool) -> Result<Self> {
-        let (graph, description) = if let Some(extraction) = &snapshot.atlas {
-            let nodes = extraction
-                .graph
-                .nodes
-                .iter()
-                .map(|node| {
-                    Ok(Node {
-                        id: node.id.clone(),
-                        name: node.id.clone(),
-                        label: node.short_name.clone(),
-                        kind: kind(&node.kind),
-                        is_main_theorem: node.meta.as_ref().is_some_and(|m| m.is_main_theorem),
-                        statement: node.statement.clone(),
-                        source: Location {
-                            file: node.file_path.clone(),
-                            line: node.line_start.map(u32::try_from).transpose()?,
-                        },
-                        proof_status: if node.has_sorry {
-                            ProofHint::Unproved
-                        } else {
-                            ProofHint::Unknown
-                        },
-                        axioms: node
-                            .axioms
-                            .iter()
-                            .chain(&node.standard_axioms)
-                            .cloned()
-                            .collect(),
-                        semantic: if searched {
-                            node.semantic
-                                .clone()
-                                .map(crate::explanation::Description::complete)
-                                .transpose()?
-                        } else {
-                            None
-                        },
-                    })
-                })
-                .collect::<Result<Vec<_>>>()?;
-            let edges = extraction
-                .graph
-                .edges
-                .iter()
-                .map(|edge| Edge {
-                    source: edge.source.clone(),
-                    target: edge.target.clone(),
-                    site: match edge.kind.as_str() {
-                        "theorem_type_to_definition"
-                        | "theorem_type_to_theorem"
-                        | "definition_type_to_definition"
-                        | "definition_type_to_theorem" => Site::Type,
-                        "theorem_value_to_definition"
-                        | "theorem_value_to_theorem"
-                        | "definition_value_to_definition"
-                        | "definition_value_to_theorem" => Site::Value,
-                        _ => Site::Unknown,
-                    },
-                })
-                .collect();
-            (Some(Graph { revision: extraction.revision.clone(), declarations: nodes, edges }), format!("Compiled dependencies from Lean Atlas (Lean {}). Selected observed modules; external libraries remain unexpanded. Contract and proof acceptance are unchanged.", extraction.graph.metadata.lean_version))
-        } else {
-            (Some(lexical(snapshot)?), "Lexical reference candidates from retained source; no compiler or verification result is inferred.".into())
-        };
-        let page = Self {
-            revision: snapshot.revision.clone(),
-            files: snapshot
-                .files
-                .iter()
-                .map(|(path, text)| Ok((path.clone(), SourceText::new(text.clone())?)))
-                .collect::<Result<_>>()?,
-            roots: snapshot.collection.as_ref().map_or_else(
-                || snapshot.files.keys().cloned().collect(),
-                |c| c.roots.clone(),
-            ),
-            external: snapshot
-                .collection
-                .as_ref()
-                .map_or_else(Vec::new, |c| c.external_modules.clone()),
-            inputs_revision: snapshot
-                .collection
-                .as_ref()
-                .and_then(|c| c.prepared.clone()),
-            compiled: snapshot.atlas.is_some(),
-            graph,
-            description,
-        };
+    pub fn from_snapshot(snapshot: &impl Projection) -> Result<Self> {
+        let page = snapshot.page()?;
         page.validate()?;
+        let original = snapshot.sources();
+        anyhow::ensure!(
+            page.revision == original.revision
+                && page.files.len() == original.files.len()
+                && page.files.iter().all(|(path, text)| original
+                    .files
+                    .get(path)
+                    .is_some_and(|source| source.as_str() == &**text)),
+            "Source projection changed its original inputs"
+        );
         Ok(page)
     }
     /// Check bounds, identities, original source ranges and graph cross-references.
@@ -336,7 +269,12 @@ impl SourcePage {
             self.revision == revision
                 && !self.files.is_empty()
                 && self.files.len() <= 32
-                && self.files.keys().all(|p| !p.is_empty() && p.len() <= 4096)
+                && self.files.keys().all(|p| !p.is_empty()
+                    && p.len() <= 4096
+                    && !p.starts_with('/')
+                    && !p.contains('\0')
+                    && p.split('/')
+                        .all(|part| !part.is_empty() && part != "." && part != ".."))
                 && self.files.values().all(|s| s.len() <= 1_048_576)
                 && self.files.values().map(|s| s.len()).sum::<usize>() <= 16_777_216,
             "Source projection binding/bounds are invalid"
@@ -394,141 +332,10 @@ impl SourcePage {
     }
 }
 
-fn kind(value: &str) -> Kind {
-    match value {
-        "theorem" => Kind::Theorem,
-        "axiom" => Kind::Axiom,
-        _ => Kind::Definition,
-    }
-}
-fn lexical(snapshot: &Snapshot) -> Result<Graph> {
-    let mut nodes = Vec::new();
-    let mut references = BTreeMap::new();
-    let mut private = BTreeSet::new();
-    for (file, source) in &snapshot.files {
-        let lines = source.lines().collect::<Vec<_>>();
-        for symbol in crate::adapters::source::symbols(
-            source,
-            std::path::Path::new(file)
-                .extension()
-                .is_some_and(|e| e == "lean"),
-        ) {
-            let name = symbol
-                .name
-                .split('(')
-                .next()
-                .unwrap_or(&symbol.name)
-                .to_owned();
-            let id = format!("{file}:{}:{name}", symbol.line);
-            if symbol.private {
-                private.insert(id.clone());
-            }
-            references.insert(id.clone(), symbol.references);
-            anyhow::ensure!(
-                nodes.len() < 5000,
-                "Lexical graph exceeds 5000 declarations; no partial graph was published"
-            );
-            nodes.push(Node {
-                id,
-                label: name.clone(),
-                name,
-                kind: kind(&symbol.kind),
-                is_main_theorem: symbol.main_theorem,
-                statement: lines
-                    .get(symbol.line.saturating_sub(1))
-                    .copied()
-                    .unwrap_or("")
-                    .into(),
-                source: Location {
-                    file: file.clone(),
-                    line: Some(u32::try_from(symbol.line)?),
-                },
-                proof_status: ProofHint::Unknown,
-                axioms: Vec::new(),
-                semantic: None,
-            });
-        }
-    }
-    let edges = lexical_edges(&nodes, &references, &private)?;
-    Ok(Graph {
-        revision: GraphRevision::parse(snapshot.revision.as_str())?,
-        declarations: nodes,
-        edges,
-    })
-}
-
-fn lexical_edges(
-    nodes: &[Node],
-    references: &BTreeMap<String, Vec<String>>,
-    private: &BTreeSet<String>,
-) -> Result<Vec<Edge>> {
-    let mut named: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
-    let mut local_named: BTreeMap<(&str, &str), Vec<usize>> = BTreeMap::new();
-    for (index, node) in nodes.iter().enumerate() {
-        named.entry(&node.name).or_default().push(index);
-        local_named
-            .entry((
-                &node.source.file,
-                node.name.rsplit('.').next().unwrap_or(&node.name),
-            ))
-            .or_default()
-            .push(index);
-    }
-    let mut edges = BTreeSet::new();
-    for node in nodes {
-        for token in references.get(&node.id).into_iter().flatten() {
-            let mut namespace = node.name.rsplit_once('.').map_or("", |(prefix, _)| prefix);
-            let mut candidates = Vec::new();
-            while !namespace.is_empty() {
-                candidates.push(format!("{namespace}.{token}"));
-                namespace = namespace.rsplit_once('.').map_or("", |(prefix, _)| prefix);
-            }
-            candidates.push(token.clone());
-            let exact = candidates.iter().find_map(|name| {
-                let eligible = named
-                    .get(name.as_str())
-                    .into_iter()
-                    .flatten()
-                    .filter_map(|index| nodes.get(*index))
-                    .filter(|other| {
-                        !private.contains(&other.id) || other.source.file == node.source.file
-                    })
-                    .collect::<Vec<_>>();
-                if eligible.len() == 1 {
-                    eligible.first().copied()
-                } else {
-                    None
-                }
-            });
-            let local = || {
-                let eligible = local_named.get(&(node.source.file.as_str(), token.as_str()))?;
-                if eligible.len() != 1 {
-                    return None;
-                }
-                eligible.first().and_then(|index| nodes.get(*index))
-            };
-            if let Some(target) = exact.or_else(local).filter(|other| other.id != node.id) {
-                edges.insert((node.id.clone(), target.id.clone()));
-                anyhow::ensure!(
-                    edges.len() <= 100_000,
-                    "Lexical graph exceeds 100000 edges; no partial graph was published"
-                );
-            }
-        }
-    }
-    Ok(edges
-        .into_iter()
-        .map(|(source, target)| Edge {
-            source,
-            target,
-            site: Site::Unknown,
-        })
-        .collect())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::adapters::lean::Snapshot;
 
     fn snapshot(files: &[(&str, &str)]) -> Result<Snapshot> {
         let files = files
@@ -536,10 +343,12 @@ mod tests {
             .map(|(p, s)| ((*p).into(), (*s).into()))
             .collect::<BTreeMap<String, String>>();
         Ok(Snapshot {
-            revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
-                &files,
-            )?)),
-            files,
+            source: crate::analysis::sources::Snapshot {
+                revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+                    &files,
+                )?)),
+                files,
+            },
             atlas: None,
             collection: None,
         })
@@ -710,5 +519,86 @@ mod tests {
         assert_eq!(graph.edges.len(), 3999);
         assert!(graph.edges.iter().all(|edge| &edge.target == base));
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod neutral_projection_tests {
+    use super::*;
+    use crate::analysis::sources::{Snapshot, Source};
+    use proptest::prelude::*;
+    fn original(text: &str) -> Result<Snapshot> {
+        let files = BTreeMap::from([("input.smt2".into(), text.into())]);
+        Ok(Snapshot {
+            revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+                &files,
+            )?)),
+            files,
+        })
+    }
+    struct ForeignProjection {
+        original: Snapshot,
+        foreign: Snapshot,
+    }
+    impl Source for ForeignProjection {
+        fn sources(&self) -> &Snapshot {
+            &self.original
+        }
+    }
+    impl Projection for ForeignProjection {
+        fn page(&self) -> Result<SourcePage> {
+            self.foreign.page()
+        }
+    }
+    #[test]
+    fn unsupported_text_remains_complete_without_inventing_rust_or_lean_declarations() -> Result<()>
+    {
+        let source = original("; pub fn fake() {}\n(set-logic QF_BV)\n(check-sat)\n")?;
+        source.validate()?;
+        let page = SourcePage::from_snapshot(&source)?;
+        assert!(page.graph.is_none());
+        assert!(!page.compiled);
+        assert_eq!(
+            &**page
+                .files
+                .get("input.smt2")
+                .context("Complete source view")?,
+            source
+                .files
+                .get("input.smt2")
+                .context("Original source")?
+                .as_str()
+        );
+        Ok(())
+    }
+    #[test]
+    fn a_valid_projection_of_other_source_bytes_cannot_replace_the_original_owner() -> Result<()> {
+        let source = original("(check-sat)\n")?;
+        let foreign = ForeignProjection {
+            original: source,
+            foreign: original("(exit)\n")?,
+        };
+        assert!(foreign.page()?.validate().is_ok());
+        assert!(SourcePage::from_snapshot(&foreign).is_err());
+        assert!(PreparedSource::new(foreign).is_err());
+        Ok(())
+    }
+    proptest! {
+        #![proptest_config(ProptestConfig {rng_seed:proptest::test_runner::RngSeed::Fixed(20_261_125), ..ProptestConfig::default()})]
+        #[test]
+        fn complete_unicode_source_binding_refuses_every_different_observed_body(
+            first in proptest::collection::vec(any::<char>(),0..512),
+            second in proptest::collection::vec(any::<char>(),0..512),
+        ) {
+            let first:String=first.into_iter().collect();
+            let second:String=second.into_iter().collect();
+            let value=ForeignProjection {
+                original:original(&first).map_err(|error|TestCaseError::fail(error.to_string()))?,
+                foreign:original(&second).map_err(|error|TestCaseError::fail(error.to_string()))?,
+            };
+            prop_assert!(value.foreign.validate().is_ok());
+            prop_assert!(value.page().map_err(|error|TestCaseError::fail(error.to_string()))?.validate().is_ok());
+            prop_assert_eq!(SourcePage::from_snapshot(&value).is_ok(),first == second);
+        }
     }
 }

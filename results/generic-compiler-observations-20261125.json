@@ -1,0 +1,1564 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "a8c16a05c3a19e4aadf3781bff9fba8e0a9106d4",
+  "scope": "Backend-owned decoded compiler output, neutral complete source capture and generic frozen source/view retention. Local public TUI source/preparation tasks no longer require model-worker approval. Native semantic orchestration and mixed-backend host selection remain Lean-specific.",
+  "sources": [
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "bytes": 3056,
+      "sha256": "1f1a54698c0d4f7a424a747a98f39647750973ecc1b435dc0e48a2d0309db16a"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "bytes": 5616,
+      "sha256": "c93dfe1c00e4ade6fc1be356254f829ddccafc437f034315bbbf893aa73653f5"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "bytes": 4600,
+      "sha256": "6ab801d0bc52ea3c7eb5fa9298f9ca6dc591b35a21e221f1df31a891fb5accad"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/view.rs",
+      "bytes": 4469,
+      "sha256": "adb4e00c92bfd594d8a4d4315a3caca4c711f08c688a7fe696b9f287a595c212"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/plausible.rs",
+      "bytes": 6475,
+      "sha256": "92313b4e05f71c73a9f4d5ff42de6f16aaa0a9b653af4beb588bcd55920ed9a5"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/source/view.rs",
+      "bytes": 6204,
+      "sha256": "fb56a45c0fc6ffada64faa473b43d0797c101b4a7e028d59d4ebdff2fb7adce4"
+    },
+    {
+      "path": "crates/meden-app/src/analysis.rs",
+      "bytes": 11922,
+      "sha256": "276c2304573f71b6cdb75d148b35fd5ca19d9a4a179750a7757b7c1a831df2f4"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "bytes": 6258,
+      "sha256": "a0546f168fe3b31fd819467e84335f96284d087cf091ebb62aeda6b6c284571b"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/journal.rs",
+      "bytes": 8265,
+      "sha256": "58d1821412d8ed2610e71947372ca4469caa1b019058772f55ecdb8f1b9254b1"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/repair.rs",
+      "bytes": 17917,
+      "sha256": "3093f84b6afee9bcc9b79835930224fdb2bfec50c022055dc4acc46b2971a978"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "bytes": 4503,
+      "sha256": "b2e306ea44a7e44275a42005c7ebc4603e4683fb5aed5cd4cb55d3bc156959cd"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "bytes": 6066,
+      "sha256": "f47fd02834a581d8d20925248f3949af508eb63a4b6ea590f63d613a917eb372"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "bytes": 9843,
+      "sha256": "0293545aa7f2f34575d1c4128c1c7dfb3bb9af63764ca82d3e53c2d8cf0e0a76"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "bytes": 6608,
+      "sha256": "2c145b7d31cf62d7447c006a80aaa4b42559c0843d44cdcb212630f17ac92732"
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "bytes": 10645,
+      "sha256": "c8bea480cec44f16ce5d49727cb437089b6c4f98b24b3704b88fab827eacc815"
+    },
+    {
+      "path": "crates/meden-app/src/compiler/tests.rs",
+      "bytes": 16647,
+      "sha256": "2947cb57148e9d33eccf8dc113741747403725657af8288de463a4b55b55bd6c"
+    },
+    {
+      "path": "crates/meden-app/src/explanation/cache.rs",
+      "bytes": 22195,
+      "sha256": "9b3ecff2f08e350069d0949b5dbcf5f988dfd48a01ce354610fb658e28e0694d"
+    },
+    {
+      "path": "crates/meden-app/src/explanation/cache/tests.rs",
+      "bytes": 23436,
+      "sha256": "c4609762273eefd8f0c05f24236b41afab712721eb0ea22670a0082773df4adf"
+    },
+    {
+      "path": "crates/meden-app/src/identity/snapshots.rs",
+      "bytes": 8771,
+      "sha256": "0df9916ee1fcfac41a53fa09e4b307c59cc3293825ceef436e91c35be79a0f8c"
+    },
+    {
+      "path": "crates/meden-app/src/search.rs",
+      "bytes": 12067,
+      "sha256": "d2e4f86648b95955d0e2a82818e33d05d37b08960546fd0f6a637fbf88bd8563"
+    },
+    {
+      "path": "crates/meden-app/src/view.rs",
+      "bytes": 24295,
+      "sha256": "42a46606f93abde56f318d6cf9452b49b45a44c0ecf11a171859a1a3b1ddc2a0"
+    },
+    {
+      "path": "crates/meden-app/src/view/publication.rs",
+      "bytes": 15107,
+      "sha256": "51dfbcb00d328b7b33593debd44035e1198e8fe9debf3eb66109073a288f8b74"
+    },
+    {
+      "path": "crates/meden-app/src/view/session.rs",
+      "bytes": 10050,
+      "sha256": "cb74120af9fbfb9f0970b2d23c65eae0afe6f082b41dcb15a04570bef9351df8"
+    },
+    {
+      "path": "crates/meden-app/src/view/sources.rs",
+      "bytes": 15062,
+      "sha256": "f0c919d635905dfcaffc141ce186c13886b2ad609be01e54ebeb1f6df8cf071b"
+    },
+    {
+      "path": "crates/meden-cli/src/gui.rs",
+      "bytes": 45558,
+      "sha256": "39e62c8d4e176f05e10b8233644b973e568f0545813ef32d5224c9e6fe1bb8af"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/analysis.rs",
+      "bytes": 2705,
+      "sha256": "0bb5e9c76dd28f3c52d3a60e5237847daf5696d422affc9561668946d284b943"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/sources.rs",
+      "bytes": 6926,
+      "sha256": "759bdb45204cbe9a0175c500d246cb84636a5458442dca81c3f680a43be6212c"
+    },
+    {
+      "path": "crates/meden-cli/src/protocol.rs",
+      "bytes": 13705,
+      "sha256": "bdb5980107789309adaf4dbede0c3a143fc70a3f63b4c66af41e79838240cc83"
+    },
+    {
+      "path": "crates/meden-cli/src/session.rs",
+      "bytes": 23285,
+      "sha256": "485fedd42105232832e3d4b382fd6c751dec8a67de86b1e86dea720afb7d8ec1"
+    },
+    {
+      "path": "crates/meden-cli/src/tui.rs",
+      "bytes": 65784,
+      "sha256": "240c1fa3cff2ba3dc6109ea09b5bcc2dc687e94dfee3e12da6c1058f3fa72895"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/analysis.rs",
+      "bytes": 18312,
+      "sha256": "bb61a0461ce4f71c9fa88ab28acaa278e79548a03e4ac71b0bae49ee57463515"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/commands.rs",
+      "bytes": 13561,
+      "sha256": "14769fbe3b3f2472b1636c56a4a95061d3966b0bd19918f2b33ebf7835ea7f66"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/repair.rs",
+      "bytes": 3484,
+      "sha256": "29b89ee9400a89a0dba8cb28aa59e59e0ec54667092b3bcae49f62c925cc2791"
+    }
+  ],
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2/meden",
+    "sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2"
+  },
+  "kernel_runtime_refinement_and_model_transport_unchanged": true,
+  "lexical_parser_and_all_88_assets_unchanged": true,
+  "native_wire_schemas_unchanged": true,
+  "new_dependencies": [],
+  "validation": {
+    "rust": {
+      "counts": [
+        {
+          "passed": 147,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 50,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 24,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 30,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "passed": 272,
+      "log": {
+        "path": "/tmp/meden-generic-compiler-final-rust.log",
+        "bytes": 27926,
+        "sha256": "baa9d7ffbcc8d34d6d59a21c9e0b68032ccbb7f97c94710df464440cd91bdcb9"
+      }
+    },
+    "generated_unicode_cases": 3000,
+    "architecture_node_checks": 40,
+    "successful_gates": [
+      {
+        "phase": "plain-source",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "corpus",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rust-format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "browser": {
+      "stats": {
+        "total": 76,
+        "expected": 76,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "startTime": 1795583666871,
+      "duration": 540948.2300000001
+    },
+    "tui": {
+      "selected": 36,
+      "success": true,
+      "inference": "scripted fixtures; no live-model validation",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2/meden",
+        "sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2"
+      },
+      "summary": {
+        "path": "/tmp/meden-ux-generic-compiler-final-20261125/summary.json",
+        "bytes": 10408,
+        "sha256": "c41e9dff90893b6c78ae09ca4bb376e115499a75d03a4a9331d6641d224f3f4b"
+      },
+      "decoded_screens": [
+        {
+          "label": "review",
+          "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+          "frames": 165,
+          "seconds": 0.288,
+          "columns": 120,
+          "rows": 30,
+          "screen_sha256": "23bb86a0c828c8fb2fdc9b71f75164bcd962c38ad9bea04f1a84b3587bd6059b",
+          "observed_lines": [
+            "          Allow Configured server to receive workspace context?",
+            "          │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │",
+            "           y: Allow for this session   n / esc: Back"
+          ]
+        },
+        {
+          "label": "judge",
+          "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+          "frames": 38,
+          "seconds": 1.038,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "989862bd1f0d415490cb8887369848c2ef5a57b30195d954d449f1b8625361b4",
+          "observed_lines": [
+            "               · Translator: translator-fixture · http://127.0.0.1:37519/v1/chat/completions",
+            "               · Judge: judge-fixture · http://127.0.0.1:37519/v1/chat/completions",
+            "               · Candidate Mismatch",
+            "               · Candidate Mismatch · candidate assessment, not proof"
+          ]
+        },
+        {
+          "label": "resume",
+          "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+          "frames": 45,
+          "seconds": 1.101,
+          "columns": 130,
+          "rows": 40,
+          "screen_sha256": "e0a4cf9e1457cbb1ad16780bf271212a39b98283a6cb54fb791a45fcb78fc174",
+          "observed_lines": ["               ● TUI-CONTINUED"]
+        },
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 789,
+          "seconds": 73.172,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "b40ccacecdcc12f83e833133375ca3444f973d0412206e632e3dd6915c8ace91",
+          "observed_lines": [
+            "               · Stopped: Lake source inventory changed at src/lib/Store; reread the graph"
+          ]
+        },
+        {
+          "label": "repair",
+          "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "frames": 79,
+          "seconds": 4.758,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "9a9c3bb9ae3a94572863784638ea084e818c66e1ee54d66ffc3a35fb6aca71f0",
+          "observed_lines": ["               · Assistant: LEAN-MODEL-REPAIRED"]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 149,
+          "seconds": 1.119,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "d06e17a7d9c0137308a37f8d58b99996584dcfdae0efde1dfa214f084ef8f47b",
+          "observed_lines": [
+            "               · Portable work stopped: Lean check did not complete successfully; its output was retained in",
+            "               · Portable work stopped: offline Lean check failed / interrupted for gossip. Inspect the retained"
+          ]
+        },
+        {
+          "label": "plain-source",
+          "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+          "frames": 36,
+          "observations": [
+            {
+              "label": "Sources ready: 1 file",
+              "seconds": 0.454,
+              "screen_sha256": "5511350b86997c6b07ff7df540527f83a7d5f269a219604487f915f4722c5914",
+              "lines": [
+                "               · Sources ready: 1 file",
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Source observation failed for missing.smt2",
+              "seconds": 0.454,
+              "screen_sha256": "5511350b86997c6b07ff7df540527f83a7d5f269a219604487f915f4722c5914",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Source preparation stopped: Source observation failed for missing.smt2: No such file or directory",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "source must be UTF-8",
+              "seconds": 0.454,
+              "screen_sha256": "5511350b86997c6b07ff7df540527f83a7d5f269a219604487f915f4722c5914",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Source preparation stopped: source must be UTF-8: invalid utf-8 sequence of 1 bytes from index 0.",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Sources ready: 2 files",
+              "seconds": 0.454,
+              "screen_sha256": "5511350b86997c6b07ff7df540527f83a7d5f269a219604487f915f4722c5914",
+              "lines": [
+                "               · Revision: sha256:744d00b03e7b966c1a949aaedafa35d76fbe3ca117cb175900129beb5bc37823",
+                "               · Sources ready: 2 files",
+                "               · Revision: sha256:9d6aec79cfe3d832958fb3157880e86314b71614b8e6a68a6b77447a4d3a2942"
+              ]
+            },
+            {
+              "label": "Read the source graph first",
+              "seconds": 0.875,
+              "screen_sha256": "7cb86d6ad0ca4a5b0f0f62afe84bba78c96597dd8064da0a18b6d38bf5bd96db",
+              "lines": [
+                "               · Read the source graph first: /atlas FILE.lean or /sources FILE.rs",
+                "               · Revision: sha256:c8033febda3952edb4bb6ec3d0b1bab2f57310bd6a1bcfdeca29e6abc0df3add"
+              ]
+            },
+            {
+              "label": "Sources ready: 3 files",
+              "seconds": 0.875,
+              "screen_sha256": "7cb86d6ad0ca4a5b0f0f62afe84bba78c96597dd8064da0a18b6d38bf5bd96db",
+              "lines": [
+                "               · Sources ready: 3 files",
+                "               · Revision: sha256:c8033febda3952edb4bb6ec3d0b1bab2f57310bd6a1bcfdeca29e6abc0df3add"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "additional_actual_installed_atlas": {
+      "path": "/tmp/meden-generic-compiler-atlas.log",
+      "bytes": 99,
+      "sha256": "cf1809e763b2b0147493c0c5ab7630e8d9f6cf76ca1a22aeda884de7f6bdc6a7"
+    },
+    "logs": [
+      {
+        "path": "/tmp/meden-generic-compiler-final-rust.log",
+        "bytes": 27926,
+        "sha256": "baa9d7ffbcc8d34d6d59a21c9e0b68032ccbb7f97c94710df464440cd91bdcb9"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-architecture.log",
+        "bytes": 8563,
+        "sha256": "fd249d0bac6b2f4164f15a9a040491ea9f20d516d28d9c4e8de6dd555499146a"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-local-build.log",
+        "bytes": 303,
+        "sha256": "6a21a58ab82786dfae8f547fa182690911ecc9f89af48a0c2b2f13e0ebffa3fd"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-plain-source.log",
+        "bytes": 98,
+        "sha256": "5beef0f5d302fb12666a7ce7ac1117654f854b8eed2924bb1a949e6a3bd31241"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-clippy.log",
+        "bytes": 203,
+        "sha256": "2a568ceabd040475a871bc38183115db02893d15f67c6c0f2c6116515b69f82f"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-schema.log",
+        "bytes": 199,
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-corpus.log",
+        "bytes": 701,
+        "sha256": "90ac0adb93e985ff7067d8568c9bbb46f24a6e4f39b02ddfda2cce61d07a6cd9"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-rust-format.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-gate-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-resumed-gate-python-lint.log",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-resumed-gate-tui.log",
+        "bytes": 198,
+        "sha256": "34bc280c634f650d3ccd3f0ead6a00a82c59e83557b1b41fc0b4ac6067712e29"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-complete-gate-gui.log",
+        "bytes": 15824,
+        "sha256": "903d2d4a0714bc7d95ed5ac872e9a80db6f4bc449898111e4c605a9df3aca9eb"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-atlas.log",
+        "bytes": 99,
+        "sha256": "cf1809e763b2b0147493c0c5ab7630e8d9f6cf76ca1a22aeda884de7f6bdc6a7"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-screen-review.log",
+        "bytes": 12079,
+        "sha256": "4ba87fe90955232103562d52907e43b8751f1b297c5f4d680e0294487db05a66"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-source-screen.log",
+        "bytes": 11570,
+        "sha256": "ca6a8bec96246d08da6aae5be55119a32ed498985806833653c9ff0d3c93ccc9"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-final-format.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-deploy.log",
+        "bytes": 192,
+        "sha256": "0df5cc72f931bc2cdd5494eae8a85ccb898175eb8ae1d1a27a9055dc3cf4e262"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-restart.log",
+        "bytes": 109,
+        "sha256": "ef6065561ee74dbebd0e7df26fff4146b0b910c68054fa0bfd06e238a7ee68b5"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-updated-riemann.log",
+        "bytes": 137,
+        "sha256": "e63e94bcc4971906dfe7d43e813a48ca0117ab6967c50f5c0e7948a66c8092c2"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-updated-ethlib.log",
+        "bytes": 380,
+        "sha256": "7a9ca1682c73e520904615e4889435805ac8b9b0f3215c0565231f304c52eade"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-cached-riemann.log",
+        "bytes": 135,
+        "sha256": "5d0f7f09dc3d4946b77935870018ef9a486f7b6c90e9196f708d16bb05a90676"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-cached-ethlib.log",
+        "bytes": 127,
+        "sha256": "5582b7bedda7c3a18e2d0197be89b5aa241048ad16c21a129b8638eb0368d3a1"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-restarted-riemann.log",
+        "bytes": 138,
+        "sha256": "ffacdcbd10346686a4c0d97b5c08ecce390c3a0583b59eeba063fa12719456a1"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-restarted-ethlib.log",
+        "bytes": 137,
+        "sha256": "3fdc83784c31b312a611e2809925ab4cdecf687c50b3455a70bc80c25bf8e645"
+      }
+    ],
+    "construction_diagnostics": [
+      {
+        "path": "/tmp/meden-generic-compiler-initial-plain-source-failure.log",
+        "bytes": 9111,
+        "sha256": "45bec36da4eaa43a31f79f0a9151ce2d333f2f641731f007ba96f9bd73dcf79f"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-local-source-check.log",
+        "bytes": 1521,
+        "sha256": "2e028e199d51fab464a8b3650925cf134e38c05d3a03c92896df040f7ff72104"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-local-clippy.log",
+        "bytes": 3346,
+        "sha256": "239d9474f62c1a9677d2e8f4a22b499a6ee3ed7834dcf62cd0f81886ce762143"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-old-copy-tui-failure.log",
+        "bytes": 37909,
+        "sha256": "f7f7c07e7d2eb11b9de1ad9134b7259d6d11c579557942b7a066c82c38e6b1a2"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-resumed-gate-gui.log",
+        "bytes": 15645,
+        "sha256": "8b4b5e146841e6171023acb171d9a56a4aee4fb205a6aff2f2e72429c7ebfdc5"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-orphan-port-failure.log",
+        "bytes": 232,
+        "sha256": "424ef184bcd6ed9edf4d5d3cbd6016c67bbf196e39f14b8e3156a8506e3248aa"
+      },
+      {
+        "path": "/tmp/meden-generic-compiler-updated-ethlib.log",
+        "bytes": 380,
+        "sha256": "7a9ca1682c73e520904615e4889435805ac8b9b0f3215c0565231f304c52eade"
+      }
+    ],
+    "diagnostic_scope": "The first public source test exposed a real model-worker coupling, fixed in production. Compiler diagnostics were fixed. Three full-gate failures then awaited retired copy; drivers were updated and the complete gate rerun. A GUI run stopped with exit 143 after 75 observed passes; the next launch refused its orphaned test listener. Only the confirmed test-owned listener was stopped, and a complete independent GUI gate was required. The first EthLib public UI capture then stopped on a Lake-only worker assertion although its frozen compiler correctly ran. Its original native metrics and complete artifacts are retained, without admitting a successful cold UI verdict or inventing client duration. Complete cached/restarted UI runs are required for both projects. No failed or interrupted run is counted as a pass.",
+    "reviewed_browser_screens": [
+      {
+        "path": "target/gui-generic-compiler-final-output/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png",
+        "sha256": "9fb97288f6ca30394790b5bebfd030a574193e574f5c07dba3676abad38f5575",
+        "scope": "Original source and prepared dependency graph visible after real Lake restart; quiet unapproved composer."
+      },
+      {
+        "path": "target/gui-generic-compiler-final-output/native-native-GUI-with-rea-98e8c-n-isolated-Lean-environment/metadata-update-reused-original-artifacts.png",
+        "sha256": "ce1f9bcebcd58f363a16c2080eb32d80c3e70bc3c76b95a0810f6f9fc403d42a",
+        "scope": "Original source and theorem locations visible after metadata-only update; this screenshot still has a graph spinner and is not counted as graph-ready evidence."
+      },
+      {
+        "path": "target/native-profile/generic-compiler-20261125/riemann-restarted-deployed.png",
+        "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274",
+        "scope": "Actual deployed prepared graph, highlighted original source and quiet retained chat after host restart. Full cached/restarted public UI checks pass."
+      },
+      {
+        "path": "target/native-profile/generic-compiler-20261125/ethlib-restarted-deployed.png",
+        "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846",
+        "scope": "Actual deployed prepared graph, highlighted original source and quiet retained chat after host restart. Full cached/restarted public UI checks pass."
+      }
+    ]
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "original_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80",
+        "search_id": "047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719",
+        "rendering_id": "1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "42b3ef1626609438bfcf0bef91234e0e35df4480d1dd90ea39be148c72c83599",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "3a99d738330060de1ba5463b3563fd3d5f12bff69329aa96cb8fb45766c01b45"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "ab519e3bed1b1440ab463b29ca4dcac97fec3efda370bffbc0d32490872e3280",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "c4c41b828dcf244deb2e5f274bac24c12a94e616842106cd37e43e84b2ef18a2",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "new_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3",
+        "search_id": "784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07",
+        "rendering_id": "da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "45192857de74faf6d95af224642cc4cabd84cd391ca349404209528947ff11e0",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "changed_checks": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.fmat_mul_inv",
+          "before": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"x\" (∀ (x : I.Gf), I.fmat x * I.fmat x⁻¹ = 1)))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          }
+        },
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": {
+            "engine": "Plausible",
+            "status": "unsupported",
+            "candidates": [],
+            "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"I\"\n      (∀ (I : Formalism.MainNotions.S.AutInst),\n        MedenPlausible.NamedBinder \"N\"\n          (∀ (N : ℕ),\n            MedenPlausible.NamedBinder \"hN\"\n              (0 < N →\n                MedenPlausible.NamedBinder \"a\"\n                  (∀ {a : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                    MedenPlausible.NamedBinder \"b\"\n                      (∀ {b : Fin I.n → TensorProduct I.F I.E (Formalism.MainNotions.S.Af I.F)},\n                        MedenPlausible.NamedBinder \"h\" (↑N • a = ↑N • b → a = b)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          }
+        },
+        {
+          "id": "PIW.AdelClassFin.mGen_of",
+          "before": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "Observation reached its wall-clock limit; no counterexample verdict is available."
+          },
+          "after": {
+            "engine": "Plausible",
+            "status": "budget_exhausted",
+            "candidates": [],
+            "diagnostic": "The file's observation budget was reached; no counterexample verdict is available."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "stage": "updated",
+          "ui_validation_complete": true,
+          "preparation_ms": 205824.29728499998,
+          "cache_hit": false,
+          "semantic_workers": [
+            {
+              "context": {
+                "trace": 164,
+                "span": 498
+              },
+              "parent": 176,
+              "name": "atlas.project.extract",
+              "start_us": 60064730,
+              "wall_us": 18652125,
+              "thread_cpu_us": 85619
+            },
+            {
+              "context": {
+                "trace": 164,
+                "span": 843
+              },
+              "parent": 836,
+              "name": "atlas.search",
+              "start_us": 91380794,
+              "wall_us": 121618696,
+              "thread_cpu_us": 530537
+            },
+            {
+              "context": {
+                "trace": 164,
+                "span": 2037
+              },
+              "parent": 176,
+              "name": "analysis.render",
+              "start_us": 232854649,
+              "wall_us": 10773797,
+              "thread_cpu_us": 621284
+            }
+          ],
+          "source_changes": 3,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-updated-riemann-fidelity.json",
+            "bytes": 7958,
+            "sha256": "c79245bf926d757bf6204d817d997703e948970b3499b726c3c14b14c9457610"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-updated-metrics.json",
+            "bytes": 493189,
+            "sha256": "0b000c4f58e3e6cbb1fd517c5b22a67b72f9bcb1356cb2647d446e6f2a0e00b6"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-updated-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        },
+        {
+          "stage": "cached",
+          "ui_validation_complete": true,
+          "preparation_ms": 12026.106206999999,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "source_changes": 3,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-cached-riemann-fidelity.json",
+            "bytes": 6501,
+            "sha256": "87e326a27424b23d301e4eaf9c3251f27f42dc9dec0c67d1bf6125b43842d20a"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-cached-metrics.json",
+            "bytes": 574312,
+            "sha256": "3ac3bda009df7a709dee8c939b4e06170b74e3ec9bd48422a6471eb9a4dbcc62"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-cached-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        },
+        {
+          "stage": "restarted",
+          "ui_validation_complete": true,
+          "preparation_ms": 13280.786800999998,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "source_changes": 3,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-restarted-riemann-fidelity.json",
+            "bytes": 7218,
+            "sha256": "ce2fc6b70a8278025d4d8d63750000a4564c4f647927dc8241274866cd56f008"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-restarted-metrics.json",
+            "bytes": 109968,
+            "sha256": "efe9bfad06e7d8327d2af9d4f2d952cbf000255a0b68ee709b48445dbdc476af"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/riemann-restarted-deployed.png",
+            "bytes": 194885,
+            "sha256": "9467a34862b3431aa1f46fd51b353cfeeeddc87670d71b3b5a703834f7cc0274"
+          }
+        }
+      ]
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "original_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7",
+        "search_id": "f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480",
+        "rendering_id": "db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "d0243bc4b3ac29e6506be4e45e6bd1999376f980529454270225fb5c37473753",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "3a99d738330060de1ba5463b3563fd3d5f12bff69329aa96cb8fb45766c01b45"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "ab519e3bed1b1440ab463b29ca4dcac97fec3efda370bffbc0d32490872e3280",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "c4c41b828dcf244deb2e5f274bac24c12a94e616842106cd37e43e84b2ef18a2",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "new_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1",
+        "search_id": "bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff",
+        "rendering_id": "543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "dad2b26bf4209d73c57df82a5e4d3c5e1b2cc50603414d393cc2715367db3949",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "96f52d1051ad2016f9812afda3ee7753b1267a5861071d7e4f8e47cbf76fb9ce",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "changed_checks": [],
+      "stages": [
+        {
+          "stage": "updated",
+          "ui_validation_complete": false,
+          "native_extraction_ms": 48818.576,
+          "initial_capture_scope": "Actual first native preparation and complete captured source/cache artifacts. The public UI harness stopped at an incorrect Lake-only worker-count assertion after capturing these bytes. No successful cold UI verdict or client preparation duration is claimed; complete cached/restarted UI runs are required.",
+          "cache_hit": false,
+          "semantic_workers": [
+            {
+              "context": {
+                "trace": 340,
+                "span": 592
+              },
+              "parent": 352,
+              "name": "atlas.compile",
+              "start_us": 43212364,
+              "wall_us": 976533,
+              "thread_cpu_us": 56149
+            },
+            {
+              "context": {
+                "trace": 340,
+                "span": 720
+              },
+              "parent": 711,
+              "name": "atlas.search",
+              "start_us": 51976167,
+              "wall_us": 18518758,
+              "thread_cpu_us": 102545
+            },
+            {
+              "context": {
+                "trace": 340,
+                "span": 928
+              },
+              "parent": 352,
+              "name": "analysis.render",
+              "start_us": 71067471,
+              "wall_us": 14651820,
+              "thread_cpu_us": 886856
+            }
+          ],
+          "source_changes": 0,
+          "original_artifacts_retained": true,
+          "native_ring_evicted": 0,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-updated-ethlib-fidelity.json",
+            "bytes": 3921,
+            "sha256": "774391c64b51747414b0bc9a4c69066f358f04d0ff5e73b60ccc551ffb366ed5"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-updated-metrics.json",
+            "bytes": 273850,
+            "sha256": "eddebc1fb6c21d6aabf12c5c794d7249484e451da613ba08d2b44c058f511049"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-updated-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        },
+        {
+          "stage": "cached",
+          "ui_validation_complete": true,
+          "preparation_ms": 2000.269006,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "source_changes": 0,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-cached-ethlib-fidelity.json",
+            "bytes": 3798,
+            "sha256": "3afb6f8c102b5833b46f8dd8f642d0fbf4f838c88357a37a895aa41693351523"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-cached-metrics.json",
+            "bytes": 310835,
+            "sha256": "61a4ee425ef3a4641e020dd27c9c203b96bf6d024bdd1715da3b2345f22f59bc"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-cached-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        },
+        {
+          "stage": "restarted",
+          "ui_validation_complete": true,
+          "preparation_ms": 2107.6503629999997,
+          "cache_hit": true,
+          "semantic_workers": [],
+          "source_changes": 0,
+          "exact_original_nonsearch_data": true,
+          "exact_original_physical_inputs_raw_graph_and_renderer": true,
+          "original_artifacts_retained": true,
+          "quiet_chat": true,
+          "map_and_graph_cameras_preserved": true,
+          "node_selection_original_source_line": true,
+          "explicit_file_inspections": 1,
+          "no_job_or_preview_request": true,
+          "native_ring_evicted": 0,
+          "page_errors": [],
+          "running": false,
+          "authorized": false,
+          "raw": {
+            "path": "/tmp/meden-generic-compiler-restarted-ethlib-fidelity.json",
+            "bytes": 4216,
+            "sha256": "63a54032b440bbfe93b130b893c6efad19c0c2a00aa3dafc37a7133f8d86768f"
+          },
+          "capture": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-restarted-metrics.json",
+            "bytes": 115361,
+            "sha256": "65be0e2202b1f196f151e19821e30e6267685cc8fd4eb54caa4539261c0a8bf9"
+          },
+          "screenshot": {
+            "path": "target/native-profile/generic-compiler-20261125/ethlib-restarted-deployed.png",
+            "bytes": 206718,
+            "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+          }
+        }
+      ]
+    }
+  ],
+  "warm_native_profile": [
+    {
+      "project": "riemann",
+      "trace": 2291,
+      "extract_wall_ms": 11718.124,
+      "spans": [
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2294
+          },
+          "parent": 2292,
+          "name": "gui.job",
+          "start_us": 290049404,
+          "wall_us": 11912083,
+          "thread_cpu_us": 1415894
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2304
+          },
+          "parent": 2294,
+          "name": "analysis.extract",
+          "start_us": 290113058,
+          "wall_us": 11718124,
+          "thread_cpu_us": 1324814
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2484
+          },
+          "parent": 2304,
+          "name": "atlas.project.fingerprint",
+          "start_us": 296891726,
+          "wall_us": 4325138,
+          "thread_cpu_us": 55756
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2443
+          },
+          "parent": 2304,
+          "name": "atlas.project.query",
+          "start_us": 292681533,
+          "wall_us": 4209950,
+          "thread_cpu_us": 74318
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2498
+          },
+          "parent": 2484,
+          "name": "process.run",
+          "start_us": 297383683,
+          "wall_us": 3832314,
+          "thread_cpu_us": 16327
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2454
+          },
+          "parent": 2443,
+          "name": "process.run",
+          "start_us": 293243737,
+          "wall_us": 3646414,
+          "thread_cpu_us": 22668
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2315
+          },
+          "parent": 2304,
+          "name": "analysis.select_roots",
+          "start_us": 290244793,
+          "wall_us": 2105617,
+          "thread_cpu_us": 738579
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2318
+          },
+          "parent": 2315,
+          "name": "analysis.discover_layout",
+          "start_us": 290286662,
+          "wall_us": 2021936,
+          "thread_cpu_us": 736059
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2444
+          },
+          "parent": 2443,
+          "name": "sandbox.prepare",
+          "start_us": 292681588,
+          "wall_us": 561856,
+          "thread_cpu_us": 50060
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2485
+          },
+          "parent": 2484,
+          "name": "sandbox.prepare",
+          "start_us": 296891771,
+          "wall_us": 488672,
+          "thread_cpu_us": 35323
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2549
+          },
+          "parent": 2304,
+          "name": "analysis.cache.validate",
+          "start_us": 301247754,
+          "wall_us": 379483,
+          "thread_cpu_us": 51735
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2445
+          },
+          "parent": 2444,
+          "name": "process.run",
+          "start_us": 292681953,
+          "wall_us": 363902,
+          "thread_cpu_us": 1734
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2486
+          },
+          "parent": 2485,
+          "name": "process.run",
+          "start_us": 296892233,
+          "wall_us": 333754,
+          "thread_cpu_us": 1623
+        },
+        {
+          "context": {
+            "trace": 2291,
+            "span": 2552
+          },
+          "parent": 2549,
+          "name": "analysis.metadata.validate",
+          "start_us": 301287806,
+          "wall_us": 297175,
+          "thread_cpu_us": 10732
+        }
+      ],
+      "scope": "One actual warm public file inspection; nested intervals overlap. Thread CPU excludes worker CPU. Not a comparative benchmark."
+    },
+    {
+      "project": "ethlib",
+      "trace": 1290,
+      "extract_wall_ms": 933.648,
+      "spans": [
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1293
+          },
+          "parent": 1291,
+          "name": "gui.job",
+          "start_us": 263487959,
+          "wall_us": 1703479,
+          "thread_cpu_us": 736991
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1301
+          },
+          "parent": 1293,
+          "name": "analysis.extract",
+          "start_us": 263540480,
+          "wall_us": 933648,
+          "thread_cpu_us": 475958
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1316
+          },
+          "parent": 1301,
+          "name": "analysis.cache.validate",
+          "start_us": 263740599,
+          "wall_us": 488229,
+          "thread_cpu_us": 53312
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1368
+          },
+          "parent": 1293,
+          "name": "analysis.cache.validate",
+          "start_us": 264605792,
+          "wall_us": 458592,
+          "thread_cpu_us": 54218
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1319
+          },
+          "parent": 1316,
+          "name": "analysis.metadata.validate",
+          "start_us": 263780318,
+          "wall_us": 407249,
+          "thread_cpu_us": 12938
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1371
+          },
+          "parent": 1368,
+          "name": "analysis.metadata.validate",
+          "start_us": 264645927,
+          "wall_us": 376924,
+          "thread_cpu_us": 13142
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1355
+          },
+          "parent": 1301,
+          "name": "analysis.search",
+          "start_us": 264382166,
+          "wall_us": 68332,
+          "thread_cpu_us": 68008
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1328
+          },
+          "parent": 1319,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 263925063,
+          "wall_us": 61748,
+          "thread_cpu_us": 1231
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1329
+          },
+          "parent": 1328,
+          "name": "process.run",
+          "start_us": 263925329,
+          "wall_us": 60979,
+          "thread_cpu_us": 468
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1338
+          },
+          "parent": 1319,
+          "name": "analysis.metadata.file_batch",
+          "start_us": 264132561,
+          "wall_us": 54415,
+          "thread_cpu_us": 3868
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1389
+          },
+          "parent": 1371,
+          "name": "analysis.metadata.file_batch",
+          "start_us": 264968161,
+          "wall_us": 54108,
+          "thread_cpu_us": 3593
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1295
+          },
+          "parent": 1293,
+          "name": "gui.reader_prepare",
+          "start_us": 263487984,
+          "wall_us": 52447,
+          "thread_cpu_us": 1784
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1385
+          },
+          "parent": 1371,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 264864302,
+          "wall_us": 52234,
+          "thread_cpu_us": 1686
+        },
+        {
+          "context": {
+            "trace": 1290,
+            "span": 1332
+          },
+          "parent": 1319,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 263986904,
+          "wall_us": 51782,
+          "thread_cpu_us": 1203
+        }
+      ],
+      "scope": "One actual warm public file inspection; nested intervals overlap. Thread CPU excludes worker CPU. Not a comparative benchmark."
+    }
+  ],
+  "deployment": {
+    "binary_sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2",
+    "assets_sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4",
+    "files": 88,
+    "actual_host_restart": true,
+    "final_fidelity": [
+      {
+        "project": "riemann",
+        "binary_sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2",
+        "exact_complete_restarted_views": true,
+        "exact_new_cache_chain": true,
+        "original_history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false,
+        "records": [
+          {
+            "name": "source",
+            "bytes": 67994,
+            "sha256": "93ee382b47ba364fc6855626ae17f29d1c7bb1037882d9bb96acf0d20174db41"
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017593,
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "bytes": 13853,
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "binary_sha256": "360c4ac814e817e3f9c28b1876e8f77c11f861622b1e4d39281348a1d0f9dec2",
+        "exact_complete_restarted_views": true,
+        "exact_new_cache_chain": true,
+        "original_history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false,
+        "records": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "bcc17d9e158c1255e996680a4e8d87072a5ed72211b2a29b652714721e4d95cf"
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "bytes": 7308199,
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "bytes": 1516,
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Generic Rust output types and content correspondence checks establish neither plugin truth nor physical I/O provenance or evidence authority. Original policy/worker/kernel admission checks remain necessary.",
+    "The finite decoder/projection conformance fixture validates real bounded contract data but invokes no physical compiler or solver. It is not a new tool/backend integration.",
+    "Compiler and search definitions capture changed implementation/schema bytes. New bound artifacts are prepared once; no old result is stamped with a new method. Newly executed wall-budgeted search diagnostics may differ and are retained as observed.",
+    "Actual-project timings are functional observations with existing project/OS caches and concurrent project work. Nested spans overlap and current-thread CPU excludes worker CPU; this is not a performance A/B or a cold-start percentile claim.",
+    "No new Lean refinement, cold installation, live-model quality, large/local-model deployment or confidentiality claim.",
+    "Native compiler composition, semantic orchestration, search/cache, repair, prepared module ownership, remaining waits and complete retirement work remain open."
+  ]
+}

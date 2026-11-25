@@ -169,6 +169,21 @@ export function compilerEntryViolations(source) {
     : [];
 }
 
+// Owned common observation modules must not interpret a concrete backend AST.
+// This small dependency/field guard is not a Rust parser or alias-proof proof.
+export function neutralObservationViolations(source) {
+  const production = source
+    .split("#[cfg(test)]")[0]
+    .split("\n")
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join("\n");
+  return /\b(?:atlas|lean|lake)::|\.(?:atlas|collection|lean_version)\b/.test(
+    production,
+  )
+    ? ["common source/compiler/view observations must not own a backend AST"]
+    : [];
+}
+
 export function programFor(files, virtual = new Map()) {
   const options = {
     target: ts.ScriptTarget.ES2022,
@@ -223,6 +238,17 @@ export function check() {
       readFileSync(resolve(root, "crates/meden-app/src/atlas/mod.rs"), "utf8"),
     ),
   );
+  for (const path of [
+    "crates/meden-app/src/compiler.rs",
+    "crates/meden-app/src/analysis/sources.rs",
+    "crates/meden-app/src/view.rs",
+    "crates/meden-app/src/view/sources.rs",
+  ])
+    errors.push(
+      ...neutralObservationViolations(
+        readFileSync(resolve(root, path), "utf8"),
+      ).map((error) => `${path}: ${error}`),
+    );
   const packages = Object.entries(pure).map(([name, allowed]) => ({
     root: resolve(root, "packages", name),
     allowed,

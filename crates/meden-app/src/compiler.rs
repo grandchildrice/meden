@@ -1,9 +1,10 @@
 //! Decoded compiler role. Results are observations; no cache state or plugin
 //! registration accepts a contract, grants I/O or admits verification evidence.
-use crate::{adapters::Context, analysis::sources::Snapshot};
+use crate::{adapters::Context, analysis::sources};
 use anyhow::Result;
 use meden_runtime::plugin::{Descriptor, Role};
 use std::collections::BTreeMap;
+use std::marker::PhantomData;
 
 /// An owned selection from an explicit application command.
 #[derive(Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema)]
@@ -12,11 +13,29 @@ pub struct Request {
 }
 
 /// Original request and definition, frozen by host registration before dispatch.
-pub struct Invocation {
+/// A result from another decoded backend type cannot replace this invocation:
+/// ```compile_fail,E0308
+/// use meden_app::compiler::{Compiled, Invocation, Observation};
+/// fn wrong<A: Observation, B: Observation>(call: Invocation<A>, data: B) -> Compiled<A> {
+///     call.observe(data)
+/// }
+/// ```
+/// Matching decoded values retain their original type:
+/// ```
+/// use meden_app::compiler::{Compiled, Invocation, Observation};
+/// fn matching<O: Observation>(call: Invocation<O>, data: O) -> Compiled<O> { call.observe(data) }
+/// ```
+/// Reading sources alone does not produce a compiler observation:
+/// ```compile_fail
+/// use meden_app::{analysis::sources::Snapshot, compiler::{Compiled, Invocation}};
+/// fn wrong(call: Invocation<Snapshot>, raw: Snapshot) -> Compiled<Snapshot> { call.observe(raw) }
+/// ```
+pub struct Invocation<O> {
+    observation: PhantomData<fn() -> O>,
     request: Request,
     definition: Descriptor,
 }
-impl Invocation {
+impl<O: Observation> Invocation<O> {
     /// The original host source selection.
     pub fn paths(&self) -> &[String] {
         self.request.paths()
@@ -27,7 +46,7 @@ impl Invocation {
     }
     /// Attribute newly decoded data to this original invocation. Cached results
     /// use the checked restoration path instead of being relabelled here.
-    pub fn observe(self, snapshot: Snapshot) -> Compiled {
+    pub fn observe(self, snapshot: O) -> Compiled<O> {
         Compiled {
             reused: false,
             definition: self.definition,
@@ -37,9 +56,9 @@ impl Invocation {
     }
     pub(crate) fn restore(
         &self,
-        snapshot: Snapshot,
+        snapshot: O,
         definition: &serde_json::Value,
-    ) -> Result<Compiled> {
+    ) -> Result<Compiled<O>> {
         anyhow::ensure!(
             *definition == serde_json::to_value(&self.definition)?,
             "Cached compiler definition differs from its invocation"
@@ -55,17 +74,20 @@ impl Invocation {
 
 /// Completed observation attributed only to the originally selected compiler.
 /// Neither its binding nor its snapshot can be replaced by a consumer.
-pub struct Compiled {
+pub struct Compiled<O> {
     reused: bool,
     definition: Descriptor,
     request: Request,
-    snapshot: Snapshot,
+    snapshot: O,
 }
-impl Compiled {
-    pub(crate) fn reused(&self) -> bool {
+impl<O> Compiled<O> {
+    /// Whether this original bound observation came through checked restoration.
+    pub fn reused(&self) -> bool {
         self.reused
     }
-    pub(crate) fn into_parts(self) -> (Descriptor, Snapshot) {
+    /// Consume the original method/output pair. These are observations, never
+    /// an evidence receipt or permission to run another operation.
+    pub fn into_parts(self) -> (Descriptor, O) {
         (self.definition, self.snapshot)
     }
 }
@@ -75,8 +97,8 @@ pub fn input_schema() -> Result<serde_json::Value> {
     Ok(serde_json::to_value(schemars::schema_for!(Request))?)
 }
 /// Decoded observation shape; this cannot carry an evidence receipt.
-pub fn output_schema() -> Result<serde_json::Value> {
-    Ok(serde_json::to_value(schemars::schema_for!(Snapshot))?)
+pub fn output_schema<O: Observation>() -> Result<serde_json::Value> {
+    Ok(serde_json::to_value(schemars::schema_for!(O))?)
 }
 impl Request {
     /// Bound the request before dispatch. Empty selects configured project roots.
@@ -102,20 +124,36 @@ impl Request {
     }
 }
 
+/// A decoded backend-owned result. The shared port checks original sources;
+/// the backend owns its AST, completeness and compiler-only observation checks.
+/// These checks do not admit evidence or establish physical I/O provenance.
+pub trait Observation:
+    sources::Source + serde::Serialize + schemars::JsonSchema + Send + Sync
+{
+    /// Validate this backend's complete decoded compiler observation.
+    fn validate(&self) -> Result<()>;
+}
+
 /// Host-selected typed compiler implementation. The role never receives shell
 /// commands, a model-selected executable or an evidence-admission callback.
 pub trait Compiler: Send + Sync {
+    /// Backend-owned decoded output; no universal prover AST is required.
+    type Output: Observation;
     /// Actual implementation, configuration, resource and typed schema identity.
     fn descriptor(&self) -> Result<Descriptor>;
     /// Consume the original source request and return a complete decoded result.
-    fn compile(&self, context: &Context<'_>, request: Invocation) -> Result<Compiled>;
+    fn compile(
+        &self,
+        context: &Context<'_>,
+        request: Invocation<Self::Output>,
+    ) -> Result<Compiled<Self::Output>>;
 }
 
-struct Installed {
-    compiler: Box<dyn Compiler>,
+struct Installed<O> {
+    compiler: Box<dyn Compiler<Output = O>>,
     definition: Descriptor,
 }
-impl Installed {
+impl<O: Observation> Installed<O> {
     fn current(&self) -> Result<()> {
         anyhow::ensure!(
             self.compiler.descriptor()? == self.definition,
@@ -126,11 +164,11 @@ impl Installed {
 }
 
 /// Immutable selected registration, distinct from model/workspace configuration.
-pub struct Registration<'a> {
+pub struct Registration<'a, O> {
     id: &'a str,
-    installed: &'a Installed,
+    installed: &'a Installed<O>,
 }
-impl Registration<'_> {
+impl<O: Observation> Registration<'_, O> {
     /// Stable host registration key; not a verification/checker identity.
     pub fn id(&self) -> &str {
         self.id
@@ -140,14 +178,14 @@ impl Registration<'_> {
         &self.installed.definition
     }
     /// Consume the original request through the retained host implementation.
-    pub fn compile(self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+    pub fn compile(self, context: &Context<'_>, request: Request) -> Result<Compiled<O>> {
         self.dispatch(request, |compiler, input| compiler.compile(context, input))
     }
     fn dispatch(
         self,
         request: Request,
-        call: impl FnOnce(&dyn Compiler, Invocation) -> Result<Compiled>,
-    ) -> Result<Compiled> {
+        call: impl FnOnce(&dyn Compiler<Output = O>, Invocation<O>) -> Result<Compiled<O>>,
+    ) -> Result<Compiled<O>> {
         self.installed.current()?;
         let selected = request
             .paths()
@@ -159,6 +197,7 @@ impl Registration<'_> {
         let output = call(
             self.installed.compiler.as_ref(),
             Invocation {
+                observation: PhantomData,
                 request,
                 definition: definition.clone(),
             },
@@ -169,35 +208,36 @@ impl Registration<'_> {
             "Compiler returned an observation from another invocation"
         );
         let snapshot = &output.snapshot;
+        snapshot.sources().validate()?;
         anyhow::ensure!(
-            selected.iter().all(|p| snapshot.files.contains_key(p)),
+            selected
+                .iter()
+                .all(|p| snapshot.sources().files.contains_key(p)),
             "Compiler observation omitted an originally selected source"
         );
-        anyhow::ensure!(
-            snapshot.atlas.is_some(),
-            "Compiler did not produce a compiled observation"
-        );
-        anyhow::ensure!(
-            snapshot.atlas.as_ref().is_some_and(|g| g
-                .graph
-                .nodes
-                .iter()
-                .all(|n| n.semantic.as_ref().is_none_or(|s| s.checker.is_none()))),
-            "Compiler returned a search observation"
-        );
-        crate::view::SourcePage::validate_compilation(snapshot)?;
+        snapshot.validate()?;
         Ok(output)
     }
 }
 
 /// Explicit host registry. It is never deserialized from repository/model data.
-#[derive(Default)]
-pub struct Registry {
-    compilers: BTreeMap<String, Installed>,
+pub struct Registry<O> {
+    compilers: BTreeMap<String, Installed<O>>,
 }
-impl Registry {
+impl<O> Default for Registry<O> {
+    fn default() -> Self {
+        Self {
+            compilers: BTreeMap::new(),
+        }
+    }
+}
+impl<O: Observation> Registry<O> {
     /// Register once. Replacements and unbounded/malformed IDs are refused.
-    pub fn register(&mut self, id: &str, compiler: impl Compiler + 'static) -> Result<()> {
+    pub fn register(
+        &mut self,
+        id: &str,
+        compiler: impl Compiler<Output = O> + 'static,
+    ) -> Result<()> {
         anyhow::ensure!(
             !id.is_empty()
                 && id.len() <= 128
@@ -219,7 +259,7 @@ impl Registry {
             definition.role() == Role::Compiler
                 && definition.id() == id
                 && definition.accepts_schema(&input_schema()?)?
-                && definition.accepts_output_schema(&output_schema()?)?,
+                && definition.accepts_output_schema(&output_schema::<O>()?)?,
             "Compiler definition does not match its typed role"
         );
         self.compilers.insert(
@@ -236,14 +276,14 @@ impl Registry {
     ///
     /// ```compile_fail,E0505
     /// use meden_app::compiler::Registry;
-    /// fn keep_original(registry: Registry) -> anyhow::Result<()> {
+    /// fn keep_original<O: meden_app::compiler::Observation>(registry: Registry<O>) -> anyhow::Result<()> {
     ///     let selected = registry.select("installed.compiler")?;
     ///     drop(registry);
     ///     println!("{}", selected.id());
     ///     Ok(())
     /// }
     /// ```
-    pub fn select(&self, id: &str) -> Result<Registration<'_>> {
+    pub fn select(&self, id: &str) -> Result<Registration<'_, O>> {
         let (id, installed) = self
             .compilers
             .get_key_value(id)
@@ -254,234 +294,4 @@ impl Registry {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use sha2::Digest as _;
-    struct Unsupported;
-    impl Compiler for Unsupported {
-        fn descriptor(&self) -> Result<Descriptor> {
-            definition("compiler.selected", Role::Compiler, 0)
-        }
-        fn compile(&self, _: &Context<'_>, _: Invocation) -> Result<Compiled> {
-            anyhow::bail!("unsupported fixture")
-        }
-    }
-    fn definition(id: &str, role: Role, version: usize) -> Result<Descriptor> {
-        Ok(Descriptor::new(meden_runtime::plugin::Definition {
-            id,
-            role,
-            version: "1",
-            formats: vec!["fixture".into()],
-            implementation: b"fixture compiler",
-            configuration: serde_json::json!({"version":version}),
-            input: input_schema()?,
-            output: output_schema()?,
-        })?)
-    }
-
-    #[test]
-    fn registration_requires_a_known_unique_host_key() -> Result<()> {
-        let mut registry = Registry::default();
-        assert!(registry.select("not.installed").is_err());
-        for invalid in ["", "../tool", "command --execute", "provider:unselected"] {
-            assert!(registry.register(invalid, Unsupported).is_err());
-        }
-        registry.register("compiler.selected", Unsupported)?;
-        assert!(registry.register("compiler.selected", Unsupported).is_err());
-        assert_eq!(
-            registry.select("compiler.selected")?.id(),
-            "compiler.selected"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn decoded_selection_is_bounded_and_keeps_exact_original_paths() -> Result<()> {
-        let input = vec!["Nested/Source.lean".into()];
-        assert_eq!(Request::new(input.clone())?.paths(), input);
-        assert!(Request::new(Vec::new()).is_ok());
-        assert!(Request::new(vec![String::new()]).is_err());
-        assert!(Request::new(vec!["bad\0path".into()]).is_err());
-        assert!(Request::new(vec!["x".repeat(4097)]).is_err());
-        assert!(Request::new(vec!["Source.lean".into(); 33]).is_err());
-        assert!(Request::new(vec!["Source.lean".into(); 2]).is_err());
-        Ok(())
-    }
-
-    struct Changing {
-        phase: std::sync::Arc<std::sync::atomic::AtomicUsize>,
-        role: Role,
-    }
-    impl Compiler for Changing {
-        fn descriptor(&self) -> Result<Descriptor> {
-            definition(
-                "fixture.compiler",
-                self.role,
-                self.phase.load(std::sync::atomic::Ordering::SeqCst),
-            )
-        }
-        fn compile(&self, _: &Context<'_>, _: Invocation) -> Result<Compiled> {
-            anyhow::bail!("Unit fixture has no physical compiler")
-        }
-    }
-    fn observed() -> Result<Snapshot> {
-        let files = BTreeMap::from([("Spec.lean".into(), "def value : Nat := 1\n".into())]);
-        Ok(Snapshot {
-            revision: crate::identity::snapshots::SourceRevision::from_digest(
-                sha2::Sha256::digest(serde_json::to_vec(&files)?),
-            ),
-            files,
-            collection: None,
-            atlas: Some(serde_json::from_value(serde_json::json!({
-                "revision":format!("sha256:{}", "1".repeat(64)), "upstream":"fixture", "resources_sha256":"fixture",
-                "graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":"value","shortName":"value","kind":"definition","filePath":"Spec.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"Nat","value":"1","axioms":[],"standardAxioms":[],"externalDependencies":[]}],"edges":[],"externalReferences":[]}
-            }))?),
-        })
-    }
-    #[test]
-    fn original_definition_is_required_before_and_after_dispatch() -> Result<()> {
-        use std::sync::{
-            atomic::{AtomicUsize, Ordering},
-            Arc,
-        };
-        let phase = Arc::new(AtomicUsize::new(0));
-        let mut registry = Registry::default();
-        assert!(registry
-            .register(
-                "fixture.compiler",
-                Changing {
-                    phase: phase.clone(),
-                    role: Role::Verifier
-                }
-            )
-            .is_err());
-        registry.register(
-            "fixture.compiler",
-            Changing {
-                phase: phase.clone(),
-                role: Role::Compiler,
-            },
-        )?;
-        let selected = registry.select("fixture.compiler")?;
-        let original = selected.definition().clone();
-        phase.store(1, Ordering::SeqCst);
-        assert!(registry.select("fixture.compiler").is_err());
-        let calls = AtomicUsize::new(0);
-        assert!(selected
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, input| {
-                calls.fetch_add(1, Ordering::SeqCst);
-                Ok(input.observe(observed()?))
-            })
-            .is_err());
-        assert_eq!(calls.load(Ordering::SeqCst), 0);
-        phase.store(0, Ordering::SeqCst);
-        assert!(registry
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, input| {
-                assert_eq!(input.paths(), &["Spec.lean"]);
-                assert_eq!(input.definition(), &original);
-                phase.store(2, Ordering::SeqCst);
-                Ok(input.observe(observed()?))
-            })
-            .is_err());
-        phase.store(0, Ordering::SeqCst);
-        let output = registry
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, input| {
-                Ok(input.observe(observed()?))
-            })?;
-        assert_eq!(output.into_parts().0, original);
-        assert!(registry
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Other.lean".into()])?, |_, input| Ok(
-                input.observe(observed()?)
-            ))
-            .is_err());
-        Ok(())
-    }
-
-    struct WrongSchema {
-        output: bool,
-    }
-    impl Compiler for WrongSchema {
-        fn descriptor(&self) -> Result<Descriptor> {
-            Ok(Descriptor::new(meden_runtime::plugin::Definition {
-                id: "wrong.schema",
-                role: Role::Compiler,
-                version: "1",
-                formats: vec!["fixture".into()],
-                implementation: b"fixture",
-                configuration: serde_json::json!({}),
-                input: if self.output {
-                    input_schema()?
-                } else {
-                    serde_json::json!({"type":"string"})
-                },
-                output: if self.output {
-                    serde_json::json!({"type":"string"})
-                } else {
-                    output_schema()?
-                },
-            })?)
-        }
-        fn compile(&self, _: &Context<'_>, _: Invocation) -> Result<Compiled> {
-            anyhow::bail!("Wrong schema must not dispatch")
-        }
-    }
-    #[test]
-    fn both_port_schemas_are_checked_before_installation() {
-        for output in [false, true] {
-            assert!(Registry::default()
-                .register("wrong.schema", WrongSchema { output })
-                .is_err());
-        }
-    }
-
-    #[test]
-    fn a_completed_observation_from_another_invocation_cannot_be_relabelled() -> Result<()> {
-        use std::sync::{atomic::AtomicUsize, Arc};
-        let install = |phase| -> Result<Registry> {
-            let mut registry = Registry::default();
-            registry.register(
-                "fixture.compiler",
-                Changing {
-                    phase: Arc::new(AtomicUsize::new(phase)),
-                    role: Role::Compiler,
-                },
-            )?;
-            Ok(registry)
-        };
-        let original = install(0)?;
-        let replacement = install(1)?;
-        let foreign = replacement
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, input| {
-                Ok(input.observe(observed()?))
-            })?;
-        assert!(original
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, _| Ok(foreign))
-            .is_err());
-        let other_request = original
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["./Spec.lean".into()])?, |_, input| {
-                Ok(input.observe(observed()?))
-            })?;
-        assert!(original
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, _| Ok(
-                other_request
-            ))
-            .is_err());
-        let different_definition = replacement.select("fixture.compiler")?.definition().clone();
-        assert!(original
-            .select("fixture.compiler")?
-            .dispatch(Request::new(vec!["Spec.lean".into()])?, |_, input| input
-                .restore(
-                    observed()?,
-                    &serde_json::to_value(&different_definition)?
-                ))
-            .is_err());
-        Ok(())
-    }
-}
+mod tests;

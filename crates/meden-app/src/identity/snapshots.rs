@@ -141,7 +141,7 @@ mod tests {
         let mut bad = source;
         *bad.get_mut("revision").unwrap() = json!(digest);
         assert!(serde_json::from_value::<Snapshot>(bad).is_err());
-        let schema = crate::compiler::output_schema()?;
+        let schema = crate::compiler::output_schema::<crate::adapters::lean::Snapshot>()?;
         assert_eq!(
             schema.pointer("/properties/revision/pattern"),
             Some(&json!("^sha256:[a-f0-9]{64}$"))
@@ -174,9 +174,9 @@ mod tests {
             let files = BTreeMap::from([("Spec.rs".to_owned(),text)]);
             let old = format!("sha256:{}", crate::atlas::digest(&serde_json::to_vec(&files).unwrap()));
             let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files).unwrap()));
-            let snapshot = Snapshot {revision: revision.clone(), files: files.clone(), atlas:None, collection:None};
+            let snapshot = Snapshot {revision: revision.clone(), files: files.clone()};
             prop_assert_eq!(serde_json::to_value(&snapshot).unwrap(), json!({"revision":old,"files":files}));
-            let mut page = SourcePage::from_snapshot(&snapshot).unwrap();
+            let mut page = SourcePage::from_snapshot(&crate::adapters::lean::Snapshot::source_only(snapshot)).unwrap();
             prop_assert_eq!(page.revision.as_str(), &old);
             prop_assert_eq!(page.graph.as_ref().unwrap().revision.as_str(), &old);
             page.revision = SourceRevision::from_digest(Sha256::digest(b"another complete input"));

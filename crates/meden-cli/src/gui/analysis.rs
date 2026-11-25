@@ -13,7 +13,7 @@ pub(super) fn run(
         view.sources
             .file(&input.target.file)
             .filter(|snapshot| {
-                snapshot.revision == input.source_revision
+                snapshot.source.revision == input.source_revision
                     && snapshot.atlas.as_ref().map(|a| &a.revision) == input.graph_revision.as_ref()
             })
             .map(|snapshot| snapshot.snapshot().clone())

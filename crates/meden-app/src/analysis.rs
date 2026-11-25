@@ -17,6 +17,22 @@ pub mod observe;
 pub mod repair;
 pub mod sources;
 
+/// Explicit local source observation. Inference approval is unrelated to this
+/// policy-bound read/compilation service; host adapters choose preparation.
+pub fn read_sources(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+    compiled: bool,
+) -> Result<crate::adapters::lean::Snapshot> {
+    if compiled {
+        extract(workspace, control, paths)
+    } else {
+        sources::capture(workspace, control, paths)
+            .map(crate::adapters::lean::Snapshot::source_only)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum State {
@@ -120,7 +136,7 @@ pub fn extract(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
-) -> Result<sources::Snapshot> {
+) -> Result<crate::adapters::lean::Snapshot> {
     Ok(extract_cached(workspace, control, paths, None)?.0)
 }
 
@@ -129,7 +145,7 @@ pub fn extract_cached(
     control: &Control,
     paths: &[String],
     observer: Option<crate::adapters::Observer>,
-) -> Result<(sources::Snapshot, bool)> {
+) -> Result<(crate::adapters::lean::Snapshot, bool)> {
     let _timing = meden_runtime::metrics::Span::start("analysis.extract");
     let context = crate::adapters::Context {
         workspace,
@@ -184,13 +200,13 @@ pub fn run(
     gateway: &dyn Model,
     judge: Option<&dyn Model>,
     control: &Control,
-    snapshot: &sources::Snapshot,
+    snapshot: &crate::adapters::lean::Snapshot,
     input: Input,
     notify: &dyn Fn(&Record),
 ) -> Result<Record> {
     let prepared = Prepared::new(
         input.clone(),
-        snapshot.files.clone(),
+        snapshot.source.files.clone(),
         snapshot.atlas.as_ref(),
     )?;
     let source_artifact = journal::retain_sources(workspace.path(), snapshot)?;
@@ -280,12 +296,12 @@ pub fn run(
 fn observe(
     workspace: &Workspace,
     control: &Control,
-    snapshot: &sources::Snapshot,
+    snapshot: &crate::adapters::lean::Snapshot,
     record: &RefCell<Record>,
 ) -> Result<()> {
-    let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
+    let paths = snapshot.source.files.keys().cloned().collect::<Vec<_>>();
     let current = sources::capture(workspace, control, &paths)?;
-    if current.revision != snapshot.revision {
+    if current.revision != snapshot.source.revision {
         record.borrow_mut().state = State::Stale;
         anyhow::bail!("Sources changed during meaning analysis. Reread the graph and run again; no current result admitted.");
     }

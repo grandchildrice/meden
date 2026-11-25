@@ -167,9 +167,11 @@ This is tested I/O behavior under the existing worker limits, not an extracted
 filesystem or concurrent-snapshot proof.
 
 This is the first application extraction, not the complete multi-backend registry.
-Compiler snapshots remain Lean-oriented internally. Native source pages now use
-the generic application projection described below. Complete role-wide
-plugin/resource/schema bindings and remaining read models are still required.
+The compiler port now retains a backend-owned decoded observation type; neutral
+source capture and prepared-view retention do not contain Lean records. The
+native compiler composition, semantic orchestration, search and repair still
+select Lean observations. Complete role-wide plugin/resource/schema bindings
+and the remaining orchestration are still required.
 The verifier role now has two real host registrations:
 `lean.refinement.v1` and `z3.finite.v1`. Their backend-owned typed contract
 formats feed the same application service and unchanged pure job/admission
@@ -189,8 +191,8 @@ opaque consuming job vocabulary.
 Compiler registrations now freeze the original descriptor and both typed
 schemas. Their consuming invocation retains the original source selection and
 definition for the backend's cache lookup. Dispatch checks the definition before
-and after the call, requires all selected sources and validates the projected
-graph before producing an opaque completed observation. Persisted compiler
+and after the call, requires all selected sources and validates the backend's
+decoded observation before producing an opaque completed observation. Persisted compiler
 artifacts and their lookup keys include that original definition; a different
 implementation or request cannot return another invocation's opaque completion
 as its own. Cache restoration checks the retained descriptor rather than
@@ -1013,6 +1015,17 @@ Counterexample-search bindings and independent caches now use the same original
 compiler observation. Persistent same-format selection and original-method
 replay are now covered by the host journal and registry. Remaining generic
 read models in step 4 and retirement work in step 5 remain open.
+The [backend-owned observation migration](../performance/generic-compiler-observations.md)
+now removes Lean records from the common compiler, neutral source snapshot and
+prepared source/view owners. Each registration retains its decoded output type
+and validates its original source before backend-local AST checks. Projections
+freeze once and cannot replace the owner's original source with another valid
+body. The native Lean composition, semantic orchestration, search/cache, repair,
+prepared module ownership and heterogeneous host selection remain open.
+Local TUI source/preparation tasks no longer depend on model-worker approval;
+their failure/recovery/restart journey uses actual offline file reads.
+This advances steps 3 and 4 without closing the remaining waits or retirement
+audit in step 5.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

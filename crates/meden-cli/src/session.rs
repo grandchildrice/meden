@@ -104,7 +104,7 @@ impl Session {
     pub(crate) fn prepare_repair(
         &self,
         queue: &mut crate::analysis::repair::Queue,
-        snapshot: &crate::analysis::sources::Snapshot,
+        snapshot: &crate::adapters::lean::Snapshot,
         record: &crate::analysis::Record,
     ) -> Result<crate::analysis::repair::Review> {
         let pending = crate::analysis::repair::prepare(
@@ -130,7 +130,7 @@ impl Session {
         queue: &mut crate::analysis::repair::Queue,
         reference: &crate::analysis::repair::Reference,
         notify: &dyn Fn(&crate::analysis::Record),
-    ) -> Result<(crate::analysis::sources::Snapshot, crate::analysis::Record)> {
+    ) -> Result<(crate::adapters::lean::Snapshot, crate::analysis::Record)> {
         let applied = queue.apply(
             &self.workspace,
             &self.processes,
@@ -141,7 +141,7 @@ impl Session {
         let result = (|| -> Result<_> {
             let snapshot = self.sources(&applied.paths, applied.input.graph_revision.is_some())?;
             let mut input = applied.input.clone();
-            input.source_revision.clone_from(&snapshot.revision);
+            input.source_revision.clone_from(&snapshot.source.revision);
             input.graph_revision = snapshot.atlas.as_ref().map(|atlas| atlas.revision.clone());
             if let Some(atlas) = &snapshot.atlas {
                 let mut nodes = atlas.graph.nodes.iter().filter(|node| {
@@ -177,25 +177,17 @@ impl Session {
         crate::analysis::journal::list(self.workspace.path())
     }
 
-    pub(crate) fn prepare_atlas(&self) -> Result<()> {
-        crate::atlas::Configuration::host(self.workspace.path()).prepare(&self.processes)
-    }
-
     pub(crate) fn sources(
         &self,
         paths: &[String],
         atlas: bool,
-    ) -> Result<crate::analysis::sources::Snapshot> {
-        if atlas {
-            crate::analysis::extract(&self.workspace, &self.processes, paths)
-        } else {
-            crate::analysis::sources::capture(&self.workspace, &self.processes, paths)
-        }
+    ) -> Result<crate::adapters::lean::Snapshot> {
+        crate::analysis::read_sources(&self.workspace, &self.processes, paths, atlas)
     }
 
     pub(crate) fn analyze(
         &self,
-        snapshot: &crate::analysis::sources::Snapshot,
+        snapshot: &crate::adapters::lean::Snapshot,
         input: crate::semantic::Input,
         notify: &dyn Fn(&crate::analysis::Record),
     ) -> Result<crate::analysis::Record> {

@@ -82,12 +82,12 @@ def main(argv=None):
 
         def atlas():
             terminal.command("/atlas")
-            terminal.wait(lambda view: "Reading sources / meaning analysis" in view)
+            terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
             terminal.wait(
                 lambda view: (
                     "Source graph ready: 4 files" in view
                     and "Domain.eligible · vendor/logic/lean/Domain.lean:3" in view
-                    and "Reading sources / meaning analysis" not in view
+                    and "Reading sources / preparing local compiler" not in view
                     and "shift+enter" in view
                 )
             )

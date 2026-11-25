@@ -1,7 +1,7 @@
 //! Candidate search over original compiled inputs. Results cannot admit evidence.
 use crate::{
+    adapters::lean::Snapshot,
     adapters::Context,
-    analysis::sources::Snapshot,
     explanation::{
         cache::{
             artifact::{Compilation, Id},

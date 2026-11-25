@@ -117,7 +117,7 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
         terminal.paste(text)
         terminal.send("\r")
         if text.startswith("/atlas"):
-            terminal.wait(lambda view: "Reading sources / meaning analysis" in view)
+            terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
             terminal.pump()
@@ -126,7 +126,7 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
                 expected in view
                 and "shift+enter" in view
                 and len(requests) == count
-                and ("Reading sources / meaning analysis" not in view)
+                and ("Reading sources / preparing local compiler" not in view)
             ):
                 screens[text] = view
                 return

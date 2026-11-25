@@ -124,23 +124,27 @@ pub struct Edge {
     pub kind: String,
 }
 
-impl Extraction {
-    pub(super) fn new(
-        value: Value,
-        files: &BTreeMap<String, String>,
-        resources: &super::Manifest,
-    ) -> Result<Self> {
-        let graph: Graph = serde_json::from_value(value)?;
+impl Graph {
+    pub(crate) fn validate(&self, files: &BTreeMap<String, String>) -> Result<()> {
         anyhow::ensure!(
-            graph.nodes.len() <= 5000
-                && graph.edges.len() <= 100_000
-                && graph.external_references.len() <= 50_000,
+            self.nodes.len() <= 5000
+                && self.edges.len() <= 100_000
+                && self.external_references.len() <= 50_000,
             "Atlas graph exceeds bounds"
         );
         let mut names = BTreeSet::new();
-        for node in &graph.nodes {
+        for node in &self.nodes {
             anyhow::ensure!(
-                names.insert(node.id.as_str()) && !node.id.is_empty() && node.id.len() <= 1000,
+                names.insert(node.id.as_str())
+                    && !node.id.is_empty()
+                    && node.id.len() <= 1000
+                    && node.short_name.len() <= 1000
+                    && node.axioms.len().saturating_add(node.standard_axioms.len()) <= 1000
+                    && node
+                        .axioms
+                        .iter()
+                        .chain(&node.standard_axioms)
+                        .all(|a| a.len() <= 1000),
                 "Atlas declaration identity invalid"
             );
             let source = files
@@ -164,12 +168,24 @@ impl Extraction {
                 );
             }
         }
-        for edge in &graph.edges {
+        for edge in &self.edges {
             anyhow::ensure!(
                 names.contains(edge.source.as_str()) && names.contains(edge.target.as_str()),
                 "Atlas dependency target is missing"
             );
         }
+        Ok(())
+    }
+}
+
+impl Extraction {
+    pub(super) fn new(
+        value: Value,
+        files: &BTreeMap<String, String>,
+        resources: &super::Manifest,
+    ) -> Result<Self> {
+        let graph: Graph = serde_json::from_value(value)?;
+        graph.validate(files)?;
         let revision = GraphRevision::from_digest(Sha256::digest(serde_json::to_vec(&(
             super::UPSTREAM,
             files,

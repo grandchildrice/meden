@@ -126,7 +126,7 @@ def test_tui_meaning_source_freshness_cancel_and_historical_restart(tmp_path, tu
             "Read the source graph first",
         )
         assert requests == []
-        command("/sources stock.rs", "Source graph ready")
+        command("/sources stock.rs", "Sources ready")
         command(
             "/analyze stock.rs:2 stock -- REQUIREMENT_ONLY_SENTINEL: Always decrement stock.",
             "Candidate Mismatch",
@@ -178,7 +178,7 @@ def test_tui_meaning_source_freshness_cancel_and_historical_restart(tmp_path, tu
         )
         command("/analysis", "Stale")
         assert len(requests) == 8
-        command("/sources stock.rs", "Source graph ready")
+        command("/sources stock.rs", "Sources ready")
         command(
             "/analyze stock.rs:2 stock -- Rechecked source", "Requirement: Rechecked source", 10
         )
@@ -222,6 +222,86 @@ def test_tui_meaning_source_freshness_cancel_and_historical_restart(tmp_path, tu
     finally:
         release.set()
         if terminal is not None:
+            terminal.close()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_plain_source_formats_fail_recover_and_reopen_without_model_approval(
+    tmp_path, tui_verifier,
+):
+    import hashlib
+
+    root = tmp_path / "plain-project"
+    root.mkdir()
+    text = "; 元のソース · pub fn fake() {}\n(set-logic QF_BV)\n(check-sat)\n"
+    (root / "spec.smt2").write_text(text)
+    (root / "binary.smt2").write_bytes(b"\xff\xfe")
+    (root / "other.txt").write_text("Original plain text\n")
+    (root / "third.cfg").write_text("Original configuration text\n")
+    encoded = json.dumps({"spec.smt2": text}, ensure_ascii=False, separators=(",", ":")).encode()
+    revision = "sha256:" + hashlib.sha256(encoded).hexdigest()
+    def revision_for(paths):
+        data = {p: (root / p).read_text() for p in sorted(paths)}
+        payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode()
+        return "sha256:" + hashlib.sha256(payload).hexdigest()
+    requests = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def do_POST(self):
+            requests.append(self.rfile.read(int(self.headers["Content-Length"])))
+            self.send_response(503)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    env = environment(tmp_path)
+    args = [find_meden(), "tui", "--workspace", str(root), "--base-url",
+            f"http://127.0.0.1:{server.server_port}/v1", "--model", "unused-source-fixture"]
+    terminal = None
+
+    def command(value, expected):
+        terminal.paste(value)
+        terminal.send("\r")
+        terminal.wait(lambda view: expected in view and "shift+enter" in view)
+        assert requests == []
+
+    def open_unapproved():
+        opened = Terminal(args, env, root)
+        opened.wait(lambda view: "Connection details" in view)
+        opened.send("n")
+        opened.wait(lambda view: "Choose a model connection" in view)
+        opened.send("\x1b")
+        opened.wait(lambda view: "shift+enter" in view)
+        return opened
+
+    try:
+        terminal = open_unapproved()
+        command("/sources spec.smt2", "Sources ready: 1 file")
+        assert revision in terminal.view(), "Read the complete original UTF-8 source, not a prefix"
+        command("/sources missing.smt2", "Source observation failed for missing.smt2")
+        command("/analyze spec.smt2:2 value -- Original meaning", "Read the source graph first")
+        command("/sources binary.smt2", "source must be UTF-8")
+        command("/sources spec.smt2 other.txt", "Sources ready: 2 files")
+        assert revision_for(["spec.smt2", "other.txt"]) in terminal.view()
+        terminal.quit()
+        terminal.close()
+        terminal = open_unapproved()
+        assert "Read the source graph first" not in terminal.view()
+        command("/analyze spec.smt2:2 value -- Original meaning", "Read the source graph first")
+        command("/sources spec.smt2 other.txt third.cfg", "Sources ready: 3 files")
+        assert revision_for(["spec.smt2", "other.txt", "third.cfg"]) in terminal.view()
+        assert (root / "spec.smt2").read_text() == text
+        assert (root / "binary.smt2").read_bytes() == b"\xff\xfe"
+        terminal.quit()
+    finally:
+        if terminal:
             terminal.close()
         server.shutdown()
         server.server_close()

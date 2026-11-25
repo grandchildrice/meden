@@ -2,9 +2,9 @@
 use super::{
     layout::{Layout, Module, PackageView},
     observe::{relative, Metadata, Reader},
-    sources::{self, Snapshot},
+    sources,
 };
-use crate::identity::snapshots::PreparedRevision;
+use crate::{adapters::lean::Snapshot, identity::snapshots::PreparedRevision};
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
@@ -66,13 +66,13 @@ pub fn capture(
             break;
         }
     }
-    let mut snapshot = sources::capture(
+    let mut snapshot = Snapshot::source_only(sources::capture(
         workspace,
         control,
         &files.keys().cloned().collect::<Vec<_>>(),
-    )?;
+    )?);
     anyhow::ensure!(
-        snapshot.files == files,
+        snapshot.source.files == files,
         "Sources changed during Lake import collection; reread the graph"
     );
     snapshot.collection = Some(Collection {
@@ -158,13 +158,13 @@ pub fn roots(
         roots,
         ..
     } = select(workspace, control, paths, atlas)?;
-    let mut snapshot = sources::capture(
+    let mut snapshot = Snapshot::source_only(sources::capture(
         workspace,
         control,
         &files.keys().cloned().collect::<Vec<_>>(),
-    )?;
+    )?);
     anyhow::ensure!(
-        snapshot.files == files,
+        snapshot.source.files == files,
         "Sources changed during Lake root selection"
     );
     snapshot.collection = Some(Collection {

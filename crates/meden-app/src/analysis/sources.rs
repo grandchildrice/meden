@@ -19,20 +19,54 @@ const FILE_LIMIT: usize = 1_048_576;
 const TOTAL_LIMIT: usize = 16_777_216;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[schemars(rename = "SourceSnapshot")]
 pub struct Snapshot {
     pub revision: SourceRevision,
     pub files: BTreeMap<String, String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub atlas: Option<crate::atlas::Extraction>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub collection: Option<super::collect::Collection>,
+}
+/// Read-only source identity/content retained by a backend-owned observation.
+pub trait Source {
+    /// Original complete source input; not a later viewer selection.
+    fn sources(&self) -> &Snapshot;
+}
+impl Source for Snapshot {
+    fn sources(&self) -> &Snapshot {
+        self
+    }
+}
+impl Snapshot {
+    /// Validate complete neutral source data without interpreting a language.
+    /// Content equality does not establish filesystem origin or freshness.
+    pub fn validate(&self) -> Result<()> {
+        anyhow::ensure!(
+            !self.files.is_empty()
+                && self.files.len() <= 32
+                && self.files.iter().all(|(path, text)| {
+                    !path.is_empty()
+                        && path.len() <= 4096
+                        && !path.starts_with('/')
+                        && !path.contains('\0')
+                        && path
+                            .split('/')
+                            .all(|p| !p.is_empty() && p != "." && p != "..")
+                        && text.len() <= FILE_LIMIT
+                })
+                && self.files.values().map(String::len).sum::<usize>() <= TOTAL_LIMIT
+                && self.revision
+                    == SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(
+                        &self.files
+                    )?)),
+            "Invalid complete source observation"
+        );
+        Ok(())
+    }
 }
 
 pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Snapshot> {
     let _timing = meden_runtime::metrics::Span::start("analysis.capture_sources");
     anyhow::ensure!(
         !paths.is_empty() && paths.len() <= 32,
-        "Select between 1 and 32 Rust/Lean source files"
+        "Select between 1 and 32 source files"
     );
     let policy = crate::workspace::file_policy()?;
     let mut files = BTreeMap::new();
@@ -40,13 +74,6 @@ pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Re
     for path in paths {
         let resolved =
             crate::workspace::logical_path(path).context("source path leaves /workspace")?;
-        anyhow::ensure!(
-            matches!(
-                resolved.extension().and_then(|s| s.to_str()),
-                Some("lean" | "rs")
-            ),
-            "Graphs currently support .lean and .rs source files"
-        );
         let name = resolved
             .strip_prefix(Path::new("/workspace"))?
             .to_str()
@@ -77,7 +104,7 @@ pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Re
             .decode(value.as_str().context("Invalid source snapshot response")?)?;
         anyhow::ensure!(
             bytes.len() <= FILE_LIMIT,
-            "Source file {name} exceeds 1 MiB; no truncated graph was created"
+            "Source file {name} exceeds 1 MiB; no truncated source was captured"
         );
         total = total
             .checked_add(bytes.len())
@@ -89,10 +116,5 @@ pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Re
         );
     }
     let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?));
-    Ok(Snapshot {
-        revision,
-        files,
-        atlas: None,
-        collection: None,
-    })
+    Ok(Snapshot { revision, files })
 }

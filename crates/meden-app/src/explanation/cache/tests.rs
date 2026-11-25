@@ -236,12 +236,13 @@ fn stale_observation_identity_cannot_select_another_rendering() -> Result<()> {
         .next()
         .context("rendering id")?;
     let mut other = observed()?;
-    other.files.insert(
+    other.source.files.insert(
         "Spec.lean".into(),
         "-- changed\ntheorem claim : False := by sorry\n".into(),
     );
-    other.revision =
-        SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&other.files)?));
+    other.source.revision = SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+        &other.source.files,
+    )?));
     let other_id = store
         .observe(other.clone(), &definition()?)?
         .compilation()
@@ -284,7 +285,7 @@ fn definition() -> Result<meden_runtime::plugin::Descriptor> {
             implementation: b"original compiler",
             configuration: json!({"seed":42}),
             input: crate::compiler::input_schema()?,
-            output: crate::compiler::output_schema()?,
+            output: crate::compiler::output_schema::<crate::adapters::lean::Snapshot>()?,
         },
     )?)
 }
@@ -409,7 +410,7 @@ fn compiler_and_renderer_definitions_partition_reuse_without_relabeling_old_data
         implementation: b"replacement compiler",
         configuration: json!({"seed":42}),
         input: crate::compiler::input_schema()?,
-        output: crate::compiler::output_schema()?,
+        output: crate::compiler::output_schema::<crate::adapters::lean::Snapshot>()?,
     })?;
     let snapshot = observed()?;
     let a = store.observe(snapshot.clone(), &first)?;

@@ -103,9 +103,8 @@ pub struct State<'a> {
     #[schemars(with = "super::readers::Index")]
     /// Exact complete source-availability references.
     pub readers: &'a super::readers::Readers,
-    #[schemars(with = "super::sources::Index")]
     /// Exact prepared graph/source publication references.
-    pub sources: &'a super::sources::Sources,
+    pub sources: super::sources::Index,
     #[schemars(with = "super::jobs::Index")]
     /// Resource-local preparation observations and bounded log references.
     pub source_preparation: &'a super::jobs::Jobs,
@@ -160,7 +159,7 @@ mod tests {
         let overview = super::super::inventory::Status::default();
         let directories = super::super::directory::Directories::default();
         let readers = super::super::readers::Readers::default();
-        let sources = super::super::sources::Sources::default();
+        let sources = super::super::sources::Index::default();
         let preparation = super::super::jobs::Jobs::new(b"original-host");
         let analyses = super::super::analyses::Analyses::new(super::super::analyses::Records {
             current: None,
@@ -200,7 +199,7 @@ mod tests {
             stopped: None,
             directories: &directories,
             readers: &readers,
-            sources: &sources,
+            sources,
             source_preparation: &preparation,
             analyses: &analyses,
             repair_review: None,

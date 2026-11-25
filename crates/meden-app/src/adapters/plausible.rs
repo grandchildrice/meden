@@ -135,10 +135,10 @@ impl Searcher for Plausible {
                 );
             }
         }
-        let paths = original.files.keys().cloned().collect::<Vec<_>>();
+        let paths = original.source.files.keys().cloned().collect::<Vec<_>>();
         anyhow::ensure!(
             crate::analysis::sources::capture(context.workspace, context.control, &paths)?.files
-                == original.files,
+                == original.source.files,
             "Sources changed during search"
         );
         crate::analysis::collect::check_metadata(

@@ -57,7 +57,7 @@ impl Configuration {
     pub fn run_search(
         &self,
         workspace: &Path,
-        snapshot: &crate::analysis::sources::Snapshot,
+        snapshot: &crate::adapters::lean::Snapshot,
         input: &[u8],
         control: &Control,
         timeout: Duration,

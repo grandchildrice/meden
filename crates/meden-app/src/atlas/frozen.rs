@@ -113,7 +113,7 @@ impl Configuration {
     }
     pub(crate) fn frozen_modules(
         &self,
-        snapshot: &crate::analysis::sources::Snapshot,
+        snapshot: &crate::adapters::lean::Snapshot,
     ) -> Result<PathBuf> {
         let graph = snapshot.atlas.as_ref().context("Missing compiled graph")?;
         let retained = graph
@@ -126,7 +126,7 @@ impl Configuration {
             .context("Missing module bindings")?
             .modules;
         anyhow::ensure!(
-            retained.id == self.modules_id(&retained.files, &snapshot.files, bindings)?,
+            retained.id == self.modules_id(&retained.files, &snapshot.source.files, bindings)?,
             "Compiled module input binding changed"
         );
         let root = self.modules_directory(&retained.id)?;

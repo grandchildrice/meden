@@ -18,7 +18,7 @@ pub const MAX_ARTIFACTS: usize = 64;
 pub const MAX_BYTES: usize = 134_217_728;
 
 /// Small generated status projection, containing no source text or declarations.
-#[derive(Serialize, JsonSchema)]
+#[derive(Default, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Index {
     /// Most recently published observation; absent while an explicit read fails.
@@ -28,25 +28,35 @@ pub struct Index {
 }
 
 /// Sole owner of retained originals, publication identities and eviction order.
-#[derive(Default)]
-pub struct Sources {
+pub struct Sources<O> {
     current: Option<ArtifactId<Artifact>>,
     files: BTreeMap<String, ArtifactId<Artifact>>,
-    artifacts: BTreeMap<ArtifactId<Artifact>, PreparedSource>,
+    artifacts: BTreeMap<ArtifactId<Artifact>, PreparedSource<O>>,
     order: VecDeque<ArtifactId<Artifact>>,
     bytes: usize,
 }
-impl Sources {
+impl<O> Default for Sources<O> {
+    fn default() -> Self {
+        Self {
+            current: None,
+            files: BTreeMap::new(),
+            artifacts: BTreeMap::new(),
+            order: VecDeque::new(),
+            bytes: 0,
+        }
+    }
+}
+impl<O: super::Projection> Sources<O> {
     /// Inspect the latest original observation for explicit analysis only.
-    pub fn current(&self) -> Option<&PreparedSource> {
+    pub fn current(&self) -> Option<&PreparedSource<O>> {
         self.current.as_ref().and_then(|id| self.artifacts.get(id))
     }
     /// Original retained inputs associated with one file, not a browser value.
-    pub fn file(&self, path: &str) -> Option<&PreparedSource> {
+    pub fn file(&self, path: &str) -> Option<&PreparedSource<O>> {
         self.files.get(path).and_then(|id| self.artifacts.get(id))
     }
     /// Publish complete validated data, then evict oldest artifacts by bounds.
-    pub fn publish(&mut self, source: PreparedSource) {
+    pub fn publish(&mut self, source: PreparedSource<O>) {
         let id = source.publication().reference().revision.clone();
         if let Some(old) = self.artifacts.remove(&id) {
             self.bytes = self.bytes.saturating_sub(old.publication().size());
@@ -54,7 +64,7 @@ impl Sources {
         self.order.retain(|old| old != &id);
         // Retention is at most 128 MiB before one <=64 MiB insertion.
         self.bytes = self.bytes.saturating_add(source.publication().size());
-        for path in source.files.keys() {
+        for path in source.sources().files.keys() {
             self.files.insert(path.clone(), id.clone());
         }
         self.current = Some(id.clone());
@@ -93,7 +103,7 @@ impl Sources {
             .artifacts
             .iter()
             .filter_map(|(id, source)| {
-                let original = source.files.get(&observation.path)?;
+                let original = source.sources().files.get(&observation.path)?;
                 (!revision.is_some_and(|r| {
                     r == format!("sha256:{:x}", Sha256::digest(original.as_bytes()))
                 }))
@@ -158,7 +168,7 @@ impl Sources {
         }
     }
 }
-impl Serialize for Sources {
+impl<O: super::Projection> Serialize for Sources<O> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.index().serialize(serializer)
     }
@@ -176,8 +186,11 @@ impl super::publication::Data for super::SourcePage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::analysis::{collect::Collection, observe::Metadata, sources::Snapshot};
     use crate::identity::snapshots::SourceRevision;
+    use crate::{
+        adapters::lean::Snapshot,
+        analysis::{collect::Collection, observe::Metadata},
+    };
     use anyhow::{Context as _, Result};
     use proptest::prelude::*;
 
@@ -187,8 +200,10 @@ mod tests {
             .map(|(p, s)| (p.to_string(), s.to_string()))
             .collect();
         Ok(Snapshot {
-            revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?)),
-            files,
+            source: crate::analysis::sources::Snapshot {
+                revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?)),
+                files,
+            },
             atlas: None,
             collection: None,
         })
@@ -261,7 +276,7 @@ mod tests {
             .context("collection")?
             .external_modules = vec!["Second".into()];
         let second = PreparedSource::new(raw)?;
-        assert_eq!(first.revision, second.revision);
+        assert_eq!(first.source.revision, second.source.revision);
         assert_ne!(before, second.publication().reference().revision);
         let mut sources = Sources::default();
         sources.publish(first);
