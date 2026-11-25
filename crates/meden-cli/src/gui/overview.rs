@@ -139,7 +139,7 @@ pub(super) fn refresh(
         {
             super::sources::prepare(view, workspace, control, &path, false)?;
         }
-        apply_compiled(workspace, control, &mut snapshot.files);
+        apply_annotations(workspace, control, &mut snapshot.files);
         Snapshot::new(snapshot)
     });
     let mut view = lock(view);
@@ -236,7 +236,7 @@ fn capture(
     } else {
         source_files(view, workspace, control, &paths, started)?
     };
-    apply_compiled(workspace, control, &mut files);
+    apply_annotations(workspace, control, &mut files);
     let generation = if inventory_only {
         cache::generation(workspace)?
     } else {
@@ -354,7 +354,7 @@ fn index_sources(
     } else {
         source_files(view, workspace, control, &[path.into()], Instant::now())?
     };
-    apply_compiled(workspace, control, &mut indexed);
+    apply_annotations(workspace, control, &mut indexed);
     let changed = indexed.iter().any(|file| {
         snapshot
             .files
@@ -393,26 +393,19 @@ fn index_sources(
     Ok(())
 }
 
-fn apply_compiled(workspace: &Workspace, control: &Control, files: &mut [File]) {
-    let paths = files
-        .iter()
-        .filter(|file| file.indexed)
-        .map(|file| file.path.clone())
-        .collect::<Vec<_>>();
-    if let Ok(notes) = crate::adapters::lean::cache::load(workspace, control, &paths) {
-        for note in notes {
-            if let Some(file) = files.iter_mut().find(|file| file.path == note.file) {
-                if let Some(symbol) = file
-                    .symbols
-                    .iter_mut()
-                    .find(|symbol| symbol.name == note.name && symbol.line == note.line)
-                {
-                    symbol.semantic = Some(note.semantic);
-                    symbol.main_theorem = note.main_theorem;
-                }
-            }
-        }
-    }
+fn apply_annotations(workspace: &Workspace, control: &Control, files: &mut [File]) {
+    // Optional annotation failure leaves lexical navigation available.
+    let _ = crate::adapters::navigation::annotate(
+        &crate::adapters::Context {
+            workspace,
+            control,
+            observer: None,
+        },
+        files
+            .iter_mut()
+            .filter(|f| f.indexed)
+            .map(|f| (f.path.as_str(), f.symbols.as_mut_slice())),
+    );
 }
 
 fn source_file(path: &str, value: Value) -> Result<(File, usize)> {

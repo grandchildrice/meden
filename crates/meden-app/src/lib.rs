@@ -25,6 +25,7 @@ pub mod exports;
 pub mod identity;
 pub mod meaning;
 pub mod model;
+pub mod navigation;
 /// Bounded static preview preparation through the original confined file port.
 pub mod preview;
 #[allow(missing_docs)]

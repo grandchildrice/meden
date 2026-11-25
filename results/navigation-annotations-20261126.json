@@ -1,0 +1,509 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "fdaa528",
+  "change": "Application-owned prepared navigation annotations, trusted-host suffix registration, indexed location overlay and separate native load/overlay spans. No core, compiler-captured implementation, wire schema, browser runtime or dependency change.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 350668,
+      "sha256": "1cf02e056417487f80f2b4cf1fafe876d94c8b6a5e6d6a4e800b7809773f4f1b"
+    },
+    {
+      "path": "crates/meden-app/proptest-regressions/adapters/navigation/tests.txt",
+      "bytes": 443,
+      "sha256": "dbc148fabe818a87c937b30d070c0bed72fbff647b65a4eda190ff8897e38aad"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation.rs",
+      "bytes": 3689,
+      "sha256": "ab2144e7ff74b03995a86312792704a9f1db1a258b9ad31e645ef58107bcf830"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation/tests.rs",
+      "bytes": 2899,
+      "sha256": "6b266cad1f6291ee10485e9e90146a018aae252ced019f3673efc40b67a6c8c8"
+    },
+    {
+      "path": "crates/meden-app/src/lib.rs",
+      "bytes": 1819,
+      "sha256": "17cbae423b674d06e2afe67654febcfe3db3cba3ce30c027e7c70b0b8b29173b"
+    },
+    {
+      "path": "crates/meden-app/src/navigation.rs",
+      "bytes": 3697,
+      "sha256": "c6860866a449fb56349b8e3c9a0a929a3911dde5718bf8fbed28ef3c09d51e32"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/tests.rs",
+      "bytes": 3848,
+      "sha256": "9ab45eec962451c39ba772e5b388fa5012cc387c73404519d03fe2f6f79ee214"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 22481,
+      "sha256": "38fdbe587e681b9a7215b88a871662d66ddf3213f0a837cb13c361164827e4c3"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "bytes": 12391,
+      "sha256": "30a22fb3f35e4e776ffd84a213d66e1b1a37e2ea57e0296a2515b740ac19418e"
+    }
+  ],
+  "validation": {
+    "phase": "complete",
+    "candidate": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/56495f57f2aaa34f6fa401f3bd6bec4bd9295b5ffe5136121eb3d1acb19bd65c/meden",
+      "sha256": "56495f57f2aaa34f6fa401f3bd6bec4bd9295b5ffe5136121eb3d1acb19bd65c"
+    },
+    "gates": [
+      {
+        "phase": "gui-new",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "app",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-existing",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "app_unit": 165,
+    "app_doc": 37,
+    "cli_unit": 50,
+    "cli_integration": 27,
+    "clippy": "Final app/CLI all-targets/all-features -D warnings passed",
+    "tui": 37,
+    "decoded_tui_journeys": 9,
+    "browser": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "existing_browser": {
+      "total": 2,
+      "expected": 2,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "frontend_runtime_changed": false,
+    "scope": "Scripted-provider and actual installed-tool public journeys, not live-model/cold-install validation.",
+    "initial_development_failures": "Initial generated comparison shrank a duplicate declaration mismatch; final overlay preserves the first original declaration and the last matching note, with the seed retained. New browser fixture assertions were corrected for default startup timing, automatic Main.lean preparation, lexical Rust token spelling and the actual compilation-failure alert. Only final complete no-skip reports count as passing coverage.",
+    "new_browser": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    }
+  },
+  "fixture_annotation_intervals": [
+    {
+      "name": "navigation.annotations.load",
+      "wall_us": 266204,
+      "thread_cpu_us": 224473
+    },
+    {
+      "name": "navigation.annotations.overlay",
+      "wall_us": 18,
+      "thread_cpu_us": 18
+    },
+    {
+      "name": "navigation.annotations",
+      "wall_us": 266242,
+      "thread_cpu_us": 224508
+    },
+    {
+      "name": "navigation.annotations.load",
+      "wall_us": 266191,
+      "thread_cpu_us": 224396
+    },
+    {
+      "name": "navigation.annotations.overlay",
+      "wall_us": 20,
+      "thread_cpu_us": 20
+    },
+    {
+      "name": "navigation.annotations",
+      "wall_us": 266228,
+      "thread_cpu_us": 224432
+    }
+  ],
+  "deployed": {
+    "binary_sha256": "56495f57f2aaa34f6fa401f3bd6bec4bd9295b5ffe5136121eb3d1acb19bd65c",
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "assets": 88,
+    "projects": [
+      {
+        "project": "riemann",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 66451,
+            "thread_cpu_us": 66011
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 4,
+            "thread_cpu_us": 4
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 68162,
+            "thread_cpu_us": 67707
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 67888,
+            "thread_cpu_us": 67612
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 5,
+            "thread_cpu_us": 5
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 69495,
+            "thread_cpu_us": 69211
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 63401,
+            "thread_cpu_us": 63165
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 3,
+            "thread_cpu_us": 3
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 63419,
+            "thread_cpu_us": 63181
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      },
+      {
+        "project": "ethlib",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 624001,
+            "thread_cpu_us": 269542
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 412,
+            "thread_cpu_us": 409
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 624937,
+            "thread_cpu_us": 270473
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 618625,
+            "thread_cpu_us": 263985
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 498,
+            "thread_cpu_us": 495
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 619418,
+            "thread_cpu_us": 264775
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 708112,
+            "thread_cpu_us": 251559
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 32,
+            "thread_cpu_us": 28
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 708167,
+            "thread_cpu_us": 251607
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      }
+    ]
+  },
+  "methodology": "Diagnostic wall/current-thread CPU intervals. Three native annotation loads per actual workspace during startup and original file selection. Complete original five payloads compared structurally with retained baseline JSON; the published record contains only their hashes. Both 4096-record native rings show no eviction. Observed semantic-worker names checked: atlas.compile, atlas.project.extract, atlas.search and analysis.render. Not a controlled latency improvement, field percentile, physical-input guarantee, atomic filesystem snapshot, new refinement, live-model/cold-install or confidentiality validation.",
+  "ownership": "Production registers the existing Lean prepared-description reader. Additional reader dispatch and complete refusal use a second synthetic registration in unit tests; finite source preparation remains an existing independent real Z3 registration, not a new finite annotation reader.",
+  "remaining": "Remove duplicated loader work without weakening original input/resource checks; bind observation revisions across concurrent capture; complete generic layout/source collection, native freshness waits, first-exposure rendering and the retirement audit under the full plan.",
+  "artifacts": [
+    {
+      "path": "/tmp/meden-navigation-pass-state.json",
+      "bytes": 636,
+      "sha256": "50997247151862170ab3aa00019d269d08fe6f84d9e267d710fe408e5f1c88c1"
+    },
+    {
+      "path": "/tmp/meden-navigation-reviewed-validation.json",
+      "bytes": 1666,
+      "sha256": "469dd12a68d4aac0a9c181ccbd90c55fe5e099cf9a071e751c7d362fc7b0cf3d"
+    },
+    {
+      "path": "/tmp/meden-navigation-clippy3.log",
+      "bytes": 149,
+      "sha256": "d8931ca8bace6f8d11092bcf7fc8ecc2f4c6deee836ec35972efde1140591636"
+    },
+    {
+      "path": "/tmp/meden-navigation-new-browser.json",
+      "bytes": 1355,
+      "sha256": "74412f041880a480c327977e09f7827e55a2840a3921acd5dfb58aa6b445e4eb"
+    },
+    {
+      "path": "/tmp/meden-navigation-existing-browser.json",
+      "bytes": 36947,
+      "sha256": "d02e28f0391683c059f88e4606fceb4c919232029e9962b59a7783263cd8a8b0"
+    },
+    {
+      "path": "/tmp/meden-navigation-deployed-fidelity.json",
+      "bytes": 4857,
+      "sha256": "fe59fe160e439871a9108a27851c279e9444e3976f8a5112e8af977686363384"
+    },
+    {
+      "path": "/tmp/meden-navigation-decoded-screens.json",
+      "bytes": 5423,
+      "sha256": "fc0dc405498579f9b206578481da2b348fa5841f22ff5e08083bb1775d1586b8"
+    },
+    {
+      "path": "/tmp/meden-navigation-decoded-screens.txt",
+      "bytes": 42740,
+      "sha256": "f8dcbc103e540cc4b55ceb499ccf313c37a1a7be35914cfdda3aa474ca972798"
+    },
+    {
+      "path": "/tmp/meden-ux-navigation-20261126/summary.json",
+      "bytes": 10731,
+      "sha256": "4ffcf86d7a9d97471d6421b6a4d68fc5e7b0607ee81e7b064863ca81e828245d"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-gui-new.log",
+      "bytes": 2419,
+      "sha256": "37d04f6dcfb771a1579c9fff8bdb7feb5e474c2b00e07c69fdbf69dbaa70f6b2"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-app.log",
+      "bytes": 20865,
+      "sha256": "69a34f4f2680b67359c779f0ac217f572f32aeb193d7acee6ac1bfe28f15aebe"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-cli.log",
+      "bytes": 8278,
+      "sha256": "be9de43c430a251437cc6a9f25d1590d82520ccd45e15aa5c0137c47e5eb7758"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-architecture.log",
+      "bytes": 11461,
+      "sha256": "1208237d5fa883dc19ec62ca43d41ea007c788e89e339154d8d31f0aa47ad97f"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-tui.log",
+      "bytes": 186,
+      "sha256": "ae8bd07ed891d5110dcfb0804815226068cbedb6ba87e7d682bf2fe2d36f952b"
+    },
+    {
+      "path": "/tmp/meden-navigation-pass-gui-existing.log",
+      "bytes": 2675,
+      "sha256": "69228c43bef3cdb4f4624d60ebe6e09e532f188741a93906032e88b42e04ea40"
+    },
+    {
+      "path": "/tmp/meden-navigation-tests.log",
+      "bytes": 3997,
+      "sha256": "d62d0ab6cc889175a6c5bca52d0bed7bb695ddd29cb5263b28e8cadca4bb36c1"
+    },
+    {
+      "path": "/tmp/meden-navigation-gui-new.log",
+      "bytes": 5000,
+      "sha256": "3acdea6f13aeab02fb3320c5571b7b725bce543d5f510b3f522613cc41a038f4"
+    },
+    {
+      "path": "/tmp/meden-navigation-final-gui-new.log",
+      "bytes": 5334,
+      "sha256": "ee4e39dfc2c5a22297d3632bca595d1a494e37b4e31bc5f6ed157283e13f3025"
+    },
+    {
+      "path": "/tmp/meden-navigation-verified-gui-new.log",
+      "bytes": 4903,
+      "sha256": "e744ab8b51f9adf6f5609552a4c0ed84950c25dc81053e797743c1ce4f794fd3"
+    },
+    {
+      "path": "/tmp/meden-navigation-checked-gui-new.log",
+      "bytes": 5171,
+      "sha256": "0265c43fdeffde25c3946d5bad034bc8dbd8384ba62042357dab373b8cb68aab"
+    }
+  ]
+}

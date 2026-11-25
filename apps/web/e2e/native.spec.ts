@@ -5573,6 +5573,159 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     expect(requests).toHaveLength(0);
   });
 
+  test("prepared map annotations retain exact locations, retire after source changes and reopen without inference", async ({
+    page,
+  }, info) => {
+    test.setTimeout(180000);
+    const original =
+      "def helper : Nat := 1\ntheorem claim (n : Nat) : n + 1 ≤ n := by sorry\n";
+    await writeFile(resolve(project, "Spec.lean"), original);
+    await writeFile(
+      resolve(project, "Unrelated.rs"),
+      "// other language\nfn claim () {}\n",
+    );
+    const ready = async () => {
+      await expect
+        .poll(async () => (await nativeState(page)).overview.state, {
+          timeout: 120000,
+        })
+        .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running, {
+          timeout: 120000,
+        })
+        .toBe(false);
+    };
+    const navigation = async (path: string) => {
+      const state = await nativeState(page);
+      return page.evaluate(
+        async ({ path, revision }) => {
+          const response = await fetch(
+            `/api/map?inventory=${encodeURIComponent(revision)}&path=${encodeURIComponent(path)}`,
+            {
+              headers: {
+                Authorization:
+                  "Bearer " + sessionStorage.getItem("meden-native-session"),
+              },
+            },
+          );
+          if (!response.ok) throw Error(await response.text());
+          return (await response.json()).data.files.find(
+            (file: any) => file.path === path,
+          );
+        },
+        { path, revision: state.overview.revision },
+      );
+    };
+    await page.goto(await start());
+    await ready();
+    expect(
+      (await navigation("Spec.lean")).symbols.find(
+        (s: any) => s.name === "claim",
+      ).semantic,
+    ).toBeNull();
+    await page
+      .getByRole("button", { name: "File: Spec.lean", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Spec.lean"]?.outcome
+            .state,
+        { timeout: 120000 },
+      )
+      .toBe("ready");
+    await ready();
+    const compiled = await nativeSource(page);
+    const semantic = compiled.graph.declarations.find(
+      (s: any) => s.id === "claim",
+    ).semantic;
+    expect(semantic.checker.status).toBe("counterexample");
+    await stop();
+    await page.goto(await start());
+    await ready();
+    const main = await navigation("Spec.lean"),
+      rust = await navigation("Unrelated.rs");
+    const claim = main.symbols.find((s: any) => s.name === "claim");
+    expect(claim.line).toBe(2);
+    expect(claim.semantic).toEqual(semantic);
+    expect(
+      rust.symbols.find((s: any) => s.name === "claim").semantic,
+    ).toBeNull();
+    expect((await nativeState(page)).authorized).toBe(false);
+    await page.screenshot({
+      path: info.outputPath("prepared-map-annotations.png"),
+    });
+    const annotationSpans = await page.evaluate(async () => {
+      const response = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      const metrics = await response.json();
+      return metrics.records
+        .filter((r: any) => r.name.startsWith("navigation.annotations"))
+        .map((r: any) => ({
+          name: r.name,
+          wall_us: r.wall_us,
+          thread_cpu_us: r.thread_cpu_us,
+        }));
+    });
+    expect(annotationSpans.map((s: any) => s.name)).toEqual(
+      expect.arrayContaining([
+        "navigation.annotations.load",
+        "navigation.annotations.overlay",
+        "navigation.annotations",
+      ]),
+    );
+    await info.attach("navigation-annotation-spans", {
+      body: JSON.stringify(annotationSpans),
+      contentType: "application/json",
+    });
+    const beforeRefresh = (await nativeState(page)).overview.revision;
+
+    await writeFile(
+      resolve(project, "Spec.lean"),
+      "\n" + original.replace("n + 1 ≤ n := by sorry", "False := by omega"),
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(async () => (await nativeState(page)).overview.revision, {
+        timeout: 120000,
+      })
+      .not.toBe(beforeRefresh);
+    await ready();
+    const changed = (await navigation("Spec.lean")).symbols.find(
+      (s: any) => s.name === "claim",
+    );
+    expect(changed.line).toBe(3);
+    expect(changed.semantic).toBeNull();
+    await page
+      .getByRole("button", { name: "File: Spec.lean", exact: true })
+      .click();
+    await expect(
+      page
+        .getByRole("region", { name: "File reference graph", exact: true })
+        .getByRole("alert"),
+    ).toContainText("Lean source compilation failed", { timeout: 120000 });
+    await expect(page.getByLabel("File contents")).toContainText(
+      "False := by omega",
+    );
+    await stop();
+    await page.goto(await start());
+    await ready();
+    expect(
+      (await navigation("Spec.lean")).symbols.find(
+        (s: any) => s.name === "claim",
+      ).semantic,
+    ).toBeNull();
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+  });
+
   test("main targets stay visible at a distance and compiled English/counterexamples annotate source without inference", async ({
     page,
   }) => {

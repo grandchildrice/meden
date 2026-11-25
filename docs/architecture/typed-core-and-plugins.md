@@ -1127,3 +1127,12 @@ lower worst pauses. The product retains its current painter; the opt-in profiler
 can now count identical ordered paint commands separately from timing captures.
 This is step-2/5 diagnostic evidence, not completion of the remaining generic
 read models, native freshness waits, first-exposure drawing or retirement audit.
+
+Prepared navigation enrichment now uses an
+[application annotation port](../performance/navigation-annotations.md) with
+host-selected format readers. The GUI no longer reads the Lean cache or performs
+its own compiler-note overlay. Exact original locations are indexed without
+changing the former duplicate/ordering behavior; load and overlay have separate
+bounded native spans. Compiler-captured code and wire shapes stay unchanged.
+This advances step 4's navigation ownership, not the remaining generic layout,
+source collection, first-exposure rendering, freshness or retirement exits.
