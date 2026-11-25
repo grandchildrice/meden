@@ -233,3 +233,214 @@ fn a_large_filtered_listing_still_obeys_the_original_response_limit() -> Result<
     assert!(error.to_string().contains("8 MiB"));
     Ok(())
 }
+
+#[test]
+fn navigation_reader_keeps_literal_order_availability_and_original_metadata_without_lean(
+) -> Result<()> {
+    use meden_app::{
+        adapters::navigation_io, navigation::collection::Reader as _, view::file::Content,
+    };
+    use std::{os::unix::fs::MetadataExt as _, time::Instant};
+    let root = tempfile::tempdir()?;
+    fs::create_dir(root.path().join("nested"))?;
+    let original = "original λ𝕏\n";
+    fs::write(root.path().join("literal.λ\n.txt"), original)?;
+    fs::write(root.path().join("nested/second.smt2"), "(check-sat)\n")?;
+    fs::write(root.path().join("empty"), "")?;
+    fs::write(root.path().join("binary"), b"x\0y")?;
+    fs::write(root.path().join("encoding"), [0xff, 0xfe])?;
+    fs::File::create(root.path().join("large"))?.set_len(1_048_577)?;
+    std::os::unix::fs::symlink("literal.λ\n.txt", root.path().join("alias"))?;
+    let workspace = open(root.path())?;
+    let active = control();
+    let reader = navigation_io::Reader::new(&workspace, &active, Instant::now());
+    let names = [
+        "nested/second.smt2",
+        "alias",
+        "empty",
+        "encoding",
+        "binary",
+        "large",
+        "literal.λ\n.txt",
+    ];
+    let paths = names.map(str::to_owned);
+    let content = reader.read(&paths)?;
+    let text = |at: usize| -> Result<&str> {
+        match content.get(at).context("original position")? {
+            Content::Text { text, .. } => Ok(text),
+            _ => anyhow::bail!("Expected complete original text"),
+        }
+    };
+    assert_eq!(text(0)?, "(check-sat)\n");
+    assert_eq!(text(1)?, original);
+    assert_eq!(text(2)?, "");
+    assert!(matches!(
+        content.get(3),
+        Some(Content::UnsupportedEncoding { bytes: 2 })
+    ));
+    assert!(matches!(content.get(4), Some(Content::Binary { bytes: 3 })));
+    assert!(matches!(content.get(5), Some(Content::SizeLimit { bytes }) if bytes == "1048577"));
+    assert_eq!(text(6)?, original);
+    for item in &content {
+        item.validate()?;
+    }
+    let stamps = reader.stamps(&paths)?;
+    assert_eq!(stamps.len(), paths.len());
+    for (path, stamp) in paths.iter().zip(stamps) {
+        let m = fs::metadata(root.path().join(path))?;
+        assert_eq!(
+            stamp,
+            serde_json::json!({"device":m.dev(),"inode":m.ino(),"bytes":m.len(),
+            "modified":m.mtime(),"modified_ns":m.mtime_nsec(),"changed":m.ctime(),"changed_ns":m.ctime_nsec()})
+        );
+    }
+    let listings = reader.list(&["nested".into(), String::new()])?;
+    assert_eq!(
+        listings
+            .first()
+            .context("first directory")?
+            .iter()
+            .map(|e| e.name.as_str())
+            .collect::<Vec<_>>(),
+        vec!["second.smt2"]
+    );
+    let actual = listings
+        .get(1)
+        .context("root listing")?
+        .iter()
+        .map(|e| (e.name.clone(), serde_json::to_value(&e.kind)))
+        .map(|(n, k)| Ok((n, k?)))
+        .collect::<Result<std::collections::BTreeMap<_, _>>>()?;
+    let mut expected = std::collections::BTreeMap::new();
+    for e in fs::read_dir(root.path())? {
+        let e = e?;
+        let t = e.file_type()?;
+        expected.insert(
+            e.file_name()
+                .into_string()
+                .map_err(|_| anyhow::anyhow!("UTF-8 fixture"))?,
+            serde_json::json!(if t.is_file() {
+                "file"
+            } else if t.is_dir() {
+                "directory"
+            } else {
+                "symlink"
+            }),
+        );
+    }
+    assert_eq!(actual, expected);
+    assert_eq!(
+        fs::read_to_string(root.path().join("literal.λ\n.txt"))?,
+        original
+    );
+    assert!(!root.path().join(".lake").exists());
+    Ok(())
+}
+
+#[test]
+fn navigation_reader_refuses_whole_failed_batches_and_rejects_bad_paths_before_dispatch(
+) -> Result<()> {
+    use meden_app::{adapters::navigation_io, navigation::collection::Reader as _};
+    use std::time::{Duration, Instant};
+    let root = tempfile::tempdir()?;
+    fs::write(root.path().join("good"), "original")?;
+    let outside = tempfile::tempdir()?;
+    fs::write(outside.path().join("secret"), "OUTSIDE-NAVIGATION-CANARY")?;
+    std::os::unix::fs::symlink(outside.path().join("secret"), root.path().join("foreign"))?;
+    let workspace = open(root.path())?;
+    let active = control();
+    let reader = navigation_io::Reader::new(&workspace, &active, Instant::now());
+    fs::create_dir(root.path().join("directory"))?;
+    fs::write(root.path().join("directory/visible"), "listing prefix")?;
+    for bad in ["absent", "foreign"] {
+        let paths = vec!["good".into(), bad.into()];
+        for result in [
+            reader.read(&paths).map(|_| ()),
+            reader.stamps(&paths).map(|_| ()),
+            reader.list(&["directory".into(), bad.into()]).map(|_| ()),
+        ] {
+            let error = result.err().context("Whole failed batch")?;
+            assert!(!error.to_string().contains("OUTSIDE-NAVIGATION-CANARY"));
+        }
+    }
+    let timing = metrics::Span::start("test.navigation.no_dispatch");
+    let context = serde_json::to_value(timing.context())?;
+    for paths in [
+        vec!["good".into(), "../outside".into()],
+        vec!["/etc/passwd".into()],
+        vec![],
+        vec!["good".into(); 257],
+    ] {
+        assert!(reader.read(&paths).is_err());
+        assert!(reader.list(&paths).is_err());
+        assert!(reader.stamps(&paths).is_err());
+    }
+    let elapsed = Instant::now()
+        .checked_sub(Duration::from_secs(1801))
+        .context("Earlier monotonic instant")?;
+    let expired = navigation_io::Reader::new(&workspace, &active, elapsed);
+    assert!(expired.read(&["good".into()]).is_err());
+    assert!(expired.list(&[String::new()]).is_err());
+    assert!(expired.stamps(&["good".into()]).is_err());
+    drop(timing);
+    let snapshot = serde_json::to_value(metrics::snapshot())?;
+    assert!(!snapshot
+        .get("records")
+        .and_then(serde_json::Value::as_array)
+        .context("records")?
+        .iter()
+        .any(|r| r.pointer("/context/trace") == context.get("trace")
+            && r.get("name").and_then(serde_json::Value::as_str) == Some("process.run")));
+    active.cancel();
+    assert!(reader.read(&["good".into()]).is_err());
+    assert!(reader.list(&[String::new()]).is_err());
+    assert!(reader.stamps(&["good".into()]).is_err());
+    assert_eq!(fs::read_to_string(root.path().join("good"))?, "original");
+    assert_eq!(
+        fs::read_to_string(outside.path().join("secret"))?,
+        "OUTSIDE-NAVIGATION-CANARY"
+    );
+    Ok(())
+}
+
+#[test]
+fn navigation_reader_refuses_an_encoded_frame_over_64_mib_without_a_text_prefix() -> Result<()> {
+    use meden_app::{adapters::navigation_io, navigation::collection::Reader as _};
+    use std::time::Instant;
+    let root = tempfile::tempdir()?;
+    // Every file is readable within the fixed 1 MiB source limit. JSON escaping
+    // makes their complete combined worker frame exceed the original 64 MiB cap.
+    let text = "\n".repeat(1_048_576);
+    let paths = (0..32)
+        .map(|i| format!("source{i}.txt"))
+        .collect::<Vec<_>>();
+    for path in &paths {
+        fs::write(root.path().join(path), &text)?;
+    }
+    let workspace = open(root.path())?;
+    let active = control();
+    let reader = navigation_io::Reader::new(&workspace, &active, Instant::now());
+    let first = reader.read(&[paths.first().context("first original path")?.clone()])?;
+    assert!(matches!(
+        first.first(),
+        Some(meden_app::view::file::Content::Text {
+            bytes: 1_048_576,
+            ..
+        })
+    ));
+    let error = reader
+        .read(&paths)
+        .err()
+        .context("Oversized frame must not return a complete or partial source vector")?;
+    let typed = error
+        .downcast_ref::<meden_agent::tool::ToolError>()
+        .context("Preserved host failure kind")?;
+    assert_eq!(
+        meden_runtime::file::verification_kind(typed),
+        meden_runtime::verification::FailureKind::Inconclusive
+    );
+    for path in paths {
+        assert_eq!(fs::metadata(root.path().join(path))?.len(), 1_048_576);
+    }
+    Ok(())
+}

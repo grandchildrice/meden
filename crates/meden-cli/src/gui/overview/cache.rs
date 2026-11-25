@@ -1,11 +1,10 @@
 //! Host observation/progress adapters for the application's syntax cache.
-use super::{observe_batch, source_files, File, View};
+use super::{source_files, File, View};
 use crate::gui::lock;
 use anyhow::Result;
 use meden_app::navigation::cache::{self, Scope};
-use meden_core::file::Operation;
 use meden_runtime::{process::Control, workspace::Workspace};
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::{sync::Mutex, time::Instant};
 type Store = cache::Store<crate::adapters::source::Symbol, Value>;
 fn store(workspace: &Workspace) -> Result<Store> {
@@ -64,14 +63,8 @@ impl cache::Reader for Reader<'_> {
     type Symbol = crate::adapters::source::Symbol;
     type Stamp = Value;
     fn stamps(&self, paths: &[String]) -> Result<Vec<Value>> {
-        observe_batch(
-            self.workspace,
-            self.control,
-            Operation::Snapshot,
-            paths,
-            &json!({"metadata":true}),
-            self.started,
-        )
+        crate::adapters::navigation_io::Reader::new(self.workspace, self.control, self.started)
+            .stamps(paths)
     }
     fn sources(&self, paths: &[String]) -> Result<Vec<File>> {
         source_files(self.view, self.workspace, self.control, paths, self.started)

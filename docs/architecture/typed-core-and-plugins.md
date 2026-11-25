@@ -1195,3 +1195,16 @@ opening. This advances the remaining policy ownership in steps 3/4. Observation
 correspondence, measured first-detail/native waits and the complete retirement
 audit remain open; this does not establish whole-session refinement or close the
 five migration exits.
+
+[Navigation's concrete observation adapter](../performance/navigation-observation-ownership.md)
+now owns fixed worker requests,
+logical-path conversion, JSON decoding and the original deadlines/frame limits.
+The CLI consumes typed directory/content methods and opaque metadata hints,
+retaining progress/view updates rather than a second worker protocol owner.
+Actual confined batches compare ordered literal text, availability and metadata
+with independent filesystem observations; failure, cancellation, expiry and an
+oversized escaped frame return no successful prefix. The structural boundary
+rejects the retired active CLI observer. These test adapter correspondence in
+steps 3/4; they do not refine JSON/OS behavior or discharge whole-session I/O.
+The [current exit audit](migration-status.md) separates supported entry points,
+checked boundaries and the remaining measured performance/retirement work.

@@ -3,16 +3,10 @@
 use super::{lock, View};
 use crate::adapters::source::Symbol;
 use anyhow::{Context, Result};
-use meden_agent::tool::Args;
-use meden_core::file::{Operation, Request};
-use meden_runtime::{
-    process::{Control, Limits},
-    workspace::Workspace,
-};
-use serde_json::{json, Value};
+use meden_runtime::{process::Control, workspace::Workspace};
 use std::{
     sync::{Arc, Mutex},
-    time::{Duration, Instant},
+    time::Instant,
 };
 mod cache;
 
@@ -169,11 +163,7 @@ fn capture(
 ) -> Result<Captured> {
     let started = Instant::now();
     let paths = collection::paths(
-        &Reader {
-            workspace,
-            control,
-            started,
-        },
+        &crate::adapters::navigation_io::Reader::new(workspace, control, started),
         &crate::adapters::navigation::Syntax,
     )?;
     lock(view).overview.total = paths.len();
@@ -343,39 +333,6 @@ fn apply_annotations(workspace: &Workspace, control: &Control, files: &mut [File
     );
 }
 
-struct Reader<'a> {
-    workspace: &'a Workspace,
-    control: &'a Control,
-    started: Instant,
-}
-impl collection::Reader for Reader<'_> {
-    fn list(&self, paths: &[String]) -> Result<Vec<Vec<meden_app::view::directory::Entry>>> {
-        observe_batch(
-            self.workspace,
-            self.control,
-            Operation::List,
-            paths,
-            &json!({"entries":true,"max_entries":100_000}),
-            self.started,
-        )?
-        .into_iter()
-        .map(|v| serde_json::from_value(v).map_err(Into::into))
-        .collect()
-    }
-    fn read(&self, paths: &[String]) -> Result<Vec<meden_app::view::file::Content>> {
-        observe_batch(
-            self.workspace,
-            self.control,
-            Operation::Snapshot,
-            paths,
-            &json!({"observation":true}),
-            self.started,
-        )?
-        .into_iter()
-        .map(|v| serde_json::from_value(v).map_err(Into::into))
-        .collect()
-    }
-}
 fn source_files(
     view: &Mutex<View>,
     workspace: &Workspace,
@@ -384,11 +341,7 @@ fn source_files(
     started: Instant,
 ) -> Result<Vec<File>> {
     collection::sources(
-        &Reader {
-            workspace,
-            control,
-            started,
-        },
+        &crate::adapters::navigation_io::Reader::new(workspace, control, started),
         &crate::adapters::navigation::Syntax,
         paths,
         || {
@@ -404,46 +357,6 @@ fn source_files(
             }
         },
     )
-}
-
-fn observe_batch(
-    workspace: &Workspace,
-    control: &Control,
-    operation: Operation,
-    paths: &[String],
-    payload: &Value,
-    started: Instant,
-) -> Result<Vec<Value>> {
-    anyhow::ensure!(
-        started.elapsed() < Duration::from_secs(1800),
-        "Workspace preparation exceeded 30 minutes"
-    );
-    let requests = paths
-        .iter()
-        .map(|path| -> Result<_> {
-            let path = crate::workspace::logical_path(path)
-                .context("Workspace index path leaves the selected root")?;
-            Ok(Request::new(
-                operation,
-                path.to_str()
-                    .context("Workspace index path is not UTF-8")?
-                    .into(),
-                serde_json::from_value::<Args>(payload.clone())?,
-            ))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    meden_runtime::file::read_batch(
-        workspace,
-        control,
-        &requests,
-        &crate::workspace::file_policy()?,
-        &Limits {
-            timeout: Duration::from_secs(30),
-            capture_bytes: 67_108_864,
-            output_bytes: 67_108_864,
-        },
-    )
-    .map_err(anyhow::Error::new)
 }
 
 pub(super) fn cached(

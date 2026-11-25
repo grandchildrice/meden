@@ -1,0 +1,838 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "scope": "Migration steps 3/4: concrete navigation observation ownership, fixed typed read-only operations and actual confined-I/O correspondence. No whole-session/JSON/OS refinement or general latency improvement is claimed.",
+  "deployment": {
+    "binary_sha256": "f20fefca8d38a4f0e5d2b42c69bb4567346cda9531390f0b8dd95c7033faa283",
+    "assets_sha256": "bd343e78e6e395a9d9637f97f9a9edf702a284a670d3f3c8a6ccc6e28b362b4a",
+    "unchanged_assets": true,
+    "asset_count": 88
+  },
+  "sources": [
+    {
+      "path": "crates/meden-app/src/adapters/navigation_io.rs",
+      "sha256": "244ceaff2443e83186883b86045fc1950b171a74affe1017c820cf2e56abf9ad"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "sha256": "d616a1469d84e40a72dc6ed57821a576233b8f5049f71e1f40abb7cfef49bf87"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview/cache.rs",
+      "sha256": "c3c87e2c19c4faf037fa16e37f9d94e8b6699ebc8ffeb6d6a13ccf582b5aa547"
+    },
+    {
+      "path": "crates/meden-cli/tests/metadata.rs",
+      "sha256": "c824167310b91f921e58db50f23f921992b6b6874fb2c2be5c617b7218378421"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "sha256": "311e99a70abc6085d84798539148b3f89a84f7811bf880d4b78f67daa53c27de"
+    }
+  ],
+  "checks": {
+    "rust": {
+      "counts": [189, 50, 3, 1, 1, 12, 7, 7, 37],
+      "total": 307
+    },
+    "native_navigation_reader": {
+      "passed": 3,
+      "skipped": 0,
+      "coverage": [
+        "literal ordered directories/content",
+        "independent full filesystem metadata",
+        "internal/external links",
+        "empty/binary/unsupported/oversized availability",
+        "whole failed batch refusal",
+        "invalid/expired/batch-size refusal before process dispatch",
+        "terminal cancellation",
+        "escaped frame exceeds original 64 MiB and preserves typed Inconclusive"
+      ]
+    },
+    "tui": {
+      "passed": 37,
+      "skipped": 0,
+      "inference": "scripted fixtures; no live-model validation"
+    },
+    "browser": [
+      {
+        "name": "existing",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "outcome": "expected"
+          }
+        ],
+        "navigation_performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 33626.119365,
+            "warm_tab_two_raf_ms": [
+              22.5, 19.599999994039536, 20.799999997019768, 26.200000002980232,
+              26.799999997019768, 26.599999994039536, 27.5, 24.30000001192093,
+              19.799999997019768, 13.899999991059303
+            ],
+            "p95_ms": 27.5,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ]
+      },
+      {
+        "name": "normal",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "outcome": "expected"
+          }
+        ],
+        "navigation_performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "no-preference",
+            "cold_analysis_store_preparation_ms": 33187.406668999996,
+            "warm_tab_two_raf_ms": [
+              30.900000005960464, 31.599999994039536, 18.400000005960464,
+              21.400000005960464, 28.899999991059303, 19.099999994039536,
+              20.900000005960464, 26.400000005960464, 34.1000000089407,
+              18.900000005960464
+            ],
+            "p95_ms": 34.1000000089407,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ]
+      }
+    ],
+    "clippy": true,
+    "architecture": {
+      "passed": 62
+    },
+    "schema": true,
+    "format": true,
+    "rustfmt": true,
+    "ruff": true
+  },
+  "negative_controls": {
+    "retired_active_cli_observer": {
+      "expected_exit": 1,
+      "rejected_by_owned_source_guard": true,
+      "source_restored": true
+    },
+    "expanded_128_mib_frame": {
+      "phase": "complete",
+      "expected_failure": 101,
+      "source_restored_sha256": "244ceaff2443e83186883b86045fc1950b171a74affe1017c820cf2e56abf9ad",
+      "restored_debug_binary_sha256": "f20fefca8d38a4f0e5d2b42c69bb4567346cda9531390f0b8dd95c7033faa283",
+      "failed_at": "Oversized frame must not return a complete or partial source vector"
+    }
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "views": [
+        {
+          "name": "source",
+          "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb"
+        },
+        {
+          "name": "reader",
+          "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+        },
+        {
+          "name": "inventory",
+          "sha256": "96aa60b6bda786af1d2c9158c134bdeddde5b069dd2f453bd815872c2334fd59"
+        },
+        {
+          "name": "nav",
+          "sha256": "de1c28c2eaeb1b4ff6a5249001a8fa45998b1418aff06a0d938998ff3d65863c"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "authorized": false,
+      "running": false,
+      "history_candidates_unchanged": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": false
+        }
+      ],
+      "annotation_spans": [
+        {
+          "name": "navigation.annotations.load",
+          "wall_us": 67728,
+          "thread_cpu_us": 67519
+        },
+        {
+          "name": "navigation.annotations.overlay",
+          "wall_us": 3,
+          "thread_cpu_us": 3
+        },
+        {
+          "name": "navigation.annotations",
+          "wall_us": 69007,
+          "thread_cpu_us": 68792
+        },
+        {
+          "name": "navigation.annotations.load",
+          "wall_us": 64516,
+          "thread_cpu_us": 64251
+        },
+        {
+          "name": "navigation.annotations.overlay",
+          "wall_us": 3,
+          "thread_cpu_us": 3
+        },
+        {
+          "name": "navigation.annotations",
+          "wall_us": 64534,
+          "thread_cpu_us": 64266
+        }
+      ],
+      "collection_spans": [
+        {
+          "name": "navigation.collect.paths",
+          "wall_us": 4626405,
+          "thread_cpu_us": 1316010,
+          "context": {
+            "trace": 11,
+            "span": 22
+          },
+          "parent": 13
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 4,
+          "thread_cpu_us": 2,
+          "context": {
+            "trace": 11,
+            "span": 105
+          },
+          "parent": 103
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 2,
+          "thread_cpu_us": 1,
+          "context": {
+            "trace": 11,
+            "span": 106
+          },
+          "parent": 103
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 2,
+          "thread_cpu_us": 1,
+          "context": {
+            "trace": 11,
+            "span": 107
+          },
+          "parent": 103
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 51296,
+          "thread_cpu_us": 825,
+          "context": {
+            "trace": 11,
+            "span": 104
+          },
+          "parent": 103
+        },
+        {
+          "name": "navigation.collect.sources",
+          "wall_us": 51606,
+          "thread_cpu_us": 149,
+          "context": {
+            "trace": 11,
+            "span": 103
+          },
+          "parent": 13
+        }
+      ],
+      "native_ring_evicted": 0,
+      "observed_semantic_worker_spans": [],
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean"
+    },
+    {
+      "project": "ethlib",
+      "views": [
+        {
+          "name": "source",
+          "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390"
+        },
+        {
+          "name": "reader",
+          "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+        },
+        {
+          "name": "inventory",
+          "sha256": "f2eb931a8300076c210d8b46cea590e464108a6d18f9c102aab501fbe9ce47ba"
+        },
+        {
+          "name": "nav",
+          "sha256": "9f6eab30f14aaa600701484235ef244e3eb24b4ebec731412b69c528bf85f4f7"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "authorized": false,
+      "running": false,
+      "history_candidates_unchanged": true,
+      "commands": [
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "directory": false
+        }
+      ],
+      "annotation_spans": [
+        {
+          "name": "navigation.annotations.load",
+          "wall_us": 631187,
+          "thread_cpu_us": 265540
+        },
+        {
+          "name": "navigation.annotations.overlay",
+          "wall_us": 416,
+          "thread_cpu_us": 412
+        },
+        {
+          "name": "navigation.annotations",
+          "wall_us": 631993,
+          "thread_cpu_us": 266340
+        },
+        {
+          "name": "navigation.annotations.load",
+          "wall_us": 696244,
+          "thread_cpu_us": 259395
+        },
+        {
+          "name": "navigation.annotations.overlay",
+          "wall_us": 27,
+          "thread_cpu_us": 26
+        },
+        {
+          "name": "navigation.annotations",
+          "wall_us": 696296,
+          "thread_cpu_us": 259446
+        }
+      ],
+      "collection_spans": [
+        {
+          "name": "navigation.collect.paths",
+          "wall_us": 9526996,
+          "thread_cpu_us": 816339,
+          "context": {
+            "trace": 13,
+            "span": 22
+          },
+          "parent": 15
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 3180990,
+          "thread_cpu_us": 1963427,
+          "context": {
+            "trace": 13,
+            "span": 190
+          },
+          "parent": 188
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 3224973,
+          "thread_cpu_us": 2118355,
+          "context": {
+            "trace": 13,
+            "span": 189
+          },
+          "parent": 188
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 3236092,
+          "thread_cpu_us": 2028417,
+          "context": {
+            "trace": 13,
+            "span": 192
+          },
+          "parent": 188
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 3251720,
+          "thread_cpu_us": 1963061,
+          "context": {
+            "trace": 13,
+            "span": 191
+          },
+          "parent": 188
+        },
+        {
+          "name": "navigation.collect.sources",
+          "wall_us": 3255686,
+          "thread_cpu_us": 3858,
+          "context": {
+            "trace": 13,
+            "span": 188
+          },
+          "parent": 15
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 2,
+          "thread_cpu_us": 1,
+          "context": {
+            "trace": 400,
+            "span": 498
+          },
+          "parent": 496
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 3,
+          "thread_cpu_us": 2,
+          "context": {
+            "trace": 400,
+            "span": 499
+          },
+          "parent": 496
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 2,
+          "thread_cpu_us": 1,
+          "context": {
+            "trace": 400,
+            "span": 500
+          },
+          "parent": 496
+        },
+        {
+          "name": "navigation.collect.worker",
+          "wall_us": 41833,
+          "thread_cpu_us": 1400,
+          "context": {
+            "trace": 400,
+            "span": 497
+          },
+          "parent": 496
+        },
+        {
+          "name": "navigation.collect.sources",
+          "wall_us": 41994,
+          "thread_cpu_us": 115,
+          "context": {
+            "trace": 400,
+            "span": 496
+          },
+          "parent": 403
+        }
+      ],
+      "native_ring_evicted": 0,
+      "observed_semantic_worker_spans": [],
+      "file": "EthLib/Networking/Gossip/Parameters.lean"
+    }
+  ],
+  "raw_syntax_cache": {
+    "exact_before_after": true,
+    "projects": [
+      {
+        "project": "riemann",
+        "records": [
+          {
+            "present": true,
+            "bytes": 95,
+            "sha256": "d62e2ef18b185b9a2a34aa395ea59c67b78eafd80778a49b70605ac56a2f4f87"
+          },
+          {
+            "present": true,
+            "bytes": 8438,
+            "sha256": "11f316338ce35bd4d3809f41a759bb2664a3606b4a56f6ad0478ca55a41b9eb9"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "records": [
+          {
+            "present": false
+          },
+          {
+            "present": false
+          }
+        ]
+      }
+    ]
+  },
+  "screen_review": [
+    {
+      "label": "review",
+      "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+      "frames": 166,
+      "observations": [
+        {
+          "label": "Allow Configured server",
+          "seconds": 0.363,
+          "screen_sha256": "bc44f7772ddd9e8734c3fd4c5bca84821373ed830bd7c7412640aa7c4ac30644"
+        }
+      ]
+    },
+    {
+      "label": "judge",
+      "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+      "frames": 38,
+      "observations": [
+        {
+          "label": "Candidate Mismatch",
+          "seconds": 1.156,
+          "screen_sha256": "833a8edd6214f768b58320810b650a0d40a86998dc72b8b0f2724ea56d7da3cb"
+        }
+      ]
+    },
+    {
+      "label": "resume",
+      "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+      "frames": 46,
+      "observations": [
+        {
+          "label": "TUI-CONTINUED",
+          "seconds": 1.154,
+          "screen_sha256": "535cb5665d54037b3b80d78de62053a7c36b3598eaa81fa5f5340b7905e66190"
+        }
+      ]
+    },
+    {
+      "label": "lake",
+      "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+      "frames": 802,
+      "observations": [
+        {
+          "label": "Workspace source inventory changed",
+          "seconds": 74.554,
+          "screen_sha256": "b68e0d44ceb9c54a581f2dabe7eb487c8053436fd056013600abb1b514389527"
+        }
+      ]
+    },
+    {
+      "label": "repair",
+      "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+      "frames": 87,
+      "observations": [
+        {
+          "label": "LEAN-MODEL-REPAIRED",
+          "seconds": 5.721,
+          "screen_sha256": "ec61558a011ab5bd9443151b52f0abf68a4cbf6d7d21d5bfbb841e8dd6c5ad4e"
+        }
+      ]
+    },
+    {
+      "label": "cancel",
+      "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+      "frames": 154,
+      "observations": [
+        {
+          "label": "Portable work stopped:",
+          "seconds": 14.253,
+          "screen_sha256": "f58998ba663c9c8ecc64758ff45a64768ccd6300c083c002b90098999e3143be"
+        }
+      ]
+    },
+    {
+      "label": "plain-source",
+      "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+      "frames": 38,
+      "observations": [
+        {
+          "label": "Sources ready: 1 file",
+          "seconds": 0.515,
+          "screen_sha256": "0226b7210a769c5cfaedab18359a9c19b17ac96a304a5a18905ef10ef3c8b8cc"
+        },
+        {
+          "label": "Source observation failed for missing.smt2",
+          "seconds": 0.515,
+          "screen_sha256": "0226b7210a769c5cfaedab18359a9c19b17ac96a304a5a18905ef10ef3c8b8cc"
+        },
+        {
+          "label": "source must be UTF-8",
+          "seconds": 0.515,
+          "screen_sha256": "0226b7210a769c5cfaedab18359a9c19b17ac96a304a5a18905ef10ef3c8b8cc"
+        },
+        {
+          "label": "Sources ready: 2 files",
+          "seconds": 0.515,
+          "screen_sha256": "0226b7210a769c5cfaedab18359a9c19b17ac96a304a5a18905ef10ef3c8b8cc"
+        },
+        {
+          "label": "Read the source graph first",
+          "seconds": 0.913,
+          "screen_sha256": "94472c202462cac48bbc3b760cf7c6bb184c5ea3a1a6f827df13c9e7fabf78e5"
+        },
+        {
+          "label": "Sources ready: 3 files",
+          "seconds": 0.913,
+          "screen_sha256": "94472c202462cac48bbc3b760cf7c6bb184c5ea3a1a6f827df13c9e7fabf78e5"
+        }
+      ]
+    },
+    {
+      "label": "reviewed-repair",
+      "journey": "test_finding_repair_reject_stale_clipped_review_apply_and_restart-26871992ae",
+      "frames": 75,
+      "observations": [
+        {
+          "label": "Apply this repair and reanalyze?",
+          "seconds": 1.117,
+          "screen_sha256": "879880275c38339409c853faf1b5d41fadbb77ea4905e1a79c0be5cf6625fa1b"
+        },
+        {
+          "label": "Approval unavailable",
+          "seconds": 0.999,
+          "screen_sha256": "5296bf76d773400a159b702926e1aa61853d76dd9b5abe9f7fe5b94d8752d7f5"
+        },
+        {
+          "label": "Sources changed since the Finding",
+          "seconds": 1.283,
+          "screen_sha256": "007d8b7fd000249fac353a941d4b85464ad57925830c574c61f3680a81334830"
+        },
+        {
+          "label": "Repair applied and reanalyzed",
+          "seconds": 1.38,
+          "screen_sha256": "5c28787b29fe0af3077956fe0cd786c4ea7dd879aa5f34d973f84c2b846d5cb2"
+        },
+        {
+          "label": "source revision changed",
+          "seconds": 1.69,
+          "screen_sha256": "7ccf51638b6c7fe4fb449aa1375985ddc24bf7dcac3c4fb4cba07931c811f7bb"
+        }
+      ]
+    },
+    {
+      "label": "finite-source",
+      "journey": "test_native_finite_source_graph_recovers_and_reopens_without_lean_or_m-c794041788",
+      "frames": 75,
+      "observations": [
+        {
+          "label": "Source observation failed for absent.model.json",
+          "seconds": 3.858,
+          "screen_sha256": "f02f206914dab191556f03780c750b4b78028d6f5b7fee1458e421377bac2576"
+        },
+        {
+          "label": "Source graph ready: 2 files",
+          "seconds": 5.411,
+          "screen_sha256": "cb6b0a145ff82d41733c5beda08d4b84312500141a97e008df376989839ae91c"
+        },
+        {
+          "label": "transition.value · counter.model.json:",
+          "seconds": 5.411,
+          "screen_sha256": "cb6b0a145ff82d41733c5beda08d4b84312500141a97e008df376989839ae91c"
+        },
+        {
+          "label": "Source observation failed for absent.contract.json",
+          "seconds": 5.411,
+          "screen_sha256": "cb6b0a145ff82d41733c5beda08d4b84312500141a97e008df376989839ae91c"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-nav-io-gate-rust.log",
+      "bytes": 32013,
+      "sha256": "d46f3f4ba61de5f9000614ccb5cf1867c818916486dc40ba5a049eaa44013e7b"
+    },
+    {
+      "path": "/tmp/meden-nav-io-native-tests.log",
+      "bytes": 624,
+      "sha256": "a90fd8fae5a408b1083708b39628cd334e4b5eed05e3db5436c76a01bd225980"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-clippy.log",
+      "bytes": 149,
+      "sha256": "10041778a035e29c5855af4918e9e46e5163cdd9956ab9667ed59b5d6788debb"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-architecture.log",
+      "bytes": 13217,
+      "sha256": "b92d4d07f5d9fc769a769533bed391dface0fa769a37637e9d0a6220aa0710cf"
+    },
+    {
+      "path": "/tmp/meden-nav-io-negative.log",
+      "bytes": 13857,
+      "sha256": "3d0a397e4669036c7af1106dc54e818c4a3b8d6360e4c3cc8f6fbe9dbd7e4223"
+    },
+    {
+      "path": "/tmp/meden-nav-io-frame-control.log",
+      "bytes": 833,
+      "sha256": "fbe9fd1e52ed6fdb5c6da85063da9c309667bba446fe59177a1cddfd653f9676"
+    },
+    {
+      "path": "/tmp/meden-nav-io-frame-control-state.json",
+      "bytes": 250,
+      "sha256": "5fcadabc970d487c2eead788c2dab0c2665db0b1d66072ee4c014971fe61b465"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/meden-nav-io-gate-ruff.log",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "/tmp/meden-nav-io-existing-decoded.json",
+      "bytes": 69988,
+      "sha256": "ecfa91ddc8283a2405952a5f56bed7d6f49d76b7278b93c28d8e203baceae058"
+    },
+    {
+      "path": "/tmp/meden-nav-io-normal-decoded.json",
+      "bytes": 24552,
+      "sha256": "c3ec619237bee1182c5ba9e2a69be8490490512f92dee8698d36ee86c397d156"
+    },
+    {
+      "path": "/tmp/meden-nav-io-decoded-screens.json",
+      "bytes": 5427,
+      "sha256": "eadf164eb533a26673a6faa72ce893ca6501b79fd91fc949227a7fd29cd15413"
+    },
+    {
+      "path": "/tmp/meden-ux-nav-io-20261126/summary.json",
+      "bytes": 10727,
+      "sha256": "4fe330bd6ac301432b7037c4cba045b310f8d35e75be5b2deede71c38ed02f93"
+    },
+    {
+      "path": "/tmp/meden-ux-nav-io-20261126/junit.xml",
+      "bytes": 5332,
+      "sha256": "3bb6894712de324b43782fb559e530c63616a902e2e1147e0e1da8b4dd24cb1d"
+    },
+    {
+      "path": "/tmp/meden-nav-io-deployed-fidelity.json",
+      "bytes": 7899,
+      "sha256": "d79a25f1f8e3bff96d4c67198a253abeee83d9db87545dcce3620f4aea3eafff"
+    },
+    {
+      "path": "/tmp/meden-nav-io-witness-before.json",
+      "bytes": 1443,
+      "sha256": "91bd8e3a77168d80595e9e9918dd92c0aad55a98423445e49fd44ab249f33a23"
+    },
+    {
+      "path": "/tmp/meden-nav-io-witness-after.json",
+      "bytes": 1443,
+      "sha256": "91bd8e3a77168d80595e9e9918dd92c0aad55a98423445e49fd44ab249f33a23"
+    }
+  ],
+  "remaining": [
+    "Measured first-detail rendering stalls and complete new-file freshness waits.",
+    "Remaining supported-entry-point retirement audit and full migration completion audit.",
+    "Existing JSON/OS/I/O attribution adapter obligations remain distinct from kernel refinement."
+  ]
+}

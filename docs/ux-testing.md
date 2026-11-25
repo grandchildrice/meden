@@ -46,6 +46,13 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 ## Experience contract
 
+Navigation observation changes keep worker operations, JSON decoding and fixed
+budgets in the application adapter. Real confined batches must preserve literal
+path order, complete availability and original metadata, refuse whole failed or
+oversized frames, and stop invalid/expired requests before worker dispatch.
+The public map failure/retry, saved-map, large-map and retained-tab restart
+journeys must retain their original data and camera without model work.
+
 Navigation-policy changes keep entry selection and import-name interpretation
 outside the CLI/browser. A filename ending in `Main.lean`, such as `NotMain.lean`,
 must not start compilation on startup or restart; explicit explorer opening must

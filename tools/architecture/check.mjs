@@ -203,6 +203,23 @@ export function nativeObservationViolations(source) {
     : [];
 }
 
+// Navigation consumers retain presentation/progress, not worker wire options.
+// This owned-source guard is structural, not an alias-proof I/O theorem.
+export function navigationObservationViolations(source) {
+  const production = source
+    .split("#[cfg(test)]")[0]
+    .split("\n")
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join("\n");
+  return /\bfile::(?:read_batch|run)\b|\bRequest::(?:<[^>]+>::)?new\b|\bOperation::(?:List|Snapshot)\b|\bserde_json::from_(?:value|slice|str)\b|\bjson!\s*\(/.test(
+    production,
+  )
+    ? [
+        "navigation consumers must use the typed application reader, not construct/decode worker requests",
+      ]
+    : [];
+}
+
 // Actual role definitions bind their own execution/validation inputs rather
 // than a facade that also changes when peer integrations are added.
 export function compilerCaptureViolations(source) {
@@ -279,6 +296,15 @@ export function check() {
     ),
   );
   const errors = cargoViolations(metadata.packages, metadata.workspace_members);
+  for (const path of [
+    "crates/meden-cli/src/gui/overview.rs",
+    "crates/meden-cli/src/gui/overview/cache.rs",
+  ])
+    errors.push(
+      ...navigationObservationViolations(
+        readFileSync(resolve(root, path), "utf8"),
+      ).map((error) => `${path}: ${error}`),
+    );
   errors.push(
     ...compilerEntryViolations(
       readFileSync(resolve(root, "crates/meden-app/src/atlas/mod.rs"), "utf8"),
@@ -290,6 +316,7 @@ export function check() {
     "crates/meden-app/src/navigation/collection.rs",
     "crates/meden-app/src/navigation/cache.rs",
     "crates/meden-app/src/navigation/saved.rs",
+    "crates/meden-app/src/adapters/navigation_io.rs",
     "crates/meden-app/src/search.rs",
     "crates/meden-app/src/explanation/cache.rs",
     "crates/meden-app/src/analysis.rs",

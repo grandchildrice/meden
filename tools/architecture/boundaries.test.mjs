@@ -7,9 +7,31 @@ import {
   compilerCaptureViolations,
   neutralObservationViolations,
   nativeObservationViolations,
+  navigationObservationViolations,
   programFor,
   sourceViolations,
 } from "./check.mjs";
+
+test("navigation consumers keep typed reader/progress and opaque metadata hints", () => {
+  assert.deepEqual(
+    navigationObservationViolations(
+      "Reader::new(workspace, control, started).stamps(paths); type Stamp = Value; progress(count);",
+    ),
+    [],
+  );
+});
+for (const source of [
+  "meden_runtime::file::read_batch(workspace, control, &requests, policy, limits)",
+  "Request::new(Operation::Snapshot, path, payload)",
+  "serde_json::from_value(value)",
+  'json!({"metadata":true})',
+])
+  test(`navigation consumers reject worker interpretation: ${source}`, () => {
+    assert.match(
+      navigationObservationViolations(source).join(),
+      /typed application reader/,
+    );
+  });
 
 test("compiler attribution accepts actual leaf and shared data dependencies", () => {
   assert.deepEqual(

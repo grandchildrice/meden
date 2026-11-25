@@ -6,6 +6,7 @@ pub mod informath;
 pub mod lake;
 pub mod lean;
 pub mod navigation;
+pub mod navigation_io;
 pub mod navigation_policy;
 pub mod plausible;
 pub mod preparation;
