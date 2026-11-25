@@ -1,7 +1,9 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
 use super::Context;
 use crate::compiler::{Compiled, Compiler, Invocation};
+use crate::identity::snapshots::GraphRevision;
 use anyhow::{Context as _, Result};
+use sha2::Digest as _;
 pub struct Lean {
     atlas: crate::atlas::Configuration,
 }
@@ -50,10 +52,10 @@ impl Compiler for Lean {
         }
         crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
         let mut graph = atlas.extract(&snapshot.files, &collection.modules, control)?;
-        graph.revision = format!(
-            "sha256:{}",
-            crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, collection))?)
-        );
+        graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
+            &graph.revision,
+            collection,
+        ))?));
         crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
         anyhow::ensure!(
             crate::analysis::sources::capture(workspace, control, &observed)?.revision

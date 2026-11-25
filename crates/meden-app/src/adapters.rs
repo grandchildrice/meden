@@ -57,6 +57,7 @@ fn compiler_definition(
         include_bytes!("analysis/layout.rs"),
         include_bytes!("analysis/observe.rs"),
         include_bytes!("analysis/sources.rs"),
+        include_bytes!("identity/snapshots.rs"),
         include_bytes!("compiler.rs"),
         include_bytes!("adapters.rs"),
         include_bytes!("atlas/mod.rs"),

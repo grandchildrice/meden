@@ -256,6 +256,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sha2::Digest as _;
     struct Unsupported;
     impl Compiler for Unsupported {
         fn descriptor(&self) -> Result<Descriptor> {
@@ -326,9 +327,8 @@ mod tests {
     fn observed() -> Result<Snapshot> {
         let files = BTreeMap::from([("Spec.lean".into(), "def value : Nat := 1\n".into())]);
         Ok(Snapshot {
-            revision: format!(
-                "sha256:{}",
-                crate::atlas::digest(&serde_json::to_vec(&files)?)
+            revision: crate::identity::snapshots::SourceRevision::from_digest(
+                sha2::Sha256::digest(serde_json::to_vec(&files)?),
             ),
             files,
             collection: None,

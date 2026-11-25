@@ -4,6 +4,7 @@ use super::{
     observe::{relative, Metadata, Reader},
     sources::{self, Snapshot},
 };
+use crate::identity::snapshots::PreparedRevision;
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
@@ -20,7 +21,7 @@ pub struct Collection {
     pub packages: Vec<PackageView>,
     pub metadata: Metadata,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub prepared: Option<String>,
+    pub prepared: Option<PreparedRevision>,
 }
 pub fn capture(
     workspace: &Workspace,

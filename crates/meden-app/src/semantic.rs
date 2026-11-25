@@ -1,5 +1,7 @@
 //! Candidate meaning assessment, separate from proof/contract authority.
 //! Prompt framing/output fields adapted from claimcheck; see semantic/README.md.
+use crate::identity::snapshots::GraphRevision;
+use crate::identity::snapshots::SourceRevision;
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -25,10 +27,10 @@ pub struct Target {
 #[serde(deny_unknown_fields)]
 pub struct Input {
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub source_revision: String,
+    pub source_revision: SourceRevision,
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub graph_revision: Option<String>,
+    pub graph_revision: Option<GraphRevision>,
     pub target: Target,
     #[schemars(length(min = 1, max = 16_384))]
     pub requirement: String,
@@ -58,7 +60,7 @@ impl Prepared {
             files.values().map(String::len).sum::<usize>() <= 1_048_576,
             "semantic context exceeds 1 MiB"
         );
-        let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
+        let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?));
         anyhow::ensure!(
             revision == input.source_revision,
             "semantic source revision changed; reread the graph"
@@ -396,7 +398,8 @@ mod tests {
             "Spec.lean".into(),
             "namespace Demo\ntheorem bound : FORMAL_ONLY_SENTINEL := by sorry\nend Demo".into(),
         )]);
-        let source_revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
+        let source_revision =
+            SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?));
         Prepared::new(
             Input {
                 source_revision,

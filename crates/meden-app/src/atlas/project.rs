@@ -18,7 +18,42 @@ pub(super) fn build_timeout() -> Result<Duration> {
     Ok(Duration::from_secs(seconds))
 }
 
+/// Fixed prepared-Lake input operation, selected by trusted application code.
+#[derive(Clone, Copy)]
+pub enum InputMode {
+    /// Prepare/build the originally selected modules before observation.
+    Prepare,
+    /// Reobserve the original complete input binding for freshness.
+    Fingerprint,
+}
+
 impl Configuration {
+    /// Decode the metadata worker's original digest once at its backend boundary.
+    /// This does not change query/build permissions or admit a verification result.
+    pub fn input_fingerprint(
+        &self,
+        workspace: &Path,
+        modules: &[crate::analysis::layout::Module],
+        mode: InputMode,
+        control: &Control,
+    ) -> Result<crate::identity::snapshots::PreparedRevision> {
+        #[derive(serde::Deserialize)]
+        struct Inputs {
+            fingerprint: crate::identity::snapshots::PreparedRevision,
+        }
+        let mode = match mode {
+            InputMode::Prepare => "prepare",
+            InputMode::Fingerprint => "fingerprint",
+        };
+        let observed: Inputs = serde_json::from_str(&self.project(
+            workspace,
+            "project-atlas-prepare.sh",
+            &[mode.into(), serde_json::to_string(modules)?],
+            control,
+        )?)?;
+        Ok(observed.fingerprint)
+    }
+
     pub fn run_search(
         &self,
         workspace: &Path,

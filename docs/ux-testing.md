@@ -56,6 +56,18 @@ parameters/outcomes. An actual loopback HTTP test checks equal copied identities
 non-UTF-8/NUL differences, no request before approval and terminal revocation.
 These are adapter/type checks, not live-model quality or new kernel refinement.
 
+Snapshot-context changes must preserve original digest framing and complete
+source/graph data. Source, graph and prepared-input revisions cannot be exchanged
+as Rust values; canonical wire spelling still does not confer origin or authority.
+The native meaning journey sends 21 malformed source/graph identity bodies to
+the actual command endpoint, requires refusal before queuing or inference, then
+completes ordinary analysis and historical restart. A null graph remains valid
+lexical syntax; actual host comparisons still reject mismatched contexts. The
+same driver against the original executable must fail the refusal condition at
+HTTP 202 rather than a startup/prerequisite error. Backend definition changes
+require fresh bound artifacts once; subsequent restart must reuse them without
+compilation/search/rendering. Old artifacts must not be relabeled.
+
 | Developer goal | Observable acceptance | Executable coverage in `python/tests/` |
 | --- | --- | --- |
 | Retain the correct graph as file details and visibility change | Reuse unchanged declaration indices, preserve every original ordered edge, reject former-generation data, hide/show a newly private/public target while reusing the unchanged referring file without HTTP rereads or compilation, retain quiet chat and reopen unapproved | Native small-map failure/retry/restart journey; complete actual-project scene comparison, independent array/filter oracle, 3,000 generated update traces and rejected global-rebuild performance mutation |

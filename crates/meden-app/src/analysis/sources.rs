@@ -1,4 +1,5 @@
 //! Bounded source observations through the ordinary policy-bound offline file worker.
+use crate::identity::snapshots::SourceRevision;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::time::Duration;
@@ -19,7 +20,7 @@ const TOTAL_LIMIT: usize = 16_777_216;
 
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Snapshot {
-    pub revision: String,
+    pub revision: SourceRevision,
     pub files: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub atlas: Option<crate::atlas::Extraction>,
@@ -87,7 +88,7 @@ pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Re
             String::from_utf8(bytes).context("source must be UTF-8")?,
         );
     }
-    let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
+    let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?));
     Ok(Snapshot {
         revision,
         files,

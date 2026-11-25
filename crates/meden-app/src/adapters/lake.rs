@@ -1,8 +1,9 @@
 //! Prepared Lake builds keep installed imports outside the selected-source graph.
 use super::Context;
 use crate::compiler::{Compiled, Compiler, Invocation};
+use crate::identity::snapshots::GraphRevision;
 use anyhow::{Context as _, Result};
-use serde::Deserialize;
+use sha2::Digest as _;
 
 pub struct Lake {
     atlas: crate::atlas::Configuration,
@@ -12,11 +13,6 @@ impl Lake {
         Self { atlas }
     }
 }
-#[derive(Deserialize)]
-struct Prepared {
-    fingerprint: String,
-}
-
 /// Trusted host choice: Lake preparation may execute project code with writable
 /// workspace access. It never becomes a model-selected network executor.
 pub fn enabled() -> Result<bool> {
@@ -53,24 +49,18 @@ impl Compiler for Lake {
             context.control,
             &collection.metadata,
         )?;
-        let bindings = serde_json::to_string(&collection.modules)?;
-        let prepared: Prepared = serde_json::from_str(&atlas.project(
+        let prepared = atlas.input_fingerprint(
             context.workspace.path(),
-            "project-atlas-prepare.sh",
-            &["prepare".into(), bindings.clone()],
+            &collection.modules,
+            crate::atlas::InputMode::Prepare,
             context.control,
-        )?)?;
-        anyhow::ensure!(
-            prepared.fingerprint.len() == 64
-                && prepared.fingerprint.bytes().all(|b| b.is_ascii_hexdigit()),
-            "Invalid prepared-input fingerprint"
-        );
-        collection.prepared = Some(prepared.fingerprint.clone());
+        )?;
+        collection.prepared = Some(prepared.clone());
         if let Some(cached) = crate::explanation::cache::compiled_prepared(
             context.workspace,
             context.control,
             &collection.roots,
-            &prepared.fingerprint,
+            &prepared,
             &request,
         )? {
             return Ok(cached);
@@ -86,14 +76,14 @@ impl Compiler for Lake {
             &modules,
             context.control,
         )?;
-        let after: Prepared = serde_json::from_str(&atlas.project(
+        let after = atlas.input_fingerprint(
             context.workspace.path(),
-            "project-atlas-prepare.sh",
-            &["fingerprint".into(), bindings],
+            &collection.modules,
+            crate::atlas::InputMode::Fingerprint,
             context.control,
-        )?)?;
+        )?;
         anyhow::ensure!(
-            prepared.fingerprint == after.fingerprint,
+            prepared == after,
             "Prepared Lake inputs changed during extraction"
         );
         crate::analysis::collect::check_metadata(
@@ -111,10 +101,10 @@ impl Compiler for Lake {
             .context("Prepared Atlas did not return a complete graph")?;
         bind_nodes(&mut graph, &collection.modules)?;
         let mut graph = atlas.admit_project(graph, &snapshot.files)?;
-        graph.revision = format!(
-            "sha256:{}",
-            crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, &collection))?)
-        );
+        graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
+            &graph.revision,
+            &collection,
+        ))?));
         collection.external_modules =
             external_modules(atlas, &snapshot.files, &collection.modules, context.control)?;
         snapshot.atlas = Some(graph);

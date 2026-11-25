@@ -8227,6 +8227,70 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     );
     await writeFile(resolve(project, "Other.lean"), "def other : Nat := 0\n");
     await openMeaning(page);
+    await expect
+      .poll(async () => {
+        const state = await nativeState(page);
+        return state.authorized && !state.running;
+      })
+      .toBe(true);
+    const originalSources = (await nativeState(page)).sources;
+    const prepared = await nativeSource(page, {
+      sources: { current: originalSources.files["Spec.lean"] },
+    });
+    const target = prepared.graph.declarations.find(
+      (node: any) => node.name === "Demo.stock_bound",
+    );
+    expect(target).toBeDefined();
+    const malformed = [
+      "",
+      "sha256:old",
+      "0".repeat(64),
+      "sha256:" + "A".repeat(64),
+      "sha256:" + "0".repeat(63),
+      "sha256:" + "０".repeat(64),
+      "sha256:" + "0".repeat(64) + "\n",
+      null,
+      1,
+      [],
+      {},
+    ];
+    for (const field of ["source_revision", "graph_revision"]) {
+      for (const invalid of malformed) {
+        // A missing graph is a represented lexical context. It remains valid
+        // syntax; the host still compares it against the actual retained graph.
+        if (field === "graph_revision" && invalid === null) continue;
+        const status = await page.evaluate(
+          async (input) =>
+            (
+              await fetch("/api/command", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization:
+                    "Bearer " + sessionStorage.getItem("meden-native-session"),
+                },
+                body: JSON.stringify({ type: "analyze_meaning", input }),
+              })
+            ).status,
+          {
+            source_revision: prepared.revision,
+            graph_revision: prepared.graph.revision,
+            target: {
+              file: target.source.file,
+              line: target.source.line,
+              name: target.name,
+            },
+            requirement: "Original requirement",
+            [field]: invalid,
+          },
+        );
+        expect(status).toBe(409);
+      }
+    }
+    expect(requests).toHaveLength(0);
+    expect((await nativeState(page)).sources.files["Spec.lean"]).toEqual(
+      originalSources.files["Spec.lean"],
+    );
     await page
       .getByRole("button", { name: "Analyze declaration meaning" })
       .click();

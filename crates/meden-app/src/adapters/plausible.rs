@@ -55,6 +55,7 @@ impl Searcher for Plausible {
             implementation: &[
                 include_bytes!("plausible.rs").as_slice(),
                 include_bytes!("../search.rs").as_slice(),
+                include_bytes!("../identity/snapshots.rs").as_slice(),
                 include_bytes!("../atlas/project.rs").as_slice(),
                 include_bytes!("../atlas/mod.rs").as_slice(),
                 include_bytes!("../atlas/resources.rs").as_slice(),
@@ -145,21 +146,14 @@ impl Searcher for Plausible {
             &collection.metadata,
         )?;
         if let Some(expected) = &collection.prepared {
-            let output = self.atlas.project(
+            let observed = self.atlas.input_fingerprint(
                 context.workspace.path(),
-                "project-atlas-prepare.sh",
-                &[
-                    "fingerprint".into(),
-                    serde_json::to_string(&collection.modules)?,
-                ],
+                &collection.modules,
+                crate::atlas::InputMode::Fingerprint,
                 context.control,
             )?;
-            let observed: serde_json::Value = serde_json::from_str(&output)?;
             anyhow::ensure!(
-                observed
-                    .get("fingerprint")
-                    .and_then(serde_json::Value::as_str)
-                    == Some(expected),
+                &observed == expected,
                 "Prepared dependencies changed during search"
             );
         }

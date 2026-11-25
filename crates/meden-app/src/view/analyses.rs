@@ -64,12 +64,6 @@ impl<'a> Record<'a> {
                     .source_artifact
                     .as_deref()
                     .is_none_or(|s| hex(s, "sha256:"))
-                && hex(&record.input.source_revision, "sha256:")
-                && record
-                    .input
-                    .graph_revision
-                    .as_deref()
-                    .is_none_or(|s| hex(s, "sha256:"))
                 && record.input.target.line <= 1_048_577,
             "Invalid candidate observation identity or input"
         );

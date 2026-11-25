@@ -177,6 +177,7 @@ impl super::publication::Data for super::SourcePage {
 mod tests {
     use super::*;
     use crate::analysis::{collect::Collection, observe::Metadata, sources::Snapshot};
+    use crate::identity::snapshots::SourceRevision;
     use anyhow::{Context as _, Result};
     use proptest::prelude::*;
 
@@ -186,7 +187,7 @@ mod tests {
             .map(|(p, s)| (p.to_string(), s.to_string()))
             .collect();
         Ok(Snapshot {
-            revision: format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?)),
+            revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?)),
             files,
             atlas: None,
             collection: None,

@@ -78,7 +78,10 @@ mod tests {
             finding_id: "finding".into(),
             requirement_id: "requirement".into(),
             input: Input {
-                source_revision: format!("sha256:{}", "c".repeat(64)),
+                source_revision: crate::identity::snapshots::SourceRevision::parse(&format!(
+                    "sha256:{}",
+                    "c".repeat(64)
+                ))?,
                 graph_revision: None,
                 target: Target {
                     file: "Spec.lean".into(),

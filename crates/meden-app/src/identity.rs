@@ -1,5 +1,8 @@
 //! Owned application identities. Decoding checks representation, never authority.
 //! The existing controller still compares original sessions, revisions and bytes.
+/// Original source, graph and prepared-input identities, separate from agreements.
+pub mod snapshots;
+
 use anyhow::Result;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

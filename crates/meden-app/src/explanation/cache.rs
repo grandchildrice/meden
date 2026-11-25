@@ -2,9 +2,11 @@
 //! Neither layer carries accepted-contract evidence or restores an approval.
 use super::Explanation;
 use crate::analysis::sources::Snapshot;
+use crate::identity::snapshots::{GraphRevision, PreparedRevision, SourceRevision};
 use anyhow::{Context, Result};
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use sha2::Digest as _;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::PathBuf,
@@ -325,7 +327,10 @@ impl Artifact {
             self.version == 2
                 && !snapshot.files.is_empty()
                 && snapshot.files.len() <= 32
-                && snapshot.revision == format!("sha256:{}", hash(&snapshot.files)?)
+                && snapshot.revision
+                    == SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+                        &snapshot.files
+                    )?))
                 && !collection.roots.is_empty()
                 && collection
                     .roots
@@ -388,7 +393,10 @@ fn scope(
 }
 fn bind_revision(snapshot: &mut Snapshot, rendering: &str) -> Result<()> {
     let graph = snapshot.atlas.as_mut().context("Missing compiled graph")?;
-    graph.revision = format!("sha256:{}", hash(&(&graph.revision, rendering))?);
+    graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
+        &graph.revision,
+        rendering,
+    ))?));
     Ok(())
 }
 
@@ -423,7 +431,7 @@ fn artifacts(
     workspace: &Workspace,
     control: &Control,
     selections: impl IntoIterator<Item = Vec<String>>,
-    prepared: Option<&str>,
+    prepared: Option<&PreparedRevision>,
     compiler: &meden_runtime::plugin::Descriptor,
 ) -> Result<Vec<(String, Artifact)>> {
     let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
@@ -458,7 +466,7 @@ fn artifacts(
             "Compiler observation selection changed"
         );
         artifact.check_compiler(compiler)?;
-        if collection.prepared.as_deref() != prepared
+        if collection.prepared.as_ref() != prepared
             || artifact
                 .snapshot
                 .atlas
@@ -564,7 +572,7 @@ pub fn compiled_prepared(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
-    fingerprint: &str,
+    fingerprint: &PreparedRevision,
     invocation: &crate::compiler::Invocation,
 ) -> Result<Option<crate::compiler::Compiled>> {
     compiled_for(workspace, control, paths, Some(fingerprint), invocation)
@@ -573,7 +581,7 @@ fn compiled_for(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
-    prepared: Option<&str>,
+    prepared: Option<&PreparedRevision>,
     invocation: &crate::compiler::Invocation,
 ) -> Result<Option<crate::compiler::Compiled>> {
     let Some((_, artifact)) = artifacts(

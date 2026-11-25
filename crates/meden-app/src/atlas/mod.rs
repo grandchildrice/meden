@@ -17,6 +17,7 @@ mod imports;
 pub mod lake;
 pub mod progress;
 mod project;
+pub use project::InputMode;
 mod resources;
 mod toolchain;
 pub use graph::{Extraction, SearchKind};

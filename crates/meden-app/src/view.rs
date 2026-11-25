@@ -1,10 +1,12 @@
 //! Read-only prepared source and graph projection. This data neither accepts a
 //! contract nor carries a verification receipt. Backend observations and current
 //! accepted-project evidence remain separate application contexts.
+use crate::identity::snapshots::{GraphRevision, PreparedRevision, SourceRevision};
 use crate::{analysis::sources::Snapshot, explanation::Explanation};
 use anyhow::{Context, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use sha2::Digest as _;
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Candidate meaning jobs and retained observations, separate from evidence.
@@ -196,7 +198,7 @@ pub struct Edge {
 pub struct Graph {
     /// Exact graph/artifact revision.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub revision: String,
+    pub revision: GraphRevision,
     /// Display nodes with source linkage.
     #[schemars(length(max = 5000))]
     pub declarations: Vec<Node>,
@@ -210,8 +212,7 @@ pub struct Graph {
 #[serde(deny_unknown_fields)]
 pub struct SourcePage {
     /// Revision of the exact retained source map.
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub revision: String,
+    pub revision: SourceRevision,
     /// Bounded UTF-8 inputs. Other availability states are a separate projection.
     pub files: BTreeMap<String, SourceText>,
     /// Explicit selected roots rather than backend package/configuration internals.
@@ -226,7 +227,7 @@ pub struct SourcePage {
     pub compiled: bool,
     /// Exact prepared compiler-input binding when a backend provides one.
     #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
-    pub inputs_revision: Option<String>,
+    pub inputs_revision: Option<PreparedRevision>,
 }
 
 impl SourcePage {
@@ -329,10 +330,8 @@ impl SourcePage {
     }
     /// Check bounds, identities, original source ranges and graph cross-references.
     pub fn validate(&self) -> Result<()> {
-        let revision = format!(
-            "sha256:{}",
-            crate::atlas::digest(&serde_json::to_vec(&self.files)?)
-        );
+        let revision =
+            SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&self.files)?));
         anyhow::ensure!(
             self.revision == revision
                 && !self.files.is_empty()
@@ -452,7 +451,7 @@ fn lexical(snapshot: &Snapshot) -> Result<Graph> {
     }
     let edges = lexical_edges(&nodes, &references, &private)?;
     Ok(Graph {
-        revision: snapshot.revision.clone(),
+        revision: GraphRevision::parse(snapshot.revision.as_str())?,
         declarations: nodes,
         edges,
     })
@@ -537,10 +536,9 @@ mod tests {
             .map(|(p, s)| ((*p).into(), (*s).into()))
             .collect::<BTreeMap<String, String>>();
         Ok(Snapshot {
-            revision: format!(
-                "sha256:{}",
-                crate::atlas::digest(&serde_json::to_vec(&files)?)
-            ),
+            revision: SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(
+                &files,
+            )?)),
             files,
             atlas: None,
             collection: None,

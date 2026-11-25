@@ -945,6 +945,23 @@ Project/repair/job adapters still explicitly project the original bytes to their
 existing interfaces; recorded-work session representations, backend snapshots and
 the remaining orchestration identities need their own audit. See
 [the workspace/model-session validation](../performance/workspace-model-sessions.md).
+Source snapshots, graph observations, semantic requests and their native views
+now retain distinct `SourceRevision`, `GraphRevision` and `PreparedRevision`
+values. Their private representations decode canonical original spellings;
+existing content, method and freshness checks still establish correspondence.
+The original JSON strings and digest framing remain unchanged, including the
+explicit lexical graph projection of its source revision. Native schemas remain
+identical. Compiler/search port schemas now declare these constraints too, and
+their captured implementations include the identity definitions. Old artifacts
+are not stamped with the new method: the new definition prepares a new bound
+observation once, then exact cache checks apply normally.
+Prepared Lake input observation has one typed mode/result boundary shared by
+compilation, search and semantic freshness checks. It removes three ad hoc JSON
+fingerprint readers and repeated display validation of already-decoded IDs.
+This closes these snapshot-identity fields, not the remaining Lean-oriented
+internal compiler observation shape, orchestration/artifact identity audit or
+complete session I/O proof. See
+[the snapshot-context validation](../performance/snapshot-contexts.md).
 The [prepared-path comparison](../performance/lake-path-observations.md) removes
 repeated Python ancestor traversal in the Linux compiler adapter. It keeps every
 input byte, original ordered fingerprint and existing authority controller,

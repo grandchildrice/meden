@@ -295,21 +295,13 @@ fn observe(
             return Err(error);
         }
         if let Some(expected) = &collection.prepared {
-            let output = crate::atlas::Configuration::host(workspace.path()).project(
+            let observed = crate::atlas::Configuration::host(workspace.path()).input_fingerprint(
                 workspace.path(),
-                "project-atlas-prepare.sh",
-                &[
-                    "fingerprint".into(),
-                    serde_json::to_string(&collection.modules)?,
-                ],
+                &collection.modules,
+                crate::atlas::InputMode::Fingerprint,
                 control,
             )?;
-            let observed: serde_json::Value = serde_json::from_str(&output)?;
-            if observed
-                .get("fingerprint")
-                .and_then(serde_json::Value::as_str)
-                != Some(expected.as_str())
-            {
+            if &observed != expected {
                 record.borrow_mut().state = State::Stale;
                 anyhow::bail!(
                     "Prepared dependencies changed; reread the file before meaning analysis"

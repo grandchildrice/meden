@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)]
 use super::*;
 use anyhow::Context as _;
 use serde_json::{json, Value};
@@ -17,7 +18,11 @@ fn record(sequence: u64) -> analysis::Record {
         model_definition: Some(json!({"original": [null, "λ\n\"", 41]})),
         judge_definition: None,
         input: semantic::Input {
-            source_revision: format!("sha256:{}", "ef".repeat(32)),
+            source_revision: crate::identity::snapshots::SourceRevision::parse(&format!(
+                "sha256:{}",
+                "ef".repeat(32)
+            ))
+            .expect("canonical fixture"),
             graph_revision: None,
             target: semantic::Target {
                 file: "source 日本語.rs".into(),
@@ -233,7 +238,7 @@ fn invalid_or_unreadable_observations_are_explicit_without_restoring_old_results
     });
     let original = body(&analyses, false)?.0;
     let mut invalid = record(1);
-    invalid.input.source_revision = "different".into();
+    invalid.input.target.line = 0;
     analyses.select(Some(invalid));
     assert!(analyses
         .current_bytes(&ArtifactId::parse(&original)?)
@@ -253,8 +258,9 @@ fn invalid_or_unreadable_observations_are_explicit_without_restoring_old_results
             .as_ref()
             .context("retained")?
             .input
-            .source_revision,
-        "different"
+            .target
+            .line,
+        0
     );
     analyses.select(Some(record(2)));
     assert_eq!(

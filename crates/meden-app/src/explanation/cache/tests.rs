@@ -27,7 +27,7 @@ fn semantic(snapshot: &mut Snapshot) -> Result<&mut crate::explanation::Descript
         .and_then(|n| n.semantic.as_mut())
         .context("semantic")
 }
-fn revision(snapshot: &Snapshot) -> Result<&str> {
+fn revision(snapshot: &Snapshot) -> Result<&GraphRevision> {
     Ok(&snapshot.atlas.as_ref().context("graph")?.revision)
 }
 
@@ -222,7 +222,8 @@ fn stale_observation_identity_cannot_select_another_rendering() -> Result<()> {
         "Spec.lean".into(),
         "-- changed\ntheorem claim : False := by sorry\n".into(),
     );
-    other.revision = format!("sha256:{}", hash(&other.files)?);
+    other.revision =
+        SourceRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&other.files)?));
     let other_id = store.observe(other.clone(), &definition()?)?.id;
     assert_ne!(id, other_id);
     assert!(store

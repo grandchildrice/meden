@@ -1,4 +1,6 @@
 //! Bounded Atlas data and source correspondence checks; no proof receipt.
+use crate::identity::snapshots::GraphRevision;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::{Context, Result};
@@ -7,7 +9,7 @@ use serde_json::Value;
 
 #[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 pub struct Extraction {
-    pub revision: String,
+    pub revision: GraphRevision,
     pub upstream: String,
     pub graph: Graph,
     pub resources_sha256: String,
@@ -18,6 +20,7 @@ pub struct Extraction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::identity::snapshots::SourceRevision;
     use crate::semantic::{Input, Prepared, Target};
     use serde_json::json;
 
@@ -50,11 +53,10 @@ mod tests {
             .collect::<BTreeSet<_>>();
         assert_eq!(names, BTreeSet::from(["T", "New"]));
         let mut input = Input {
-            source_revision: format!(
-                "sha256:{}",
-                super::super::digest(&serde_json::to_vec(&files)?)
-            ),
-            graph_revision: Some("wrong graph".into()),
+            source_revision: SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(
+                &files,
+            )?)),
+            graph_revision: Some(GraphRevision::parse(&format!("sha256:{}", "0".repeat(64)))?),
             target,
             requirement: "original requirement".into(),
         };
@@ -168,15 +170,12 @@ impl Extraction {
                 "Atlas dependency target is missing"
             );
         }
-        let revision = format!(
-            "sha256:{}",
-            super::digest(&serde_json::to_vec(&(
-                super::UPSTREAM,
-                files,
-                &graph,
-                super::compiler_resources(resources)?
-            ))?)
-        );
+        let revision = GraphRevision::from_digest(Sha256::digest(serde_json::to_vec(&(
+            super::UPSTREAM,
+            files,
+            &graph,
+            super::compiler_resources(resources)?,
+        ))?));
         Ok(Self {
             revision,
             upstream: super::UPSTREAM.into(),
