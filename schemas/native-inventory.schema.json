@@ -86,6 +86,10 @@
               "type": "string",
               "const": "indexed"
             },
+            "entry": {
+              "description": "Backend-selected entry module, independent of its filename/format.",
+              "type": "boolean"
+            },
             "path": {
               "description": "Original relative path.",
               "type": "string",
@@ -134,6 +138,7 @@
           "additionalProperties": false,
           "required": [
             "state",
+            "entry",
             "path",
             "sha256",
             "bytes",

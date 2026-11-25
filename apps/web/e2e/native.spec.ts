@@ -2493,6 +2493,70 @@ test.describe("native GUI with real offline workers", () => {
     });
   }
 
+  test("non-entry filenames stay quiet on startup and restart while explicit opening reuses compiled graphs", async ({
+    page,
+  }) => {
+    test.setTimeout(180000);
+    const path = "NotMain.lean",
+      source = "theorem ordinary : True := True.intro\n";
+    await writeFile(resolve(project, path), source);
+    const startup = async () => {
+      await expect
+        .poll(
+          async () => {
+            const s = await nativeState(page);
+            return s.overview.state === "ready" && !s.running;
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+      const s = await nativeState(page);
+      expect(s.source_preparation).not.toHaveProperty([path]);
+      expect(s.authorized).toBe(false);
+    };
+    const open = async () => {
+      await page
+        .getByRole("button", { name: "File: " + path, exact: true })
+        .click();
+      await expect
+        .poll(
+          async () => {
+            const s = await nativeState(page);
+            return (
+              !s.running &&
+              s.source_preparation[path]?.outcome.state === "ready"
+            );
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+      await expect(
+        page
+          .locator(".ide-file-page:not([hidden])")
+          .getByLabel("File contents"),
+      ).toContainText("theorem ordinary");
+      const s = await nativeState(page),
+        graph = await nativeSource(page, s);
+      expect(
+        graph.graph.declarations.some((d: any) => d.id === "ordinary"),
+      ).toBe(true);
+      expect(s.authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+      return s.source_preparation[path];
+    };
+    await page.goto(await start());
+    await startup();
+    await open();
+    await stop();
+    await page.goto(await start());
+    await startup();
+    expect((await open()).outcome.cache_hit).toBe(true);
+    expect(await readFile(resolve(project, path), "utf8")).toBe(source);
+    await page.screenshot({
+      path: "target/gui-checks/backend-entry-explicit-source.png",
+    });
+  });
+
   test("open file tabs restore source, graph camera and explanations without another inspection", async ({
     page,
   }, info) => {
@@ -6283,6 +6347,19 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       meaning.getByRole("row", { name: "n 0", exact: true }),
     ).toBeVisible();
     expect(commands).not.toContain("atlas_snapshot");
+    // Saved presentation can precede current-input validation after restart.
+    await expect
+      .poll(
+        async () => {
+          const state = await nativeState(page);
+          return (
+            !state.running &&
+            state.source_preparation["Main.lean"]?.outcome.state === "ready"
+          );
+        },
+        { timeout: 120000 },
+      )
+      .toBe(true);
     expect(
       (await nativeState(page)).source_preparation["Main.lean"].outcome
         .cache_hit,

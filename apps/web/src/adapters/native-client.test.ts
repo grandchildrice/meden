@@ -311,6 +311,7 @@ test("inventory and navigation reads bind exact publications and original parent
     declarations: 0,
     theorems: 0,
     indexed: false,
+    entry: false,
     imports: [],
     symbols: [],
   };
@@ -377,6 +378,7 @@ test("concurrent navigation reads share one request and a failed transfer can re
     declarations: 0,
     theorems: 0,
     indexed: false,
+    entry: false,
     imports: [],
     symbols: [],
   };

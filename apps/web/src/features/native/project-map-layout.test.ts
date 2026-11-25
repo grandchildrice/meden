@@ -29,6 +29,7 @@ function fixture(paths: string[]): NavigationInventory {
       imports: [],
       symbols: [],
       indexed: false,
+      entry: false,
     })),
   };
 }
@@ -230,6 +231,7 @@ test("updating a prepared declaration overlay agrees with a complete rebuild and
         : {
             ...f,
             indexed: true,
+            entry: false,
             sha256: "observed",
             declarations: 2,
             theorems: 2,
@@ -322,6 +324,7 @@ if (process.env.MEDEN_PERFORMANCE === "1")
           ? {
               ...f,
               indexed: true,
+              entry: false,
               sha256: "new",
               declarations: 1,
               theorems: 1,

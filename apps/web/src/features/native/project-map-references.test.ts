@@ -287,6 +287,7 @@ if (process.env.MEDEN_PERFORMANCE === "1")
       sha256: "original",
       bytes: "100",
       indexed: true,
+      entry: false,
       declarations: 24,
       theorems: 24,
       imports: [],

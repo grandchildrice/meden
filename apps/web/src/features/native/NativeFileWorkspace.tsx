@@ -396,7 +396,7 @@ function FileWorkspace({
                       line,
                       kind: "definition",
                       declaration: "def",
-                      role: declarationRole("def"),
+                      role: declarationRole("definition", "def"),
                       private: false,
                       references: [],
                       semantic: null,

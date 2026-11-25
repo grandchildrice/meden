@@ -29,6 +29,7 @@ function corpus(
       declarations: row.count,
       theorems: row.count,
       indexed: true,
+      entry: false,
       imports: [],
       symbols: Array.from({ length: row.count }, (_, i) => ({
         name: `t${index}_${i}`,

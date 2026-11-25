@@ -1180,3 +1180,18 @@ remain unchanged; malformed and failed same-hint entries recover through the
 public refresh control. Remaining import-resolution/entry-point presentation
 policy, observation correspondence, measured waits and retirement still require
 their own completion audit.
+
+[Backend-owned navigation policy](../performance/navigation-policy-ownership.md)
+now supplies entry-module flags and interprets
+import names outside the CLI/browser. The common bounded neighborhood receives
+a resolver and saved-file reader, independently checks original inventory
+membership and preserves original breadth/order and import-only expansion.
+Indexed wire entries/chunks carry the current host's entry flag; browser lexical
+reuse preserves references while taking that flag and attributed targets from
+the current heading. Generic backend kinds determine theorem/definition/axiom
+roles, and the graph no longer gives a named demo declaration special priority.
+Actual shallow Main modules retain preparation; NotMain modules require explicit
+opening. This advances the remaining policy ownership in steps 3/4. Observation
+correspondence, measured first-detail/native waits and the complete retirement
+audit remain open; this does not establish whole-session refinement or close the
+five migration exits.

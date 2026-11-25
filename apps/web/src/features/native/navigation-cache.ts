@@ -7,7 +7,7 @@ type Candidate = Omit<
   "semantic" | "main_theorem"
 >;
 type Retained = {
-  file: Omit<NavigationFile, "symbols"> & { symbols: Candidate[] };
+  file: Omit<NavigationFile, "symbols" | "entry"> & { symbols: Candidate[] };
   bytes: number;
 };
 const digest = /^sha256:[a-f0-9]{64}$/;
@@ -100,6 +100,7 @@ export class NavigationCache {
       theorems: entry.theorems,
       imports: entry.imports.slice(),
       indexed: true,
+      entry: entry.entry,
       symbols: entry.headers.map((header, i) => ({
         ...header,
         references: file.symbols[i]!.references.slice(),

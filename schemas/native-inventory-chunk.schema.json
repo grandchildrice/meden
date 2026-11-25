@@ -98,6 +98,10 @@
         "indexed": {
           "description": "False includes unread/unsupported inputs; it never asserts readability.",
           "type": "boolean"
+        },
+        "entry": {
+          "description": "Backend-selected entry module; never a compilation or proof claim.",
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -109,7 +113,8 @@
         "theorems",
         "imports",
         "symbols",
-        "indexed"
+        "indexed",
+        "entry"
       ]
     },
     "Symbol": {

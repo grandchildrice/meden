@@ -24,6 +24,7 @@ test("independent viewport consumers reuse traversal while size and scene change
       declarations: 1,
       theorems: 1,
       indexed: true,
+      entry: false,
       imports: [],
       symbols: [
         {
@@ -76,6 +77,7 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
       declarations: 1,
       theorems: 1,
       indexed: true,
+      entry: false,
       imports: [],
       symbols: [
         {
@@ -147,6 +149,7 @@ test("large-directory batches retain original painter order and file identity ac
         declarations: 0,
         theorems: 0,
         indexed: false,
+        entry: false,
         imports: [],
         symbols: [],
       })),
@@ -194,6 +197,7 @@ test("the legend follows visible declarations rather than distant or empty files
         theorems: i,
         imports: [],
         indexed: true,
+        entry: false,
         symbols: i
           ? [
               {
@@ -242,6 +246,7 @@ test("breadcrumbs enter a containing child only after its opacity exceeds one ha
           theorems: 0,
           imports: [],
           indexed: true,
+          entry: false,
           symbols: [],
         }),
       ),
@@ -259,4 +264,69 @@ test("breadcrumbs enter a containing child only after its opacity exceeds one ha
     };
     expect(mapLocation(scene, view, size)).toBe(pixels > 750 ? "A/Inner" : "A");
   }
+});
+
+test("backend kinds and entry flags determine roles independently of filenames or statement text", () => {
+  const file: import("./project-map-model").NavigationFile = {
+    path: "solver/goal.smt2",
+    sha256: "original",
+    bytes: "40",
+    indexed: true,
+    entry: true,
+    imports: [],
+    declarations: 1,
+    theorems: 1,
+    symbols: [
+      {
+        name: "bounded_property",
+        line: 1,
+        kind: "theorem",
+        declaration: "The next state preserves the bound.",
+        private: false,
+        references: [],
+        semantic: null,
+        main_theorem: false,
+      },
+    ],
+  };
+  const index = prepareMap({ files: [file], inventory_only: false });
+  const entry = projectMap(index);
+  expect(entry.mainPins).toHaveLength(1);
+  expect([...entry.symbols.values()][0]!.role.id).toBe("main_theorem");
+  const changed = projectMap(
+    index,
+    new Set(),
+    new Map([[file.path, { ...file, entry: false }]]),
+    entry,
+  );
+  expect(changed.mainPins).toHaveLength(0);
+  expect([...changed.symbols.values()][0]!.role.id).toBe("theorem");
+  expect(entry.mainPins).toHaveLength(1);
+  const ordinary = projectMap(
+    prepareMap({
+      files: [{ ...file, path: "Main.lean", entry: false }],
+      inventory_only: false,
+    }),
+  );
+  expect(ordinary.mainPins).toHaveLength(0);
+  expect([...ordinary.symbols.values()][0]!.role.id).toBe("theorem");
+  const axiom = projectMap(
+    prepareMap({
+      files: [
+        {
+          ...file,
+          symbols: [
+            {
+              ...file.symbols[0]!,
+              kind: "axiom",
+              declaration: "Assumed bound.",
+            },
+          ],
+        },
+      ],
+      inventory_only: false,
+    }),
+  );
+  expect(axiom.mainPins).toHaveLength(0);
+  expect([...axiom.symbols.values()][0]!.role.id).toBe("axiom");
 });

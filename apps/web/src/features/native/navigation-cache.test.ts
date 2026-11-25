@@ -13,6 +13,7 @@ function file(path = "A.lean"): NavigationFile {
     theorems: 1,
     imports: ["B"],
     indexed: true,
+    entry: false,
     symbols: [
       {
         name: "N.claim",
@@ -113,4 +114,16 @@ test("retention evicts complete candidates by count/serialized bytes and never c
   expect(cache.replay(indexer, heading(b))).toBeDefined();
   for (const count of [0, -1, 65, NaN])
     expect(() => new NavigationCache(count)).toThrow();
+});
+
+test("entry policy is supplied by the current host instead of a lexical cache hit", () => {
+  const cache = new NavigationCache(),
+    original = file("solver/goal.smt2");
+  cache.remember(indexer, original);
+  const current = { ...heading(original), entry: true };
+  expect(cache.replay(indexer, current)?.entry).toBe(true);
+  cache.remember(indexer, { ...original, entry: true });
+  expect(cache.replay(indexer, { ...current, entry: false })?.entry).toBe(
+    false,
+  );
 });

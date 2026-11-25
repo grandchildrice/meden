@@ -43,12 +43,13 @@ const axiom: DeclarationRole = {
 export const declarationRoles = [main, theorem, lemma, definition, axiom];
 /** Main marks saved/attributed targets or entry-module theorems, never proof status. */
 export function declarationRole(
+  kind: "theorem" | "definition" | "axiom",
   keyword: string,
   tracked = false,
 ): DeclarationRole {
-  if (keyword === "theorem") return tracked ? main : theorem;
-  if (keyword === "lemma") return tracked ? main : lemma;
-  if (keyword === "axiom" || keyword === "constant") return axiom;
+  if (kind === "theorem")
+    return tracked ? main : keyword === "lemma" ? lemma : theorem;
+  if (kind === "axiom") return axiom;
   if (
     ["structure", "class", "inductive", "enum", "struct", "trait"].includes(
       keyword,

@@ -90,6 +90,7 @@ export const inventoryChunkSchema = z
                     .strict(),
                 ),
                 indexed: z.boolean(),
+                entry: z.boolean(),
               })
               .strict(),
           )

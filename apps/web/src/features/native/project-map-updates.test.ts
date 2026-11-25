@@ -26,6 +26,7 @@ function fixture(count: number, inventoryOnly = true): NavigationInventory {
       theorems: 0,
       imports: [],
       indexed: false,
+      entry: false,
       symbols: [],
     })),
   };
@@ -37,6 +38,7 @@ function observe(file: MapFile, count: number, step: number, hidden = false) {
     sha256: "observation-" + step,
     bytes: String(10 + count),
     indexed: true,
+    entry: false,
     declarations: count,
     theorems: count,
     symbols: Array.from({ length: count }, (_, i) => ({

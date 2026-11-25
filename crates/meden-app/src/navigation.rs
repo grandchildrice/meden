@@ -4,6 +4,8 @@
 pub mod cache;
 /// Bounded language-independent navigation collection and typed observation ports.
 pub mod collection;
+/// Bound cached neighborhoods with backend-owned location resolution.
+pub mod neighborhood;
 /// Saved navigation metadata, independent of live input inspection.
 pub mod saved;
 use crate::explanation::Explanation;

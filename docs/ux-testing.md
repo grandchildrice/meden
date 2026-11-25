@@ -46,6 +46,18 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 ## Experience contract
 
+Navigation-policy changes keep entry selection and import-name interpretation
+outside the CLI/browser. A filename ending in `Main.lean`, such as `NotMain.lean`,
+must not start compilation on startup or restart; explicit explorer opening must
+prepare its real graph and reuse it after restart without inference approval.
+The original executable must fail the quiet-start assertion after its real
+startup completes. Actual `Main.lean` entry targets remain visible and prepared.
+Backend kinds and fresh entry flags must determine roles for other formats too;
+lexical cache reuse cannot restore an old entry flag. The cached neighborhood
+checks original inventory membership before loading, preserves import order and
+cycles, and retains its 32-file navigation bound independently of compiler input
+closure. These are navigation/adapter checks, not proof of complete imports.
+
 Navigation-cache changes must preserve complete provider keys, valid original
 entry/seal bytes, quiet map navigation and independent compiler freshness.
 The 10,001-file map journey corrupts a real selected cache entry while retaining

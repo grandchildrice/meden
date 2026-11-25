@@ -11,8 +11,6 @@ use meden_runtime::{
 };
 use serde_json::{json, Value};
 use std::{
-    collections::BTreeSet,
-    path::Path,
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
@@ -80,6 +78,7 @@ fn project_file(file: &File) -> Result<inventory::File> {
             .map(inventory::Symbol::try_from)
             .collect::<Result<_>>()?,
         indexed: file.indexed,
+        entry: crate::adapters::navigation_policy::entry(&file.path),
     })
 }
 use collection::EXCLUDED;
@@ -121,7 +120,7 @@ pub(super) fn refresh(
         for path in snapshot
             .files
             .iter()
-            .filter(|f| f.path.split('/').count() <= 2 && f.path.ends_with("Main.lean"))
+            .filter(|f| crate::adapters::navigation_policy::entry(&f.path))
             .take(8)
             .map(|f| f.path.clone())
             .collect::<Vec<_>>()
@@ -215,9 +214,7 @@ fn inventory_files(
     // Keep entry-module theorem locations available even in a distant map.
     let entries = paths
         .iter()
-        .filter(|p| {
-            p.split('/').count() <= 2 && Path::new(p).file_name().is_some_and(|n| n == "Main.lean")
-        })
+        .filter(|p| crate::adapters::navigation_policy::entry(p))
         .take(32)
         .cloned()
         .collect::<Vec<_>>();
@@ -506,63 +503,12 @@ fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Res
             .cloned()
             .collect());
     }
-    let mut root = snapshot
-        .files
-        .first()
-        .and_then(|f| f.path.rsplit_once('/'))
-        .map_or("", |(dir, _)| dir)
-        .to_owned();
-    while !root.is_empty()
-        && snapshot
-            .files
-            .iter()
-            .any(|f| !f.path.starts_with(&format!("{root}/")))
-    {
-        root = root.rsplit_once('/').map_or("", |(dir, _)| dir).to_owned();
-    }
-    let resolve = |module: &str| -> Option<String> {
-        let relative = format!("{}.lean", module.replace('.', "/"));
-        for candidate in [format!("{root}/{relative}"), relative.clone()] {
-            if snapshot
-                .files
-                .binary_search_by(|f| f.path.cmp(&candidate))
-                .is_ok()
-            {
-                return Some(candidate);
-            }
-        }
-        let suffix = format!("/{relative}");
-        let mut matches = snapshot.files.iter().filter(|f| f.path.ends_with(&suffix));
-        let found = matches.next()?;
-        matches.next().is_none().then(|| found.path.clone())
-    };
-    let mut indexed = vec![cache::load(workspace, path)?
-        .context("Project map cache is unavailable; refresh the workspace")?];
-    let mut seen = BTreeSet::from([path.to_owned()]);
-    let mut cursor = 0;
-    while cursor < indexed.len() && indexed.len() < 32 {
-        let file = indexed.get(cursor).context("Invalid navigation cursor")?;
-        let neighbors = if cursor == 0 || file.declarations == 0 {
-            file.imports
-                .iter()
-                .filter_map(|module| resolve(module))
-                .filter(|p| seen.insert(p.clone()))
-                .take(32usize.saturating_sub(indexed.len()))
-                .collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
-        if !neighbors.is_empty() {
-            for path in neighbors {
-                indexed.push(
-                    cache::load(workspace, &path)?
-                        .context("Project map cache is incomplete; refresh the workspace")?,
-                );
-            }
-        }
-        cursor = cursor.saturating_add(1);
-    }
-    Ok(indexed)
+    meden_app::navigation::neighborhood::read(
+        &snapshot.files,
+        path,
+        crate::adapters::navigation_policy::resolver(&snapshot.files),
+        |path| cache::load(workspace, path),
+    )
 }
 
 fn saved(workspace: &Workspace) -> Result<meden_app::navigation::saved::Store> {

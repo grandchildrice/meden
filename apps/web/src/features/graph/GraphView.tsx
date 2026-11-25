@@ -79,8 +79,6 @@ export function GraphView({
   const focus = focusName || focused?.name || focusId || "";
   const preferred =
     focused?.id ||
-    workspace.declarations.find((item) => item.id === "KernelProof.actual_spec")
-      ?.id ||
     workspace.declarations.find((item) => item.isMainTheorem)?.id ||
     workspace.declarations.find((item) => item.kind === "theorem")?.id ||
     workspace.declarations[0]?.id ||

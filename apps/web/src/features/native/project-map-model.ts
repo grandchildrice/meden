@@ -148,12 +148,11 @@ function describe(
       semantic: s.semantic ?? null,
       name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
       role: declarationRole(
+        s.kind,
         s.declaration,
         tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name) ||
           s.main_theorem ||
-          (s.kind === "theorem" &&
-            box.path.split("/").length <= 2 &&
-            box.path.split("/").at(-1) === "Main.lean"),
+          (s.kind === "theorem" && "entry" in file && file.entry),
       ),
       cellWidth: (width * 0.88) / columns,
       id: `${box.path}:${s.line}:${s.name}`,

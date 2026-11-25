@@ -19,6 +19,7 @@ export const inventoryPublicationSchema = z
               z
                 .object({
                   state: z.literal("indexed"),
+                  entry: z.boolean(),
                   path: z.string().min(1).max(4096),
                   sha256: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
                   bytes: z.string().regex(new RegExp("^(0|[1-9][0-9]{0,19})$")),

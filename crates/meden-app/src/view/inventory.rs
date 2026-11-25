@@ -83,6 +83,8 @@ pub struct File {
     pub symbols: Vec<Symbol>,
     /// False includes unread/unsupported inputs; it never asserts readability.
     pub indexed: bool,
+    /// Backend-selected entry module; never a compilation or proof claim.
+    pub entry: bool,
 }
 impl File {
     /// Validate complete metadata at the presentation boundary.
@@ -208,6 +210,8 @@ pub enum Entry<'a> {
     },
     /// Complete observed syntax headings, without reference/description details.
     Indexed {
+        /// Backend-selected entry module, independent of its filename/format.
+        entry: bool,
         /// Original relative path.
         #[schemars(length(min = 1, max = 4096))]
         path: &'a str,
@@ -238,6 +242,7 @@ impl<'a> From<&'a File> for Entry<'a> {
             };
         }
         Self::Indexed {
+            entry: file.entry,
             path: &file.path,
             sha256: &file.sha256,
             bytes: &file.bytes,
@@ -500,6 +505,7 @@ mod tests {
             imports: vec![],
             symbols: vec![],
             indexed: false,
+            entry: false,
         }
     }
     fn input(files: Vec<File>) -> Input {
@@ -562,6 +568,7 @@ mod tests {
             theorems: 1,
             imports: vec!["B".into()],
             indexed: true,
+            entry: false,
             symbols: vec![Symbol {
                 name: "A.claim".into(),
                 line: 3,
