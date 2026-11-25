@@ -1,7 +1,8 @@
 //! Offline Plausible search, independently selected from source compilation.
 use crate::{
+    adapters::lean::{search::Report, Snapshot},
     explanation::Check,
-    search::{Completed, Invocation, Report, Searcher},
+    search::{Completed, Invocation, Searcher},
 };
 use anyhow::{Context as _, Result};
 use meden_runtime::plugin::{Definition, Descriptor, Role};
@@ -46,6 +47,8 @@ impl Plausible {
     }
 }
 impl Searcher for Plausible {
+    type Input = Snapshot;
+    type Output = Report;
     fn descriptor(&self) -> Result<Descriptor> {
         Ok(Descriptor::new(Definition {
             id: "lean.plausible",
@@ -55,6 +58,9 @@ impl Searcher for Plausible {
             implementation: &[
                 include_bytes!("plausible.rs").as_slice(),
                 include_bytes!("../search.rs").as_slice(),
+                include_bytes!("lean/search.rs").as_slice(),
+                include_bytes!("lean.rs").as_slice(),
+                include_bytes!("../explanation/cache.rs").as_slice(),
                 include_bytes!("../explanation/cache/artifact.rs").as_slice(),
                 include_bytes!("../identity/snapshots.rs").as_slice(),
                 include_bytes!("../atlas/project.rs").as_slice(),
@@ -69,11 +75,15 @@ impl Searcher for Plausible {
             ]
             .concat(),
             configuration: json!({"settings":self.settings,"instances":64,"retries":10,"max_size":32,"heartbeats":10000,"instance_heartbeats":2000,"result_bytes":8_388_608,"resources":self.atlas.search_resources()?}),
-            input: crate::search::input_schema()?,
-            output: crate::search::output_schema()?,
+            input: crate::search::input_schema::<Snapshot>()?,
+            output: crate::search::output_schema::<Snapshot, Report>()?,
         })?)
     }
-    fn search(&self, context: &super::Context<'_>, invocation: Invocation) -> Result<Completed> {
+    fn search(
+        &self,
+        context: &super::Context<'_>,
+        invocation: Invocation<Snapshot, Report>,
+    ) -> Result<Completed<Snapshot, Report>> {
         let original = invocation.request().snapshot();
         let collection = original
             .collection

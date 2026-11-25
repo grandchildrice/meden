@@ -3,9 +3,7 @@
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use connection::ModelArgs;
-use meden_app::{
-    adapters, analysis, atlas, explanation, exports, project, semantic, storage, workspace,
-};
+use meden_app::{adapters, analysis, atlas, exports, project, semantic, storage, workspace};
 use meden_runtime::{process::Control, workspace::Workspace};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;

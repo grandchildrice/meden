@@ -1,96 +1,80 @@
-//! Candidate search over original compiled inputs. Results cannot admit evidence.
+//! Typed candidate-search roles over backend-owned compiled inputs and reports.
+//! No search result admits evidence, authorizes I/O or supplies a universal AST.
 use crate::{
-    adapters::lean::Snapshot,
     adapters::Context,
-    explanation::{
-        cache::{
-            artifact::{Compilation, Id},
-            Observation,
-        },
-        Check,
+    compiler,
+    explanation::cache::{
+        artifact::{Compilation, Id},
+        Observation as Compiled,
     },
 };
 use anyhow::{Context as _, Result};
 use meden_runtime::plugin::{Descriptor, Role};
-use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use serde::Serialize;
+use std::{collections::BTreeMap, marker::PhantomData, sync::Arc};
 
 #[derive(Serialize, schemars::JsonSchema)]
-pub struct Request {
+#[serde(bound(serialize = "I: Serialize"))]
+pub struct Request<I> {
     observation: Id<Compilation>,
-    snapshot: Snapshot,
+    #[serde(serialize_with = "serialize_original")]
+    #[schemars(with = "I")]
+    snapshot: Arc<I>,
 }
-impl Request {
-    pub fn new(original: &Observation) -> Result<Self> {
-        anyhow::ensure!(
-            original.search_id().is_none(),
-            "Search requires an original compilation"
-        );
+fn serialize_original<I: Serialize, S: serde::Serializer>(
+    value: &Arc<I>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    value.as_ref().serialize(serializer)
+}
+impl<I: compiler::Observation> Request<I> {
+    /// Retain the original immutable owner without cloning its decoded AST.
+    pub fn new(original: &Compiled<I>) -> Result<Self> {
+        original.unsearched()?;
         Ok(Self {
             observation: original.compilation().clone(),
-            snapshot: original.snapshot().clone(),
+            snapshot: original.shared(),
         })
     }
     pub fn observation(&self) -> &Id<Compilation> {
         &self.observation
     }
-    pub fn snapshot(&self) -> &Snapshot {
+    pub fn snapshot(&self) -> &I {
         &self.snapshot
     }
     fn identity(&self) -> Result<Vec<u8>> {
         Ok(serde_json::to_vec(self)?)
     }
 }
-#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Report {
-    pub checks: BTreeMap<String, Check>,
+
+/// A backend-owned decoded report, checked against the original compiled data.
+/// Validation is observational; it neither changes that AST nor admits evidence.
+pub trait Observation<I: compiler::Observation>:
+    Serialize + schemars::JsonSchema + Send + Sync
+{
+    fn validate(&self, original: &I) -> Result<()>;
 }
-impl Report {
-    pub(crate) fn project(&self, mut snapshot: Snapshot) -> Result<Snapshot> {
-        let graph = snapshot
-            .atlas
-            .as_mut()
-            .context("Search requires a compiled graph")?;
-        let expected = graph
-            .graph
-            .nodes
-            .iter()
-            .filter(|n| n.semantic.is_some())
-            .map(|n| n.id.as_str())
-            .collect::<BTreeSet<_>>();
-        anyhow::ensure!(
-            self.checks.len() == expected.len()
-                && self.checks.keys().all(|n| expected.contains(n.as_str()))
-                && self.checks.values().all(Check::valid),
-            "Missing, foreign or invalid search observations"
-        );
-        for node in &mut graph.graph.nodes {
-            if let Some(description) = &mut node.semantic {
-                description.checker = Some(
-                    self.checks
-                        .get(&node.id)
-                        .context("Missing declaration search")?
-                        .clone(),
-                );
-            }
-        }
-        crate::view::SourcePage::from_snapshot(&snapshot)?;
-        Ok(snapshot)
-    }
-}
-pub struct Invocation {
-    request: Request,
+
+/// Consuming call with its original backend types and frozen definition.
+/// ```compile_fail,E0308
+/// use meden_app::search::{Invocation, Completed, Observation};
+/// fn wrong<I: meden_app::compiler::Observation,A: Observation<I>,B: Observation<I>>(
+///     call: Invocation<I,A>, result: B
+/// ) -> Completed<I,A> { call.observe(result) }
+/// ```
+pub struct Invocation<I, R> {
+    report: PhantomData<fn() -> R>,
+    request: Request<I>,
     definition: Descriptor,
 }
-impl Invocation {
-    pub fn request(&self) -> &Request {
+impl<I: compiler::Observation, R: Observation<I>> Invocation<I, R> {
+    pub fn request(&self) -> &Request<I> {
         &self.request
     }
     pub fn definition(&self) -> &Descriptor {
         &self.definition
     }
-    pub fn observe(self, report: Report) -> Completed {
+    pub fn observe(self, report: R) -> Completed<I, R> {
         Completed {
             request: self.request,
             definition: self.definition,
@@ -98,34 +82,40 @@ impl Invocation {
         }
     }
 }
-pub struct Completed {
-    request: Request,
+pub struct Completed<I, R> {
+    request: Request<I>,
     definition: Descriptor,
-    report: Report,
+    report: R,
 }
-impl Completed {
-    pub(crate) fn into_report(self) -> Report {
+impl<I, R> Completed<I, R> {
+    pub fn into_report(self) -> R {
         self.report
     }
 }
-pub fn input_schema() -> Result<serde_json::Value> {
-    Ok(serde_json::to_value(schemars::schema_for!(Request))?)
+pub fn input_schema<I: compiler::Observation>() -> Result<serde_json::Value> {
+    Ok(serde_json::to_value(schemars::schema_for!(Request<I>))?)
 }
-pub fn output_schema() -> Result<serde_json::Value> {
-    Ok(serde_json::to_value(schemars::schema_for!(Report))?)
+pub fn output_schema<I: compiler::Observation, R: Observation<I>>() -> Result<serde_json::Value> {
+    Ok(serde_json::to_value(schemars::schema_for!(R))?)
 }
 pub trait Searcher: Send + Sync {
+    type Input: compiler::Observation;
+    type Output: Observation<Self::Input>;
     fn descriptor(&self) -> Result<Descriptor>;
-    fn search(&self, context: &Context<'_>, invocation: Invocation) -> Result<Completed>;
+    fn search(
+        &self,
+        context: &Context<'_>,
+        invocation: Invocation<Self::Input, Self::Output>,
+    ) -> Result<Completed<Self::Input, Self::Output>>;
 }
-struct Installed {
-    searcher: Box<dyn Searcher>,
+struct Installed<I, R> {
+    searcher: Box<dyn Searcher<Input = I, Output = R>>,
     definition: Descriptor,
 }
-pub struct Registration<'a> {
-    installed: &'a Installed,
+pub struct Registration<'a, I, R> {
+    installed: &'a Installed<I, R>,
 }
-impl Registration<'_> {
+impl<I: compiler::Observation, R: Observation<I>> Registration<'_, I, R> {
     pub fn definition(&self) -> &Descriptor {
         &self.installed.definition
     }
@@ -136,7 +126,7 @@ impl Registration<'_> {
         );
         Ok(())
     }
-    pub fn search(&self, context: &Context<'_>, request: Request) -> Result<Completed> {
+    pub fn search(&self, context: &Context<'_>, request: Request<I>) -> Result<Completed<I, R>> {
         self.dispatch(context.control, request, |searcher, input| {
             searcher.search(context, input)
         })
@@ -144,50 +134,69 @@ impl Registration<'_> {
     fn dispatch(
         &self,
         control: &meden_runtime::process::Control,
-        request: Request,
-        call: impl FnOnce(&dyn Searcher, Invocation) -> Result<Completed>,
-    ) -> Result<Completed> {
+        request: Request<I>,
+        call: impl FnOnce(
+            &dyn Searcher<Input = I, Output = R>,
+            Invocation<I, R>,
+        ) -> Result<Completed<I, R>>,
+    ) -> Result<Completed<I, R>> {
         control.with_active(|| Ok(()))?;
         self.validate()?;
-        let original = request.identity()?;
-        anyhow::ensure!(
-            request.snapshot.atlas.as_ref().is_some_and(|g| g
-                .graph
-                .nodes
-                .iter()
-                .all(|n| n.semantic.as_ref().is_none_or(|s| s.checker.is_none()))),
-            "Search requires the original unsearched compilation"
-        );
+        {
+            let _timing = meden_runtime::metrics::Span::start("search.validate_input");
+            request.snapshot.sources().validate()?;
+            request.snapshot.validate()?;
+        }
+        let original = {
+            let _timing = meden_runtime::metrics::Span::start("search.freeze_input");
+            request.identity()?
+        };
         let output = call(
             self.installed.searcher.as_ref(),
             Invocation {
+                report: PhantomData,
                 request,
                 definition: self.installed.definition.clone(),
             },
         )?;
         self.validate()?;
         control.with_active(|| Ok(()))?;
-        anyhow::ensure!(
-            output.definition == self.installed.definition
-                && output.request.identity()? == original,
-            "Search returned another invocation's observation"
-        );
-        output.report.project(output.request.snapshot.clone())?;
+        {
+            let _timing = meden_runtime::metrics::Span::start("search.validate_binding");
+            anyhow::ensure!(
+                output.definition == self.installed.definition
+                    && output.request.identity()? == original,
+                "Search returned another invocation's observation"
+            );
+        }
+        {
+            let _timing = meden_runtime::metrics::Span::start("search.validate_report");
+            output.report.validate(output.request.snapshot())?;
+        }
         Ok(output)
     }
 }
-#[derive(Default)]
-pub struct Registry {
-    installed: BTreeMap<String, Installed>,
+pub struct Registry<I, R> {
+    installed: BTreeMap<String, Installed<I, R>>,
 }
-impl Registry {
-    pub fn register(&mut self, searcher: impl Searcher + 'static) -> Result<()> {
+impl<I, R> Default for Registry<I, R> {
+    fn default() -> Self {
+        Self {
+            installed: BTreeMap::new(),
+        }
+    }
+}
+impl<I: compiler::Observation, R: Observation<I>> Registry<I, R> {
+    pub fn register(
+        &mut self,
+        searcher: impl Searcher<Input = I, Output = R> + 'static,
+    ) -> Result<()> {
         let definition = searcher.descriptor()?;
         let id = definition.id().to_owned();
         anyhow::ensure!(
             definition.role() == Role::CounterexampleSearch
-                && definition.accepts_schema(&input_schema()?)?
-                && definition.accepts_output_schema(&output_schema()?)?,
+                && definition.accepts_schema(&input_schema::<I>()?)?
+                && definition.accepts_output_schema(&output_schema::<I, R>()?)?,
             "Search definition does not match its typed role"
         );
         anyhow::ensure!(
@@ -203,7 +212,7 @@ impl Registry {
         );
         Ok(())
     }
-    pub fn select(&self, id: &str) -> Result<Registration<'_>> {
+    pub fn select(&self, id: &str) -> Result<Registration<'_, I, R>> {
         let selected = Registration {
             installed: self
                 .installed
@@ -214,138 +223,7 @@ impl Registry {
         Ok(selected)
     }
 }
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use meden_runtime::{plugin::Definition, process::Control};
-    use serde_json::json;
-    use std::sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
-        Arc,
-    };
-    fn request(name: &str) -> Result<Request> {
-        let files = BTreeMap::from([("M.lean", "theorem x : True := True.intro\n")]);
-        let snapshot = serde_json::from_value(
-            json!({"revision":format!("sha256:{}",crate::atlas::digest(&serde_json::to_vec(&files)?)),"files":files,"collection":null,"atlas":{"revision":format!("sha256:{}","1".repeat(64)),"upstream":"fixture","resources_sha256":"fixture","graph":{"metadata":{"projectName":"fixture","leanVersion":"fixture"},"nodes":[{"id":name,"shortName":name,"kind":"theorem","filePath":"M.lean","lineStart":1,"lineEnd":1,"hasSorry":false,"statement":"True","value":null,"axioms":[],"standardAxioms":[],"externalDependencies":[],"semantic":{"version":1,"origin":"elaborated","sentence":"True","refutation":"False","checker":null}}],"edges":[],"externalReferences":[]}}}),
-        )?;
-        Ok(Request {
-            observation: serde_json::from_value(json!(crate::atlas::digest(name.as_bytes())))?,
-            snapshot,
-        })
-    }
-    fn report(name: &str) -> Result<Report> {
-        Ok(serde_json::from_value(
-            json!({"checks":{name:{"engine":"fixture","status":"not_found","candidates":[]}}}),
-        )?)
-    }
-    struct Fake {
-        phase: Arc<AtomicUsize>,
-        role: Role,
-        bad_schema: bool,
-    }
-    impl Searcher for Fake {
-        fn descriptor(&self) -> Result<Descriptor> {
-            Ok(Descriptor::new(Definition {
-                id: "fixture.search",
-                role: self.role,
-                version: "1",
-                formats: vec!["fixture".into()],
-                implementation: b"search fixture",
-                configuration: json!({"phase":self.phase.load(Ordering::SeqCst)}),
-                input: if self.bad_schema {
-                    json!({})
-                } else {
-                    input_schema()?
-                },
-                output: output_schema()?,
-            })?)
-        }
-        fn search(&self, _: &Context<'_>, _: Invocation) -> Result<Completed> {
-            anyhow::bail!("fixture does not dispatch I/O")
-        }
-    }
-    fn fake(phase: &Arc<AtomicUsize>) -> Fake {
-        Fake {
-            phase: phase.clone(),
-            role: Role::CounterexampleSearch,
-            bad_schema: false,
-        }
-    }
-    #[test]
-    fn registrations_require_original_role_schemas_and_unique_known_methods() -> Result<()> {
-        let phase = Arc::new(AtomicUsize::new(0));
-        let mut registry = Registry::default();
-        assert!(registry
-            .register(Fake {
-                role: Role::Compiler,
-                ..fake(&phase)
-            })
-            .is_err());
-        assert!(registry
-            .register(Fake {
-                bad_schema: true,
-                ..fake(&phase)
-            })
-            .is_err());
-        registry.register(fake(&phase))?;
-        assert!(registry.register(fake(&phase)).is_err());
-        assert!(registry.select("unknown").is_err());
-        phase.store(1, Ordering::SeqCst);
-        assert!(registry.select("fixture.search").is_err());
-        Ok(())
-    }
-    #[test]
-    fn raw_descriptions_cannot_be_published_and_checks_must_cover_exact_declarations() -> Result<()>
-    {
-        let raw = request("x")?;
-        assert!(crate::view::SourcePage::from_snapshot(raw.snapshot()).is_err());
-        for result in [
-            Report {
-                checks: BTreeMap::new(),
-            },
-            report("foreign")?,
-        ] {
-            assert!(result.project(raw.snapshot.clone()).is_err());
-        }
-        assert!(report("x")?.project(raw.snapshot)?.atlas.is_some());
-        Ok(())
-    }
-    #[test]
-    fn consuming_calls_preserve_original_inputs_stop_on_drift_and_cancellation() -> Result<()> {
-        let phase = Arc::new(AtomicUsize::new(0));
-        let mut registry = Registry::default();
-        registry.register(fake(&phase))?;
-        let selected = registry.select("fixture.search")?;
-        let stop = Arc::new(AtomicBool::new(false));
-        let control = Control::new(stop.clone());
-        let original = selected.dispatch(&control, request("x")?, |_, input| {
-            Ok(input.observe(report("x")?))
-        })?;
-        assert!(selected
-            .dispatch(&control, request("y")?, |_, _| Ok(original))
-            .is_err());
-        assert!(selected
-            .dispatch(&control, request("x")?, |_, input| {
-                phase.store(1, Ordering::SeqCst);
-                Ok(input.observe(report("x")?))
-            })
-            .is_err());
-        phase.store(0, Ordering::SeqCst);
-        assert!(selected
-            .dispatch(&control, request("x")?, |_, input| {
-                stop.store(true, Ordering::SeqCst);
-                Ok(input.observe(report("x")?))
-            })
-            .is_err());
-        let calls = AtomicUsize::new(0);
-        assert!(selected
-            .dispatch(&control, request("x")?, |_, input| {
-                calls.fetch_add(1, Ordering::SeqCst);
-                Ok(input.observe(report("x")?))
-            })
-            .is_err());
-        assert_eq!(calls.load(Ordering::SeqCst), 0);
-        Ok(())
-    }
-}
+mod conformance;
+#[cfg(test)]
+mod tests;

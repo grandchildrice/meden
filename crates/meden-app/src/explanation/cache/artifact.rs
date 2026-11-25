@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
 use std::marker::PhantomData;
 
-pub(super) trait Content: Serialize + DeserializeOwned {
+pub(crate) trait Content: Serialize + DeserializeOwned {
     type Domain;
     const DIRECTORY: &'static str;
 }
@@ -37,14 +37,14 @@ pub enum MeaningRendering {}
 /// The actual retained owner supplies its original compiler identity:
 /// ```
 /// use meden_app::explanation::cache::{Observation, artifact::{Id, Compilation}};
-/// fn original(observation: &Observation) -> &Id<Compilation> { observation.compilation() }
+/// fn original<O>(observation: &Observation<O>) -> &Id<Compilation> { observation.compilation() }
 /// ```
 pub struct Id<T> {
     digest: String,
     content: PhantomData<fn() -> T>,
 }
 impl<T> Id<T> {
-    pub(super) fn of<C: Content<Domain = T>>(original: &C) -> Result<Self> {
+    pub(crate) fn of<C: Content<Domain = T>>(original: &C) -> Result<Self> {
         Ok(Self {
             digest: super::hash(original)?,
             content: PhantomData,

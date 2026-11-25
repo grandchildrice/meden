@@ -401,7 +401,7 @@ fn apply_compiled(workspace: &Workspace, control: &Control, files: &mut [File]) 
         .filter(|file| file.indexed)
         .map(|file| file.path.clone())
         .collect::<Vec<_>>();
-    if let Ok(notes) = crate::explanation::cache::load(workspace, control, &paths) {
+    if let Ok(notes) = crate::adapters::lean::cache::load(workspace, control, &paths) {
         for note in notes {
             if let Some(file) = files.iter_mut().find(|file| file.path == note.file) {
                 if let Some(symbol) = file

@@ -169,8 +169,9 @@ filesystem or concurrent-snapshot proof.
 This is the first application extraction, not the complete multi-backend registry.
 The compiler port now retains a backend-owned decoded observation type; neutral
 source capture and prepared-view retention do not contain Lean records. The
-native compiler composition, semantic orchestration, search and repair still
-select Lean observations. Complete role-wide plugin/resource/schema bindings
+native compiler composition, semantic orchestration and repair still
+select Lean observations. The search port and immutable storage bodies now
+retain backend-owned types; Lean owns its graph/cache projection. Complete role-wide plugin/resource/schema bindings
 and the remaining orchestration are still required.
 The verifier role now has two real host registrations:
 `lean.refinement.v1` and `z3.finite.v1`. Their backend-owned typed contract
@@ -1020,7 +1021,7 @@ now removes Lean records from the common compiler, neutral source snapshot and
 prepared source/view owners. Each registration retains its decoded output type
 and validates its original source before backend-local AST checks. Projections
 freeze once and cannot replace the owner's original source with another valid
-body. The native Lean composition, semantic orchestration, search/cache, repair,
+body. The native Lean composition, semantic orchestration, repair,
 prepared module ownership and heterogeneous host selection remain open.
 Local TUI source/preparation tasks no longer depend on model-worker approval;
 their failure/recovery/restart journey uses actual offline file reads.
@@ -1034,6 +1035,15 @@ The independent full-selection oracle, retired-path budget control and actual
 Lean namespace-fault refusal complement the public TUI failure/restart journey.
 This is measured progress on the native wait, not completion of generic
 orchestration, full-input hashing or the retirement audit.
+The [backend-owned search boundary](../performance/generic-search-observations.md)
+retains typed decoded inputs/reports through the common consuming port and
+separates generic immutable storage from Lean freshness and graph projection.
+Requests share their original input; report validation no longer constructs a
+discarded page. Static native spans separate input validation, serialization,
+binding checks and report validation. Finite typed conformance uses the real
+data parser without claiming a solver integration. Native heterogeneous
+composition, semantic orchestration, repair, prepared module ownership and the
+remaining latency/retirement work are still open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

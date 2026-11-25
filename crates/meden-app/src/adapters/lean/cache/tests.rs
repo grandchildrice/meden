@@ -1,4 +1,5 @@
 use super::*;
+use crate::explanation::cache::artifact::{CounterexampleSearch, MeaningRendering};
 use proptest::prelude::*;
 use serde_json::json;
 use std::fmt::Write as _;
@@ -314,8 +315,9 @@ fn searcher(seed: u64) -> Result<meden_runtime::plugin::Descriptor> {
             formats: vec!["fixture".into()],
             implementation: b"search recipe",
             configuration: json!({"seed":seed}),
-            input: crate::search::input_schema()?,
-            output: crate::search::output_schema()?,
+            input: crate::search::input_schema::<Snapshot>()?,
+            output: crate::search::output_schema::<Snapshot, crate::adapters::lean::search::Report>(
+            )?,
         },
     )?)
 }
@@ -329,12 +331,12 @@ fn search_changes_reuse_compilation_but_never_relabel_a_retained_observation() -
     let original = store.observe(raw.clone(), &definition()?)?;
     let id = original.compilation().clone();
     assert!(store.searched(&original, &searcher(0)?)?.is_none());
-    let report = crate::search::Report {
+    let report = crate::adapters::lean::search::Report {
         checks: BTreeMap::from([("claim".into(), check)]),
     };
     let searched = store.retain_search(original, &searcher(0)?, report.clone())?;
     let initial_search = searched_id(&searched)?;
-    let mut rendered = searched.snapshot.clone();
+    let mut rendered = searched.snapshot().clone();
     store.render(searched, &renderer("reading")?, &mut rendered)?;
     let original = store.observe(raw.clone(), &definition()?)?;
     assert_eq!(&id, original.compilation());
@@ -455,7 +457,7 @@ fn a_searched_observation_cannot_be_reused_as_an_unsearched_parent() -> Result<(
         crate::search::Request::new(&original)?.observation(),
         &compilation
     );
-    let report = crate::search::Report {
+    let report = crate::adapters::lean::search::Report {
         checks: BTreeMap::from([("claim".into(), check)]),
     };
     let searched = store.retain_search(original, &searcher(0)?, report.clone())?;
@@ -482,7 +484,7 @@ fn a_searched_observation_cannot_be_reused_as_an_unsearched_parent() -> Result<(
     let searched = store.retain_search(
         compiled,
         &searcher(0)?,
-        crate::search::Report {
+        crate::adapters::lean::search::Report {
             checks: BTreeMap::new(),
         },
     )?;
@@ -501,7 +503,7 @@ fn a_decoded_foreign_identity_does_not_establish_artifact_kind_or_content() -> R
     let original = Search {
         observation: compilation,
         searcher: serde_json::to_value(searcher(0)?)?,
-        report: crate::search::Report {
+        report: crate::adapters::lean::search::Report {
             checks: BTreeMap::new(),
         },
     };
@@ -538,7 +540,7 @@ fn a_decoded_foreign_identity_does_not_establish_artifact_kind_or_content() -> R
         assert!(store.index::<Rendering>().is_err());
     }
     assert_eq!(
-        crate::search::input_schema()?.pointer("/properties/observation/pattern"),
+        crate::search::input_schema::<Snapshot>()?.pointer("/properties/observation/pattern"),
         Some(&json!("^[a-f0-9]{64}$"))
     );
     Ok(())
@@ -558,7 +560,7 @@ proptest! {
         #[derive(Serialize)]
         struct OriginalRendering<'a> { observation: &'a str, renderer: &'a serde_json::Value, readings: &'a [Reading] }
         #[derive(Serialize)]
-        struct OriginalSearch<'a> { observation: &'a str, searcher: &'a serde_json::Value, report: &'a crate::search::Report }
+        struct OriginalSearch<'a> { observation: &'a str, searcher: &'a serde_json::Value, report: &'a crate::adapters::lean::search::Report }
         let text: String = chars.into_iter().collect();
         let original = observed().unwrap();
         let artifact = Artifact { version: 2, compiler: serde_json::to_value(definition().unwrap()).unwrap(), snapshot: original };
@@ -571,7 +573,7 @@ proptest! {
         prop_assert_eq!(&serde_json::to_vec(&rendering).unwrap(), &expected);
         let actual_id = Id::of(&rendering).unwrap();
         prop_assert_eq!(actual_id.as_str(), crate::atlas::digest(&expected));
-        let search = Search { observation:parent, searcher:json!({"method":"original"}), report: crate::search::Report {checks:BTreeMap::new()} };
+        let search = Search { observation:parent, searcher:json!({"method":"original"}), report: crate::adapters::lean::search::Report {checks:BTreeMap::new()} };
         let original_search = OriginalSearch { observation:&expected_parent, searcher:&search.searcher, report:&search.report };
         let expected = serde_json::to_vec(&original_search).unwrap();
         prop_assert_eq!(&serde_json::to_vec(&search).unwrap(), &expected);

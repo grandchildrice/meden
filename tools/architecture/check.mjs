@@ -180,7 +180,9 @@ export function neutralObservationViolations(source) {
   return /\b(?:atlas|lean|lake)::|\.(?:atlas|collection|lean_version)\b/.test(
     production,
   )
-    ? ["common source/compiler/view observations must not own a backend AST"]
+    ? [
+        "common source/compiler/search/cache/view observations must not own a backend AST",
+      ]
     : [];
 }
 
@@ -240,6 +242,8 @@ export function check() {
   );
   for (const path of [
     "crates/meden-app/src/compiler.rs",
+    "crates/meden-app/src/search.rs",
+    "crates/meden-app/src/explanation/cache.rs",
     "crates/meden-app/src/analysis/sources.rs",
     "crates/meden-app/src/view.rs",
     "crates/meden-app/src/view/sources.rs",

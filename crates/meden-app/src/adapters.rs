@@ -41,7 +41,10 @@ pub fn compilers(
 }
 pub fn searchers(
     atlas: crate::atlas::Configuration,
-) -> anyhow::Result<(crate::search::Registry, &'static str)> {
+) -> anyhow::Result<(
+    crate::search::Registry<lean::Snapshot, lean::search::Report>,
+    &'static str,
+)> {
     let mut registry = crate::search::Registry::default();
     registry.register(plausible::Plausible::new(atlas)?)?;
     Ok((registry, "lean.plausible"))
@@ -61,6 +64,8 @@ fn compiler_definition(
         include_bytes!("analysis/sources.rs"),
         include_bytes!("identity/snapshots.rs"),
         include_bytes!("compiler.rs"),
+        include_bytes!("explanation/cache.rs"),
+        include_bytes!("adapters/lean/cache.rs"),
         include_bytes!("adapters.rs"),
         include_bytes!("atlas/mod.rs"),
         include_bytes!("atlas/resources.rs"),

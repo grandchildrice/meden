@@ -8206,6 +8206,11 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     } finally {
       releaseMetadata();
     }
+    // Host revocation can precede the rendered removal of its action. Wait for
+    // that visible update before clicking Close while the dialog changes size.
+    await expect(
+      page.getByRole("button", { name: "Revoke access", exact: true }),
+    ).toHaveCount(0);
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Close", exact: true })

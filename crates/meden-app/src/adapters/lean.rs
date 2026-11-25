@@ -1,4 +1,6 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
+pub mod cache;
+pub mod search;
 mod view;
 use super::Context;
 use crate::compiler::{Compiled, Compiler, Invocation};
@@ -87,9 +89,7 @@ impl Compiler for Lean {
         let control = context.control;
         let atlas = &self.atlas;
         atlas.ensure_prepared(control)?;
-        if let Some(cached) =
-            crate::explanation::cache::compiled(workspace, control, paths, &request)?
-        {
+        if let Some(cached) = cache::compiled(workspace, control, paths, &request)? {
             return Ok(cached);
         }
         let mut snapshot =
@@ -100,12 +100,8 @@ impl Compiler for Lean {
             .as_ref()
             .context("Missing collected module bindings")?;
         if paths.is_empty() {
-            if let Some(cached) = crate::explanation::cache::compiled(
-                workspace,
-                control,
-                &collection.roots,
-                &request,
-            )? {
+            if let Some(cached) = cache::compiled(workspace, control, &collection.roots, &request)?
+            {
                 return Ok(cached);
             }
         }

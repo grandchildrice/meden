@@ -61,7 +61,7 @@ impl Compiler for Lake {
             context.control,
         )?;
         collection.prepared = Some(prepared.clone());
-        if let Some(cached) = crate::explanation::cache::compiled_prepared(
+        if let Some(cached) = crate::adapters::lean::cache::compiled_prepared(
             context.workspace,
             context.control,
             &collection.roots,

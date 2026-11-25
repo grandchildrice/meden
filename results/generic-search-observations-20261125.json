@@ -1,0 +1,864 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "e194dcd550748a484e395dbbc161b66a13bd5902",
+  "scope": "Backend-owned typed search input/report and immutable storage; Lean-owned freshness/projection. Original request/schema/method/cancellation/full-input checks retained. No whole-workflow speedup, new solver integration, kernel refinement or live/cold-install claim.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 318534,
+      "sha256": "2211ab00e44bc8a898e039896353c07ba7a8a1798d9b42afd94ac7a6d41908d0"
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "bytes": 3203,
+      "sha256": "82d5fa75aaf84349b20c8f75463caa30ce64fc510659699cb0b0c1083e90188d"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "bytes": 5619,
+      "sha256": "554ad134328d96ceb5e6f1559cfd57e153310d1f1505ad4e7ed3dcebe89cc968"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "bytes": 4504,
+      "sha256": "06060ecd72ae82aa164540d6db28f3b8427f7f92ba5fffb68ed546be1ab083f0"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/cache.rs",
+      "bytes": 18076,
+      "sha256": "7f36639a2143431a1d58d6f8aea8b6600cae64f9e74efd518931670ae1f097cb"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/cache/tests.rs",
+      "bytes": 23705,
+      "sha256": "e7ce51ef4d1db02b25a4ded1aa34174e755f370cce9c7503d5e2a653fdc47f07"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean/search.rs",
+      "bytes": 1973,
+      "sha256": "6bfccba2f2be916231bbc2965f7fca1002d012076b62a5ec44c5430859b780f0"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/plausible.rs",
+      "bytes": 6852,
+      "sha256": "00afb673bee092d3dd86451128dad1e3296f26c33ef9805993a9ebb9d2d5f93a"
+    },
+    {
+      "path": "crates/meden-app/src/analysis.rs",
+      "bytes": 11934,
+      "sha256": "df8248bd80aefb7cfeb0fb736ea117ddeaffb047e3e7e4c227b1df88caa3bd6b"
+    },
+    {
+      "path": "crates/meden-app/src/explanation/cache.rs",
+      "bytes": 5063,
+      "sha256": "380977d8eae62cf2da932b5a5e6d19ea79a67e8f9775ff361f74b2f584a89362"
+    },
+    {
+      "path": "crates/meden-app/src/explanation/cache/artifact.rs",
+      "bytes": 4156,
+      "sha256": "8f99a4fcac0841e89e856151ee71306cc18f295c57ecca8d4fdb84220203b2d0"
+    },
+    {
+      "path": "crates/meden-app/src/search.rs",
+      "bytes": 7474,
+      "sha256": "792241a3667bd2683395b6e5907641c57605b317c5854bd334d6b666acb168a2"
+    },
+    {
+      "path": "crates/meden-app/src/search/conformance.rs",
+      "bytes": 10497,
+      "sha256": "b0bb31c7ee69eb987a1a8272e4716b2042a74b301adc9f8dedfa961ebe179c25"
+    },
+    {
+      "path": "crates/meden-app/src/search/tests.rs",
+      "bytes": 5156,
+      "sha256": "8418cfb175b3a0eac4daddf176d71659f61d6b657892d02d589415a0e81f3074"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 22915,
+      "sha256": "43991911955b8dde3813dccaf9acd2ef0f8a5ab673ebc0c5e551348aa0ec3dbb"
+    },
+    {
+      "path": "crates/meden-cli/src/main.rs",
+      "bytes": 17005,
+      "sha256": "157f93977e390637036c39dfe46baedb947800df42111d22918580a13fb2a541"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "bytes": 10020,
+      "sha256": "0e59ccef2661e75a93a90d9c9eeb0d52df43705a08a427b9d912bd6c6c0311b0"
+    }
+  ],
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/d20ec8ad9497a11abf7b42a3cc628f217f216393f81901e3bc714b42d656b58a/meden",
+    "sha256": "d20ec8ad9497a11abf7b42a3cc628f217f216393f81901e3bc714b42d656b58a"
+  },
+  "diagnostic": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/6b1dabe489fc1255cc61b8f6189afb73f9ffe2dd68e857933cfd183e31d1bb42/profile-source-selection",
+    "sha256": "6b1dabe489fc1255cc61b8f6189afb73f9ffe2dd68e857933cfd183e31d1bb42"
+  },
+  "unchanged_assets": {
+    "count": 88,
+    "sha256": "75b117944b89554c7b567a42ec1ae892abc8e0226449233392dc39f657e92ea4"
+  },
+  "validation": {
+    "rust_unit_and_doc": 276,
+    "architecture": 40,
+    "source_selection_and_lake": 12,
+    "tui": 36,
+    "decoded_tui_journeys": 7,
+    "gui": 76,
+    "gui_skips": 0,
+    "gui_flaky": 0,
+    "clippy": true,
+    "schema": true,
+    "rust_format": true,
+    "format": true,
+    "python_lint": true,
+    "conformance": "Three typed finite-parser/shared-owner/cache/invalid-result tests, with no input Clone and no solver execution.",
+    "initial_gui": "74 pass, two failures. The moved test copy used an unstaged removed path; staging the actual rename corrects the fixture snapshot. The dialog test clicked during a pending visible revocation layout change; it now waits for the rendered action removal before Close. Isolated original diagnostic passes. Final independent complete run is retained separately.",
+    "initial_format": "Failed tools/architecture/check.mjs formatting; corrected before the successful resumed gate.",
+    "files": [
+      {
+        "path": "/tmp/meden-neutral-search-gates-state.json",
+        "bytes": 930,
+        "sha256": "09bf9a976fe24b751a1178aca899a552a0638756aba4982b72a6f5e999341540"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gates-first-state.json",
+        "bytes": 749,
+        "sha256": "7b8e3eb89ad3dc55c3f38d9457def71dcaa0dd7942df18fba170261e298a2919"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gates-gui-first-state.json",
+        "bytes": 928,
+        "sha256": "90810702d1dac83b49a3013baa11d959ad0ad516956f92cd7c298fe340fe1c98"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-rust.log",
+        "bytes": 28376,
+        "sha256": "df0b4f25f4d798e5c47763adccd4f232b5d509228930c49778b2f7421489b85a"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-clippy.log",
+        "bytes": 72,
+        "sha256": "f0788aa36d1c86b6ccdfb7f4042a5574102d82061c046422a2d42e008a1e4710"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-architecture.log",
+        "bytes": 8565,
+        "sha256": "7e3dc8a5675aba3d3b427553cf0dd664fa94218559f515ea746fd16c92b8c712"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-schema.log",
+        "bytes": 199,
+        "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-rust-format.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-format-resumed.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-python-lint-resumed.log",
+        "bytes": 19,
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-selection-and-lake-resumed.log",
+        "bytes": 111,
+        "sha256": "28bd37dbb63ac3c2c010ab8adb37c21e3d1e86a7c27ea2f8aa663b3076fbe3c4"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-tui-resumed.log",
+        "bytes": 190,
+        "sha256": "d33e00d915c2451a15c0dbddcdc4fda9ff0cd7d5be746cef8aa2102b5bb878c3"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-gui-resumed.log",
+        "bytes": 21766,
+        "sha256": "0ee0a7f3ddfd17c669f215278f916c47ae2d82550f17d2b840ede919abe26167"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gate-gui-final.log",
+        "bytes": 15830,
+        "sha256": "d94b84748ae77552934957311d9fe605ab63b62e7334e646067a147977078f63"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-gui-judge-diagnose.log",
+        "bytes": 2363,
+        "sha256": "4dc2514afd25b401a704d137917b83411168c705e15ee8f5ceb9e16fcce53951"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-decoded-screens.json",
+        "bytes": 6033,
+        "sha256": "4377676696127baad507aa8a2375a4b72216727f1d4be79daa28d6500c8c6bfa"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-reviewed-browser-screens.json",
+        "bytes": 1325,
+        "sha256": "300809efe12997b3cd00df9bc971d12a3466501bf4d1f0ce2d364c78f016e4a8"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-reviewed-validation.json",
+        "bytes": 845,
+        "sha256": "45b2617c26e39b9775728dbc7045ddbd7fe8edf4e614806e51cdc6a7f4b24299"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-final-fidelity.json",
+        "bytes": 2171,
+        "sha256": "489f64078c329fa94b36884dc60a63603a2ca31dd7156a37243657bc033fa73c"
+      },
+      {
+        "path": "/tmp/meden-neutral-search-format-final.log",
+        "bytes": 234,
+        "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "stages": [
+        {
+          "stage": "updated",
+          "cache_hit": false,
+          "file_click_to_ready_ms": 191687.09664,
+          "semantic_workers": [
+            {
+              "name": "atlas.project.extract",
+              "wall_ms": 17001.086
+            },
+            {
+              "name": "atlas.search",
+              "wall_ms": 121254.804
+            },
+            {
+              "name": "analysis.render",
+              "wall_ms": 10204.15
+            }
+          ],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 189346.878,
+                "current_thread_cpu_ms": 3079.139
+              }
+            ],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1268.718,
+                "current_thread_cpu_ms": 656.399
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 10869.346,
+                "current_thread_cpu_ms": 88.962
+              },
+              {
+                "wall_ms": 6815.046,
+                "current_thread_cpu_ms": 70.977
+              },
+              {
+                "wall_ms": 5327.403,
+                "current_thread_cpu_ms": 76.1
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 6098.822,
+                "current_thread_cpu_ms": 59.769
+              },
+              {
+                "wall_ms": 3549.167,
+                "current_thread_cpu_ms": 54.029
+              },
+              {
+                "wall_ms": 4099.37,
+                "current_thread_cpu_ms": 74.185
+              }
+            ],
+            "atlas.project.extract": [
+              {
+                "wall_ms": 17001.086,
+                "current_thread_cpu_ms": 77.272
+              }
+            ],
+            "atlas.compile": [],
+            "atlas.search": [
+              {
+                "wall_ms": 121254.804,
+                "current_thread_cpu_ms": 455.633
+              }
+            ],
+            "analysis.search": [
+              {
+                "wall_ms": 131342.074,
+                "current_thread_cpu_ms": 866.357
+              }
+            ],
+            "analysis.render": [
+              {
+                "wall_ms": 10204.15,
+                "current_thread_cpu_ms": 610.383
+              }
+            ],
+            "search.validate_input": [
+              {
+                "wall_ms": 0.572,
+                "current_thread_cpu_ms": 0.568
+              }
+            ],
+            "search.freeze_input": [
+              {
+                "wall_ms": 3.306,
+                "current_thread_cpu_ms": 3.296
+              }
+            ],
+            "search.validate_binding": [
+              {
+                "wall_ms": 3.351,
+                "current_thread_cpu_ms": 3.34
+              }
+            ],
+            "search.validate_report": [
+              {
+                "wall_ms": 0.033,
+                "current_thread_cpu_ms": 0.033
+              }
+            ]
+          },
+          "search_differences": [],
+          "observation_id": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b",
+          "search_id": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a",
+          "rendering_id": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "5c7c3539888fc339ff7f04d2873a5a5e0dbb270980df5e6d4c391748e70ccbee",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6"
+        },
+        {
+          "stage": "cached",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 10991.799239,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 10173.175,
+                "current_thread_cpu_ms": 1201.473
+              }
+            ],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1308.722,
+                "current_thread_cpu_ms": 654.101
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 3886.958,
+                "current_thread_cpu_ms": 56.657
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 3716.457,
+                "current_thread_cpu_ms": 52.402
+              }
+            ],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.search": [
+              {
+                "wall_ms": 64.527,
+                "current_thread_cpu_ms": 64.207
+              }
+            ],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b",
+          "search_id": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a",
+          "rendering_id": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "5c7c3539888fc339ff7f04d2873a5a5e0dbb270980df5e6d4c391748e70ccbee",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6"
+        },
+        {
+          "stage": "restarted",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 12180.632125,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 10567.396,
+                "current_thread_cpu_ms": 1224.657
+              }
+            ],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 1295.766,
+                "current_thread_cpu_ms": 654.101
+              }
+            ],
+            "atlas.project.query": [
+              {
+                "wall_ms": 3878.475,
+                "current_thread_cpu_ms": 65.122
+              }
+            ],
+            "atlas.project.fingerprint": [
+              {
+                "wall_ms": 4104.557,
+                "current_thread_cpu_ms": 59.426
+              }
+            ],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.search": [
+              {
+                "wall_ms": 64.467,
+                "current_thread_cpu_ms": 64.174
+              }
+            ],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b",
+          "search_id": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a",
+          "rendering_id": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "5c7c3539888fc339ff7f04d2873a5a5e0dbb270980df5e6d4c391748e70ccbee",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6"
+        }
+      ],
+      "complete_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "original_immutable_artifacts_intact": true,
+      "complete_new_chain_reused_after_actual_restart": true,
+      "cameras_retained_original_source_line_selected": true,
+      "quiet_chat_history_and_candidates_retained": true,
+      "authorized": false,
+      "running": false
+    },
+    {
+      "project": "ethlib",
+      "stages": [
+        {
+          "stage": "updated",
+          "cache_hit": false,
+          "file_click_to_ready_ms": 51354.10608699999,
+          "semantic_workers": [
+            {
+              "name": "atlas.compile",
+              "wall_ms": 1093.811
+            },
+            {
+              "name": "atlas.search",
+              "wall_ms": 17845.398
+            },
+            {
+              "name": "analysis.render",
+              "wall_ms": 16679.987
+            }
+          ],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 49574.367,
+                "current_thread_cpu_ms": 3234.734
+              }
+            ],
+            "analysis.discover_layout": [
+              {
+                "wall_ms": 2158.367,
+                "current_thread_cpu_ms": 1172.047
+              }
+            ],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [
+              {
+                "wall_ms": 1093.811,
+                "current_thread_cpu_ms": 46.17
+              }
+            ],
+            "atlas.search": [
+              {
+                "wall_ms": 17845.398,
+                "current_thread_cpu_ms": 92.28
+              }
+            ],
+            "analysis.search": [
+              {
+                "wall_ms": 18599.793,
+                "current_thread_cpu_ms": 384.258
+              }
+            ],
+            "analysis.render": [
+              {
+                "wall_ms": 16679.987,
+                "current_thread_cpu_ms": 983.718
+              }
+            ],
+            "search.validate_input": [
+              {
+                "wall_ms": 0.296,
+                "current_thread_cpu_ms": 0.292
+              }
+            ],
+            "search.freeze_input": [
+              {
+                "wall_ms": 4.788,
+                "current_thread_cpu_ms": 4.775
+              }
+            ],
+            "search.validate_binding": [
+              {
+                "wall_ms": 4.838,
+                "current_thread_cpu_ms": 4.824
+              }
+            ],
+            "search.validate_report": [
+              {
+                "wall_ms": 0.046,
+                "current_thread_cpu_ms": 0.045
+              }
+            ]
+          },
+          "search_differences": [],
+          "observation_id": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b",
+          "search_id": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7",
+          "rendering_id": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "c6a08df1a51485ec6f4f64a4f0b611a8416b73c88945fcd565306d38324b710b",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null
+        },
+        {
+          "stage": "cached",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 1957.4902629999997,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 918.927,
+                "current_thread_cpu_ms": 466.946
+              }
+            ],
+            "analysis.discover_layout": [],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.search": [
+              {
+                "wall_ms": 70.015,
+                "current_thread_cpu_ms": 68.734
+              }
+            ],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b",
+          "search_id": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7",
+          "rendering_id": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "c6a08df1a51485ec6f4f64a4f0b611a8416b73c88945fcd565306d38324b710b",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null
+        },
+        {
+          "stage": "restarted",
+          "cache_hit": true,
+          "file_click_to_ready_ms": 2231.8293889999995,
+          "semantic_workers": [],
+          "spans": {
+            "analysis.extract": [
+              {
+                "wall_ms": 909.169,
+                "current_thread_cpu_ms": 451.994
+              }
+            ],
+            "analysis.discover_layout": [],
+            "atlas.project.query": [],
+            "atlas.project.fingerprint": [],
+            "atlas.project.extract": [],
+            "atlas.compile": [],
+            "atlas.search": [],
+            "analysis.search": [
+              {
+                "wall_ms": 67.606,
+                "current_thread_cpu_ms": 67.301
+              }
+            ],
+            "analysis.render": [],
+            "search.validate_input": [],
+            "search.freeze_input": [],
+            "search.validate_binding": [],
+            "search.validate_report": []
+          },
+          "search_differences": [],
+          "observation_id": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b",
+          "search_id": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7",
+          "rendering_id": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "c6a08df1a51485ec6f4f64a4f0b611a8416b73c88945fcd565306d38324b710b",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "a0cfb5df6ba8b6f369f4ee81c9e84d696d503dce651e223913d9d5da8f95e8f4"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "9e14174a95d985d6cb3e04b272e090833d7691692018068fa66843a755bc444b",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "d575ab334b46ca70bc823e616ff19cf22024e35f1fb6e1a2d892e5cbf6af1d65",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null
+        }
+      ],
+      "complete_original_nonsearch_source_reader_inventory_navigation_evidence": true,
+      "original_immutable_artifacts_intact": true,
+      "complete_new_chain_reused_after_actual_restart": true,
+      "cameras_retained_original_source_line_selected": true,
+      "quiet_chat_history_and_candidates_retained": true,
+      "authorized": false,
+      "running": false
+    }
+  ],
+  "remaining": "Native mixed-backend composition, semantic/repair orchestration, prepared-module ownership, full-input hashing/Lake waits and remaining browser detail stalls/retirement remain open."
+}

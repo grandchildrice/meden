@@ -160,20 +160,20 @@ pub fn extract_cached(
         .select(selected)?
         .compile(&context, crate::compiler::Request::new(paths.to_vec())?)?;
     let original = control.with_active(|| {
-        crate::explanation::cache::retain_observation(workspace, snapshot)
+        crate::adapters::lean::cache::retain_observation(workspace, snapshot)
             .map_err(std::io::Error::other)
     })?;
     let (searchers, selected) = crate::adapters::searchers(
         crate::atlas::Configuration::host(workspace.path()).with_observer(context.observer.clone()),
     )?;
     let original =
-        crate::explanation::cache::search(&context, original, &searchers.select(selected)?)?;
+        crate::adapters::lean::cache::search(&context, original, &searchers.select(selected)?)?;
     if let Some(observer) = &context.observer {
         observer("Preparing explanations", std::time::Duration::ZERO, None);
     }
     let renderer = crate::adapters::informath::Prepared::discover()?;
     if let Some(snapshot) =
-        crate::explanation::cache::rendering(workspace, &original, renderer.definition())?
+        crate::adapters::lean::cache::rendering(workspace, &original, renderer.definition())?
     {
         renderer.validate()?;
         return Ok((control.with_active(|| Ok(snapshot))?, original.reused()));
@@ -184,7 +184,7 @@ pub fn extract_cached(
         control,
     )?;
     control.with_active(|| {
-        crate::explanation::cache::retain_rendering(
+        crate::adapters::lean::cache::retain_rendering(
             workspace,
             original,
             renderer.definition(),

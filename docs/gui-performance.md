@@ -2062,3 +2062,19 @@ binary and exact original source/graph/compiler/search/render objects remain
 after deployment and restart in both projects. Native input validation and
 main-thread DOM/painting remain separate work. See
 [the complete measurements and validation record](../results/map-interaction-20261125.json).
+
+## Search input/report timings (November 25)
+
+The [backend-owned search audit](performance/generic-search-observations.md)
+adds separate native input-validation, full-input serialization, result-binding
+and backend-report-validation spans. Actual deployed report validation takes
+0.033 / 0.046 ms (Riemann / EthLib), while their physical search intervals take
+121.255 / 17.845 s. These are single functional observations, not percentiles
+or a before/after speedup. Common validation no longer constructs a discarded
+Lean source page; Lean retains actual graph projection and cache freshness.
+
+Fresh-browser saved-analysis visits take 10.992 / 1.957 s to observed ready
+status, with no compiler, search or rendering worker. Riemann's remaining Lake
+query and complete-input fingerprint take 3.887 / 3.716 s. These native waits
+remain distinct from the previously recorded first-detail browser drawing
+stalls. The common port/storage migration does not change the browser assets.
