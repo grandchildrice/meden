@@ -2,7 +2,7 @@
 
 The [latest deployed event timings](../../docs/performance/event-latency-latest-20261126.md)
 measure all thirteen operation windows twice per actual project on `d09eb9e`.
-Riemann's first-detail wheel takes 91–92 ms, followed by 136–137 ms long tasks;
+Riemann's first-detail wheel takes 91–92 ms, with 136–137 ms long tasks;
 cached file preparation takes 11–12 s. Ordinary graph wheel handlers take about
 1 ms. Per-event CSVs, exact matching source maps, native stages and sampling
 separate main-thread rendering from full-input validation. This audit changes
