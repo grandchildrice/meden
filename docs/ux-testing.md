@@ -278,6 +278,10 @@ compiled graph. Require one retained viewport, no shrinking zoom frame, bounded
 pointer-anchor error and a complete trace. A hover-remount fault must reach this
 probe after real preparation/selection and fail its camera assertion, rather than
 an earlier setup condition. See [the motion record](performance/camera-motion.md).
+An actual source edit, explorer refresh and successful Lean reinspection must
+show the new source revision without resetting the file graph's camera. Run both
+motion settings and reject the original assets at the final camera assertion,
+after compilation succeeds. See [camera retention](performance/file-camera-retention.md).
 Replacing a prepared graph must retain a selected
 declaration with the same original file, line and name, independently of camera
 focus or saved analysis. The meaning-history restart journey replaces the actual

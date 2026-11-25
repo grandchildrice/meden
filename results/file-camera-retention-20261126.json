@@ -1,0 +1,447 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "parent_commit": "a7f58b9",
+  "change": "Retain user-adjusted file-graph camera across changed source preparation; remove revision-driven graph recreation without retaining backend observations.",
+  "native_binary_sha256": "67a7fec3ae062d349dd30fbeea746bd9b876ba914c2226e6287d44c810fa7906",
+  "baseline_assets_sha256": "4063a80405d547af26cec588718379f72cda4d429cbdee56e2ae50686608a89c",
+  "deployed_assets_sha256": "f3e6d705d396850395f7505f33f89da9aae6f35f89e89019f688b05dce059420",
+  "served_assets_per_project": 88,
+  "positive": [
+    {
+      "mode": "normal",
+      "stats": {
+        "total": 4,
+        "expected": 4,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "tests": [
+        {
+          "title": "open file tabs restore source, graph camera and explanations without another inspection",
+          "ok": true,
+          "observations": [
+            {
+              "name": "interleaved-wheel-and-node-hover",
+              "data": {
+                "frames": 339,
+                "node_entries": 15,
+                "viewport_elements": 1,
+                "truncated": false,
+                "max_anchor_error_px": 0.025468398783519097,
+                "wheel_events": 32
+              }
+            },
+            {
+              "name": "navigation-performance",
+              "data": {
+                "browser": "149.0.7827.53",
+                "motion": "no-preference",
+                "cold_analysis_store_preparation_ms": 33073.665893,
+                "warm_tab_two_raf_ms": [
+                  25.099999994039536,
+                  25.19999999552965,
+                  20.100000001490116,
+                  16.399999998509884,
+                  25.600000001490116,
+                  26.5,
+                  30.5,
+                  26.100000001490116,
+                  27.899999998509884,
+                  24.899999998509884
+                ],
+                "p95_ms": 30.5,
+                "maximum_p95_ms": 250,
+                "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+              }
+            }
+          ]
+        },
+        {
+          "title": "a changed compiled file retains its graph camera after refresh and reinspection",
+          "ok": true,
+          "observations": [
+            {
+              "name": "compiled-file-camera-replacement",
+              "data": {
+                "before": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                "after": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                "changed_source_revision": true
+              }
+            }
+          ]
+        },
+        {
+          "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "ok": true,
+          "observations": []
+        },
+        {
+          "title": "prepared map annotations retain exact locations, retire after source changes and reopen without inference",
+          "ok": true,
+          "observations": []
+        }
+      ]
+    },
+    {
+      "mode": "reduced",
+      "stats": {
+        "total": 4,
+        "expected": 4,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "tests": [
+        {
+          "title": "open file tabs restore source, graph camera and explanations without another inspection",
+          "ok": true,
+          "observations": [
+            {
+              "name": "interleaved-wheel-and-node-hover",
+              "data": {
+                "frames": 365,
+                "node_entries": 15,
+                "viewport_elements": 1,
+                "truncated": false,
+                "max_anchor_error_px": 0.025468398783519097,
+                "wheel_events": 32
+              }
+            },
+            {
+              "name": "navigation-performance",
+              "data": {
+                "browser": "149.0.7827.53",
+                "motion": "reduce",
+                "cold_analysis_store_preparation_ms": 33091.059584,
+                "warm_tab_two_raf_ms": [
+                  19,
+                  20,
+                  21.5,
+                  20.200000002980232,
+                  18.19999999552965,
+                  7.0999999940395355,
+                  25.600000001490116,
+                  16.899999998509884,
+                  25.299999997019768,
+                  16.899999998509884
+                ],
+                "p95_ms": 25.600000001490116,
+                "maximum_p95_ms": 250,
+                "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+              }
+            }
+          ]
+        },
+        {
+          "title": "a changed compiled file retains its graph camera after refresh and reinspection",
+          "ok": true,
+          "observations": [
+            {
+              "name": "compiled-file-camera-replacement",
+              "data": {
+                "before": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                "after": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                "changed_source_revision": true
+              }
+            }
+          ]
+        },
+        {
+          "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+          "ok": true,
+          "observations": []
+        },
+        {
+          "title": "compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart",
+          "ok": true,
+          "observations": []
+        }
+      ]
+    },
+    {
+      "mode": "finite",
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "tests": [
+        {
+          "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+          "ok": true,
+          "observations": []
+        }
+      ]
+    }
+  ],
+  "old_assets_control": {
+    "stats": {
+      "total": 1,
+      "expected": 0,
+      "unexpected": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": false
+    },
+    "camera": {
+      "before": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+      "after": "transform: translate(205.433px, 222.511px) scale(0.336323);",
+      "changed_source_revision": true
+    },
+    "failure": "Final camera-style assertion after successful Lean compilation, changed source revision and visible changed source.",
+    "error_context_sha256": "269fd465500202c911f9a3f868303e2319090c662d0123be8f412dcb23f6d224"
+  },
+  "validation": {
+    "required_tui": 37,
+    "tui_inference": "scripted fixtures; no live-model validation",
+    "decoded_screens": [
+      {
+        "label": "review",
+        "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+        "frames": 167,
+        "observations": [
+          {
+            "label": "Allow Configured server",
+            "seconds": 0.318,
+            "screen_sha256": "560e273818b143261f7bec0224c4e2645079f3f539981165dfad815cb988d882"
+          }
+        ]
+      },
+      {
+        "label": "judge",
+        "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Candidate Mismatch",
+            "seconds": 0.943,
+            "screen_sha256": "4e340bf31ea599c4ea21bdeba661f520f5b8df383c7104a56e6e3fbd7a1444dd"
+          }
+        ]
+      },
+      {
+        "label": "resume",
+        "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+        "frames": 44,
+        "observations": [
+          {
+            "label": "TUI-CONTINUED",
+            "seconds": 1.12,
+            "screen_sha256": "26876cddc2a7b92d489b33323c7f660af7d211c85d3b3dcb73dae790ab289de6"
+          }
+        ]
+      },
+      {
+        "label": "lake",
+        "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+        "frames": 797,
+        "observations": [
+          {
+            "label": "Lake source inventory changed",
+            "seconds": 74.126,
+            "screen_sha256": "bb7564fea032afd3dd018e74816adcb423a961fd91c883e165ec5adbdba5710b"
+          }
+        ]
+      },
+      {
+        "label": "repair",
+        "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+        "frames": 89,
+        "observations": [
+          {
+            "label": "LEAN-MODEL-REPAIRED",
+            "seconds": 5.536,
+            "screen_sha256": "d447a5e92f887397da4d66834015ae9e635bb491d1cd645eeb586224c960cc89"
+          }
+        ]
+      },
+      {
+        "label": "cancel",
+        "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+        "frames": 154,
+        "observations": [
+          {
+            "label": "Portable work stopped:",
+            "seconds": 14.436,
+            "screen_sha256": "c12de7b1d5575b4dc88c2b7f2cd53f01d316a6e65de28da6033178fe4061758c"
+          }
+        ]
+      },
+      {
+        "label": "plain-source",
+        "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+        "frames": 36,
+        "observations": [
+          {
+            "label": "Sources ready: 1 file",
+            "seconds": 0.325,
+            "screen_sha256": "a00149c98efb8f977af880e6b9343f7228969f11e2f300f5a3313f3214a9778c"
+          },
+          {
+            "label": "Source observation failed for missing.smt2",
+            "seconds": 0.325,
+            "screen_sha256": "a00149c98efb8f977af880e6b9343f7228969f11e2f300f5a3313f3214a9778c"
+          },
+          {
+            "label": "source must be UTF-8",
+            "seconds": 0.325,
+            "screen_sha256": "a00149c98efb8f977af880e6b9343f7228969f11e2f300f5a3313f3214a9778c"
+          },
+          {
+            "label": "Sources ready: 2 files",
+            "seconds": 0.325,
+            "screen_sha256": "a00149c98efb8f977af880e6b9343f7228969f11e2f300f5a3313f3214a9778c"
+          },
+          {
+            "label": "Read the source graph first",
+            "seconds": 0.587,
+            "screen_sha256": "64aa3ec04d954a35e7decb2b6a00bdd5758d4f13e42448de6acc7eb200805377"
+          },
+          {
+            "label": "Sources ready: 3 files",
+            "seconds": 0.587,
+            "screen_sha256": "64aa3ec04d954a35e7decb2b6a00bdd5758d4f13e42448de6acc7eb200805377"
+          }
+        ]
+      },
+      {
+        "label": "reviewed-repair",
+        "journey": "test_finding_repair_reject_stale_clipped_review_apply_and_restart-26871992ae",
+        "frames": 74,
+        "observations": [
+          {
+            "label": "Apply this repair and reanalyze?",
+            "seconds": 1.022,
+            "screen_sha256": "137c643154ad5f3bf66867472daf07a6ef200a887a6b24cbf0adf1e336a845e4"
+          },
+          {
+            "label": "Approval unavailable",
+            "seconds": 0.901,
+            "screen_sha256": "094819e21f93104801d5c4a5e324112835818f3ab562d1dab92d986cf0d8814e"
+          },
+          {
+            "label": "Sources changed since the Finding",
+            "seconds": 1.172,
+            "screen_sha256": "6659268d48a7a6f720224a296d550f4577e912abdad7cecb605903f51844f04e"
+          },
+          {
+            "label": "Repair applied and reanalyzed",
+            "seconds": 1.283,
+            "screen_sha256": "973a2b1922f6a6e447fd7648cc6b7d4df837f4a781557696847d8f23e899c98d"
+          },
+          {
+            "label": "source revision changed",
+            "seconds": 1.596,
+            "screen_sha256": "7913d4b2ff1b03cacf8c3845df319a24647c4240b3ad68f38d11a4d25d1efa2d"
+          }
+        ]
+      },
+      {
+        "label": "finite-source",
+        "journey": "test_native_finite_source_graph_recovers_and_reopens_without_lean_or_m-c794041788",
+        "frames": 74,
+        "observations": [
+          {
+            "label": "Source observation failed for absent.model.json",
+            "seconds": 3.601,
+            "screen_sha256": "c84c3f1e27abdf89b512f041f8684ebdbba537b77bc5204ac8fbbe7d0df064fd"
+          },
+          {
+            "label": "Source graph ready: 2 files",
+            "seconds": 5.049,
+            "screen_sha256": "ef691eb051532186fdeecb4616a0b486f8b72649f5fcb4cac1e7d61f406f6503"
+          },
+          {
+            "label": "transition.value · counter.model.json:",
+            "seconds": 5.049,
+            "screen_sha256": "ef691eb051532186fdeecb4616a0b486f8b72649f5fcb4cac1e7d61f406f6503"
+          },
+          {
+            "label": "Source observation failed for absent.contract.json",
+            "seconds": 5.049,
+            "screen_sha256": "ef691eb051532186fdeecb4616a0b486f8b72649f5fcb4cac1e7d61f406f6503"
+          }
+        ]
+      }
+    ],
+    "types": true,
+    "architecture": true,
+    "format": true,
+    "python_lint": true,
+    "initial_driver_exit": 143,
+    "driver_note": "Initial batch exited after complete normal/reduced reports; final remaining driver completed. All nine positive journeys have complete passing reports."
+  },
+  "deployed_fidelity": [
+    {
+      "project": "riemann",
+      "views": [
+        {
+          "name": "source",
+          "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+        },
+        {
+          "name": "reader",
+          "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+        },
+        {
+          "name": "inventory",
+          "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+        },
+        {
+          "name": "nav",
+          "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "history_candidates_unchanged": true,
+      "authorized": false,
+      "running": false,
+      "native_ring_evicted": 0,
+      "observed_semantic_worker_spans": []
+    },
+    {
+      "project": "ethlib",
+      "views": [
+        {
+          "name": "source",
+          "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+        },
+        {
+          "name": "reader",
+          "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+        },
+        {
+          "name": "inventory",
+          "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+        },
+        {
+          "name": "nav",
+          "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "history_candidates_unchanged": true,
+      "authorized": false,
+      "running": false,
+      "native_ring_evicted": 0,
+      "observed_semantic_worker_spans": []
+    }
+  ],
+  "scope": "Source-refresh camera correctness. Not identification of every hover-only reset, a rendering speedup, live-model/cold-install validation, or completion of generic layout/cache/observation/native-freshness work.",
+  "event_measurements": "results/event-audit-20261126.json"
+}

@@ -1,4 +1,13 @@
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  memo,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { GraphCamera } from "../graph/GraphView";
 import { Alert, Button, LinearProgress } from "@mui/material";
 import { NativePreparation, PreparationLog } from "./NativePreparation";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
@@ -109,6 +118,7 @@ function FileWorkspace({
   );
   const [failure, setFailure] = useState<string>();
   const [hovered, setHovered] = useState<Declaration>();
+  const graphCamera = useRef<GraphCamera | undefined>(undefined);
   const analyzing =
     state.running && state.operation === "analysis" && analysisFile === path;
   useEffect(() => {
@@ -365,9 +375,9 @@ function FileWorkspace({
             )}
             {snapshot ? (
               <NativeGraph
+                camera={graphCamera}
                 focusName={focused?.file === path ? focused.name : undefined}
                 selection={meaningTarget}
-                key={snapshot.graph?.revision || snapshot.revision}
                 snapshot={snapshot}
                 onHover={setHovered}
                 onSource={(file, line, name) => {
@@ -400,6 +410,8 @@ function FileWorkspace({
             ) : graph?.declarations.length ? (
               <Suspense fallback={<LinearProgress />}>
                 <GraphView
+                  camera={graphCamera}
+                  focusName={focused?.file === path ? focused.name : undefined}
                   workspace={graph}
                   selectedId={selected?.id}
                   focusId={focused?.file === path ? focused.id : undefined}

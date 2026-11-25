@@ -5,6 +5,7 @@ import type {
   SourceSnapshot,
   MeaningInput,
 } from "@meden/agent-protocol/native";
+import type { GraphCameraStore } from "../graph/GraphView";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((module) => ({
     default: module.GraphView,
@@ -31,12 +32,14 @@ export function NativeGraph({
   selection,
   onSource,
   onHover,
+  camera,
 }: {
   snapshot: SourceSnapshot;
   focusName?: string;
   selection?: MeaningInput["target"];
   onSource: (file: string, line: number, name: string) => void;
   onHover?: (declaration: Declaration | undefined) => void;
+  camera?: GraphCameraStore;
 }) {
   const result = useMemo(() => {
     try {
@@ -84,6 +87,8 @@ export function NativeGraph({
       >
         {workspace.declarations.length ? (
           <GraphView
+            camera={camera}
+            focusName={focusName}
             onHover={onHover}
             workspace={workspace}
             focusId={focused?.id}

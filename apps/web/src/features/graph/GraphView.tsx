@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -19,6 +20,7 @@ import {
   type Node,
   type NodeProps,
   type EdgeProps,
+  type Viewport,
 } from "@xyflow/react";
 import {
   coneLayout,
@@ -46,29 +48,64 @@ const GraphInteraction = createContext<{
 type RadarNode = Node<RadarData, "declaration">;
 const nodeTypes = { declaration: DeclarationNode };
 const edgeTypes = { dependency: DependencyEdge };
+export type GraphCamera = {
+  center: string;
+  focus: string;
+  viewport: Viewport;
+};
+export type GraphCameraStore = { current: GraphCamera | undefined };
+const centerKey = (declaration: Declaration) =>
+  JSON.stringify([declaration.source?.file || "", declaration.name]);
 export function GraphView({
   workspace,
   focusId,
   selectedId,
   onSelect,
   onHover,
+  camera,
+  focusName,
 }: {
   workspace: Pick<Workspace, "declarations" | "edges">;
   focusId?: string;
   selectedId?: string;
   onSelect: (declaration: Declaration) => void;
   onHover?: (declaration: Declaration | undefined) => void;
+  camera?: GraphCameraStore;
+  focusName?: string;
 }) {
-  const [root, setRoot] = useState(
-    focusId ||
-      workspace.declarations.find(
-        (item) => item.id === "KernelProof.actual_spec",
-      )?.id ||
-      workspace.declarations.find((item) => item.isMainTheorem)?.id ||
-      workspace.declarations.find((item) => item.kind === "theorem")?.id ||
-      workspace.declarations[0]?.id ||
-      "",
-  );
+  const focused =
+    workspace.declarations.find((d) => d.id === focusId) ||
+    workspace.declarations.find((d) => d.name === focusName);
+  const focus = focusName || focused?.name || focusId || "";
+  const preferred =
+    focused?.id ||
+    workspace.declarations.find((item) => item.id === "KernelProof.actual_spec")
+      ?.id ||
+    workspace.declarations.find((item) => item.isMainTheorem)?.id ||
+    workspace.declarations.find((item) => item.kind === "theorem")?.id ||
+    workspace.declarations[0]?.id ||
+    "";
+  const [chosenRoot, setRoot] = useState(() => {
+    const retained = camera?.current;
+    return (
+      (retained?.focus === focus &&
+        workspace.declarations.find((d) => centerKey(d) === retained.center)
+          ?.id) ||
+      preferred
+    );
+  });
+  const root = workspace.declarations.some((d) => d.id === chosenRoot)
+    ? chosenRoot
+    : preferred;
+  const centered = workspace.declarations.find((d) => d.id === root);
+  const center = centered ? centerKey(centered) : "";
+  const initialViewport = useMemo(() => {
+    const retained = camera?.current;
+    return retained?.center === center && retained.focus === focus
+      ? retained.viewport
+      : undefined;
+  }, [camera, center, focus]);
+  const previousFocus = useRef(focus);
   const [hovered, setHovered] = useState<string>();
   const emphasized = hovered || selectedId;
   const nearby = new Set([emphasized, root]);
@@ -78,10 +115,14 @@ export function GraphView({
       nearby.add(edge.target);
     }
   useEffect(() => {
-    if (focusId && workspace.declarations.some((item) => item.id === focusId)) {
-      setRoot(focusId);
-    }
-  }, [focusId, workspace.declarations]);
+    const changed = previousFocus.current !== focus;
+    previousFocus.current = focus;
+    setRoot((previous) =>
+      changed || !workspace.declarations.some((d) => d.id === previous)
+        ? preferred
+        : previous,
+    );
+  }, [focus, preferred, workspace.declarations]);
   const positions = useMemo(
     () => coneLayout(workspace, root),
     [workspace, root],
@@ -208,7 +249,19 @@ export function GraphView({
               edges={edges}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
-              fitView
+              defaultViewport={initialViewport}
+              fitView={!initialViewport}
+              onMove={(event, viewport) => {
+                // Initial fitting is not a user's camera to restore over the
+                // first compiled layout. Retain gestures and later adjustments.
+                if (
+                  camera &&
+                  (event ||
+                    (camera.current?.center === center &&
+                      camera.current.focus === focus))
+                )
+                  camera.current = { center, focus, viewport: { ...viewport } };
+              }}
               fitViewOptions={{
                 padding: {
                   top: "60px",

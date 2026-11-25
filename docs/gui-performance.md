@@ -1,5 +1,10 @@
 # Graph interaction measurements
 
+The [source-refresh camera fix](performance/file-camera-retention.md) retains
+the viewport in its file tab across a changed compiled observation. The original
+assets reproduce a zoom reset after successful reinspection; this remains
+separate from first-detail rendering latency and native input validation.
+
 The [mixed camera-motion regression](performance/camera-motion.md) now exercises
 ordinary wheel and pinch-equivalent input while crossing compiled graph nodes.
 Both motion modes retain the viewport and pointer anchor; an armed hover-remount

@@ -2894,6 +2894,94 @@ test.describe("native GUI with real offline workers", () => {
     expect(requests).toHaveLength(2);
   });
 
+  test("a changed compiled file retains its graph camera after refresh and reinspection", async ({
+    page,
+  }, info) => {
+    test.setTimeout(180000);
+    const path = "Camera.lean";
+    const original =
+      "def base : Nat := 1\ndef twice : Nat := base + base\ntheorem camera_target (h : twice = 2) : twice = 2 := h\n";
+    await writeFile(resolve(project, path), original);
+    await page.goto(await start());
+    const open = async () => {
+      await page
+        .getByRole("button", { name: "File: " + path, exact: true })
+        .click();
+      await expect
+        .poll(
+          async () => {
+            const s = await nativeState(page);
+            return (
+              !s.running &&
+              s.source_preparation[path]?.outcome.state === "ready"
+            );
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+    };
+    await open();
+    expect((await nativeSource(page)).compiled).toBe(true);
+    const beforeRevision = (await nativeSource(page)).revision;
+    const graph = page.locator(".ide-file-page:not([hidden]) .cone-graph");
+    const viewport = graph.locator(".react-flow__viewport");
+    await expect(graph.locator(".root-node > button")).toContainText(
+      /twice|natural|equal/i,
+    );
+    const bounds = (await graph.boundingBox())!;
+    const initial = await viewport.getAttribute("style");
+    await page.mouse.move(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+    );
+    await page.mouse.wheel(0, -300);
+    await expect.poll(() => viewport.getAttribute("style")).not.toBe(initial);
+    await page.waitForTimeout(350);
+    const camera = await viewport.getAttribute("style");
+    await writeFile(
+      resolve(project, path),
+      original.replace("base : Nat := 1", "base : Nat := 2"),
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () => {
+          const s = await nativeState(page);
+          return !s.running && s.overview.state === "ready";
+        },
+        { timeout: 30000 },
+      )
+      .toBe(true);
+    await open();
+    await expect
+      .poll(async () => (await nativeSource(page))?.revision, {
+        timeout: 30000,
+      })
+      .not.toBe(beforeRevision);
+    await expect(
+      page
+        .getByRole("region", { name: "Source code", exact: true })
+        .getByLabel("File contents"),
+    ).toContainText("base : Nat := 2");
+    await info.attach("compiled-file-camera-replacement", {
+      body: JSON.stringify({
+        before: camera,
+        after: await viewport.getAttribute("style"),
+        changed_source_revision: true,
+      }),
+      contentType: "application/json",
+    });
+    await expect(viewport).toHaveAttribute("style", camera!);
+    await info.attach("compiled-file-camera-retained", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+  });
+
   test("saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data", async ({
     page,
   }, info) => {
