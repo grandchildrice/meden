@@ -1,5 +1,10 @@
 # Local profiling and regression workloads
 
+The [November 26 deployed audit](../../docs/performance/event-audit-20261126.md)
+records all 13 interaction windows twice per actual project on `e41a847`, with
+event dispatch, later rendering, input/frame proxies and native preparation
+separated. Its numeric record retains exact executable, asset and capture hashes.
+
 The [current deployed event audit](../../docs/performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
 
 The [ordered sibling index](../../docs/performance/map-sibling-bounds.md) keeps

@@ -1,5 +1,10 @@
 # Graph interaction measurements
 
+The [November 26 deployed audit](performance/event-audit-20261126.md) repeats
+all 13 operation windows twice per actual project on `e41a847`. It records
+event dispatch, rendering, input/frame proxies and native preparation separately,
+with exact executable/assets and correlated browser/native CPU profiles.
+
 The [current deployed event audit](performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
 
 The [ordered sibling index](performance/map-sibling-bounds.md) reduces hidden-file
