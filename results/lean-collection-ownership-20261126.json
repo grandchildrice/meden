@@ -1,0 +1,624 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "parent_commit": "587aa4c",
+  "change": "Move Lake layout/import collection out of common analysis. Common workspace metadata revalidation retains the original backend entry selector; remove hardcoded Lean filtering and retired module paths without aliases.",
+  "native_binary_sha256": "8f6b25e0abffe71e68cabb911c11b360ef6ddb2a19077787f121299153aae2fe",
+  "assets_sha256": "f3e6d705d396850395f7505f33f89da9aae6f35f89e89019f688b05dce059420",
+  "unchanged_assets_per_project": 88,
+  "wire_schema_unchanged": true,
+  "validation": {
+    "rust_app": 216,
+    "rust_cli": 78,
+    "installed_lake_selection": 12,
+    "required_tui": 37,
+    "tui_inference": "scripted fixtures; no live-model validation",
+    "decoded_screens": [
+      {
+        "label": "review",
+        "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+        "frames": 167,
+        "observations": [
+          {
+            "label": "Allow Configured server",
+            "seconds": 0.312,
+            "screen_sha256": "36870fd41174fba66c0a295368258937618bde4baadc9c86b8c8b996d7c21a2a"
+          }
+        ]
+      },
+      {
+        "label": "judge",
+        "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+        "frames": 37,
+        "observations": [
+          {
+            "label": "Candidate Mismatch",
+            "seconds": 1.261,
+            "screen_sha256": "205c2b73dc896ee057b94f05a1ff9191e61a294ece4a1c70ab8ff31883641817"
+          }
+        ]
+      },
+      {
+        "label": "resume",
+        "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+        "frames": 43,
+        "observations": [
+          {
+            "label": "TUI-CONTINUED",
+            "seconds": 1.074,
+            "screen_sha256": "4b7c6eb67a0a065a669cd8db7bb056bf35e5e6b851b525906c4ed1719b0a3d2d"
+          }
+        ]
+      },
+      {
+        "label": "lake",
+        "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+        "frames": 811,
+        "observations": [
+          {
+            "label": "Workspace source inventory changed",
+            "seconds": 75.624,
+            "screen_sha256": "003d91dd1309216627e400a39dc7eff4a9c5c916a56b1d6d0b93127f55c6fcd7"
+          }
+        ]
+      },
+      {
+        "label": "repair",
+        "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+        "frames": 83,
+        "observations": [
+          {
+            "label": "LEAN-MODEL-REPAIRED",
+            "seconds": 5.256,
+            "screen_sha256": "a470bec438ae96dfca3e6edb3b89e5d3543b10aa03b2d12f4fd40bba9d56d863"
+          }
+        ]
+      },
+      {
+        "label": "cancel",
+        "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+        "frames": 154,
+        "observations": [
+          {
+            "label": "Portable work stopped:",
+            "seconds": 14.279,
+            "screen_sha256": "b8d922fb2779c73f97d277defca26769d8d5d3e24d8dfcdd7f98fe9919bc286b"
+          }
+        ]
+      },
+      {
+        "label": "plain-source",
+        "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Sources ready: 1 file",
+            "seconds": 0.465,
+            "screen_sha256": "b0f5c75b24a73d197808d76d2f27a130442801b3b1082775ffe2e4713eee663a"
+          },
+          {
+            "label": "Source observation failed for missing.smt2",
+            "seconds": 0.465,
+            "screen_sha256": "b0f5c75b24a73d197808d76d2f27a130442801b3b1082775ffe2e4713eee663a"
+          },
+          {
+            "label": "source must be UTF-8",
+            "seconds": 0.465,
+            "screen_sha256": "b0f5c75b24a73d197808d76d2f27a130442801b3b1082775ffe2e4713eee663a"
+          },
+          {
+            "label": "Sources ready: 2 files",
+            "seconds": 0.465,
+            "screen_sha256": "b0f5c75b24a73d197808d76d2f27a130442801b3b1082775ffe2e4713eee663a"
+          },
+          {
+            "label": "Read the source graph first",
+            "seconds": 0.834,
+            "screen_sha256": "d2ccd8cec933e5473370b58043f9ab6bfea423ba9b341cbec581ac35438c0fc2"
+          },
+          {
+            "label": "Sources ready: 3 files",
+            "seconds": 0.834,
+            "screen_sha256": "d2ccd8cec933e5473370b58043f9ab6bfea423ba9b341cbec581ac35438c0fc2"
+          }
+        ]
+      },
+      {
+        "label": "reviewed-repair",
+        "journey": "test_finding_repair_reject_stale_clipped_review_apply_and_restart-26871992ae",
+        "frames": 74,
+        "observations": [
+          {
+            "label": "Apply this repair and reanalyze?",
+            "seconds": 1.148,
+            "screen_sha256": "e5efcd3339d1f4ea034029ae75790ae307bd6865e3dbc75899c46154f65a96e5"
+          },
+          {
+            "label": "Approval unavailable",
+            "seconds": 1.027,
+            "screen_sha256": "7dbcaf4f2fcef24109593c8f2f24f9ebc93b781d91b236184e1a71e4f7b1f15b"
+          },
+          {
+            "label": "Sources changed since the Finding",
+            "seconds": 1.289,
+            "screen_sha256": "66f2d58011b710bf0b5238425b71f3b4c2fb731757f0fd2d81fe0fe945740205"
+          },
+          {
+            "label": "Repair applied and reanalyzed",
+            "seconds": 1.393,
+            "screen_sha256": "7c20ff10169ed00138792940fe2502ff9a4d6ecc76e795d7a9318005d4a344b3"
+          },
+          {
+            "label": "source revision changed",
+            "seconds": 1.712,
+            "screen_sha256": "a169eaf72a1731f9e582fcd7967974fe55b260da23c45938f67c6f4d95960cdb"
+          }
+        ]
+      },
+      {
+        "label": "finite-source",
+        "journey": "test_native_finite_source_graph_recovers_and_reopens_without_lean_or_m-c794041788",
+        "frames": 74,
+        "observations": [
+          {
+            "label": "Source observation failed for absent.model.json",
+            "seconds": 3.823,
+            "screen_sha256": "81d483a8871e2a7d15603e0767a024a6c59937af15b180262cc8a2d444d801fd"
+          },
+          {
+            "label": "Source graph ready: 2 files",
+            "seconds": 5.332,
+            "screen_sha256": "65d902926e7da4d2d19bbd96f2c98d8d90f385d0edee0a0d2cc114ebbf330492"
+          },
+          {
+            "label": "transition.value · counter.model.json:",
+            "seconds": 5.332,
+            "screen_sha256": "65d902926e7da4d2d19bbd96f2c98d8d90f385d0edee0a0d2cc114ebbf330492"
+          },
+          {
+            "label": "Source observation failed for absent.contract.json",
+            "seconds": 5.332,
+            "screen_sha256": "65d902926e7da4d2d19bbd96f2c98d8d90f385d0edee0a0d2cc114ebbf330492"
+          }
+        ]
+      }
+    ],
+    "gui": [
+      {
+        "kind": "gui",
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "finite-native-preparation",
+                "data_json_sha256": "d0295ae93e08586189ebaf8e1f4789ff3852edd0f4a6ac5528bcdb8f13000c02",
+                "data_json_bytes": 14680
+              }
+            ]
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "interleaved-wheel-and-node-hover",
+                "data_json_sha256": "92e6a4f621c42f9587696d83e4c33c54094859c5f0a874391e491656097f8f37",
+                "data_json_bytes": 9657,
+                "summary": {
+                  "frames": 339,
+                  "viewport_elements": 1,
+                  "node_entries": 15,
+                  "wheel_events": 32,
+                  "max_anchor_error_px": 0.025468398783519097
+                }
+              },
+              {
+                "name": "hidden-file-layout.json",
+                "data_json_sha256": "a2808630f94fd1646973df4efa6fa6a1b0058617d03d0a197dfd03fc2aae13fc",
+                "data_json_bytes": 300
+              },
+              {
+                "name": "navigation-performance",
+                "data_json_sha256": "957779c643dfa6ad5af8bf0bfc03980a786da2e2c577504e415d2e962556e930",
+                "data_json_bytes": 486,
+                "summary": {
+                  "browser": "149.0.7827.53",
+                  "motion": "reduce",
+                  "cold_analysis_store_preparation_ms": 33584.091368,
+                  "warm_tab_two_raf_ms": [
+                    16.5,
+                    27.299999997019768,
+                    20.799999997019768,
+                    26.80000000447035,
+                    32.899999998509884,
+                    31.100000001490116,
+                    27.100000001490116,
+                    24.700000002980232,
+                    33,
+                    17.30000000447035
+                  ],
+                  "p95_ms": 33,
+                  "maximum_p95_ms": 250,
+                  "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+                }
+              }
+            ]
+          },
+          {
+            "title": "a changed compiled file retains its graph camera after refresh and reinspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "compiled-file-camera-replacement",
+                "data_json_sha256": "a2df8a7e52b31ca37a13b0ce7ed4a888727fbbc4c7073f3d6bc5ffaa3638fdb1",
+                "data_json_bytes": 171,
+                "summary": {
+                  "before": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                  "after": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                  "changed_source_revision": true
+                }
+              }
+            ]
+          },
+          {
+            "title": "prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": []
+          },
+          {
+            "title": "compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "compiled-identifiers.json",
+                "data_json_sha256": "f5f01f84f91d7dbac270081f5c78397c2ce1c87a4524e26b9221859b5b95a44e",
+                "data_json_bytes": 182
+              }
+            ]
+          }
+        ],
+        "raw_report_sha256": "828f2e9b732764486824cf56f81f38fafc5f68416463eaaace9f30576fb355cd"
+      },
+      {
+        "kind": "gui-normal",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "interleaved-wheel-and-node-hover",
+                "data_json_sha256": "428730656f955671d90b749011fcc782741cdb5bb05eb9fcb7fb1b740ecea2cd",
+                "data_json_bytes": 9815,
+                "summary": {
+                  "frames": 357,
+                  "viewport_elements": 1,
+                  "node_entries": 15,
+                  "wheel_events": 32,
+                  "max_anchor_error_px": 0.025468398783519097
+                }
+              },
+              {
+                "name": "hidden-file-layout.json",
+                "data_json_sha256": "a2808630f94fd1646973df4efa6fa6a1b0058617d03d0a197dfd03fc2aae13fc",
+                "data_json_bytes": 300
+              },
+              {
+                "name": "navigation-performance",
+                "data_json_sha256": "c71b9208bee6cb84f3c49c716e2248de9e3f4b5509e37ca57e0a0234effae397",
+                "data_json_bytes": 511,
+                "summary": {
+                  "browser": "149.0.7827.53",
+                  "motion": "no-preference",
+                  "cold_analysis_store_preparation_ms": 33359.208608,
+                  "warm_tab_two_raf_ms": [
+                    23.5,
+                    22.600000001490116,
+                    18.799999997019768,
+                    26.600000001490116,
+                    25.600000001490116,
+                    27.200000002980232,
+                    24.600000001490116,
+                    25.600000001490116,
+                    26.799999997019768,
+                    24
+                  ],
+                  "p95_ms": 27.200000002980232,
+                  "maximum_p95_ms": 250,
+                  "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+                }
+              }
+            ]
+          },
+          {
+            "title": "a changed compiled file retains its graph camera after refresh and reinspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "compiled-file-camera-replacement",
+                "data_json_sha256": "a2df8a7e52b31ca37a13b0ce7ed4a888727fbbc4c7073f3d6bc5ffaa3638fdb1",
+                "data_json_bytes": 171,
+                "summary": {
+                  "before": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                  "after": "transform: translate(205.656px, 259.947px) scale(0.50977);",
+                  "changed_source_revision": true
+                }
+              }
+            ]
+          }
+        ],
+        "raw_report_sha256": "09c20dd9acfeeb7a7af80db1d9cac229a0795fc1513398522dc36be2a6851e6a"
+      }
+    ],
+    "gates": [
+      {
+        "name": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "rustfmt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "ruff",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "selection",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "gui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "gui-normal",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "negative_controls": [
+      {
+        "control": "Hardcoded Lean filter instead of original backend selector",
+        "code": 101,
+        "failed": "Actual confined SMT2 inventory check",
+        "source_sha256": "b782bf434ab5f686a72ea7dc4c4a2b72576ec4c3fe22adacb1bb92130f5d573d"
+      },
+      {
+        "control": "Original Lake layout returned to common analysis directory",
+        "code": 1,
+        "failed": "Actual recursive architecture check"
+      }
+    ],
+    "corrected_initial_failures": [
+      "Old grouped metadata test imports after removed public modules",
+      "Clippy rejected ends_with extension comparison in the new test; replaced with Path::extension",
+      "First actual-data comparator incorrectly required the old rendering-bound graph revision; retained completed job and compared all formal/source/description fields while recording new identities/checker observations."
+    ]
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "host_first_preparation_ms": 221314,
+      "browser_first_preparation_ms": null,
+      "completed_observation_recovered_without_restarting": true,
+      "graph_binding": {
+        "before": "sha256:d2320f57735eb28f73c16198b6d509302b69232448008823297562462b548e0e",
+        "after": "sha256:9793a0dd5bf122bc434522dd118590aaec42a3239c21cc9c3102644a1e08047a"
+      },
+      "same_formal_source_and_deterministic_descriptions_sha256": "e9b44cfa8b76e0c80f5cc827bb95b49d0ff301d323d77efc15750a30fe0053c3",
+      "original_inputs_revision": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+      "changed_checker_observations": [
+        {
+          "id": "PIW.AdelClassFin.DictGen.natCast_cancel",
+          "before": "unsupported",
+          "after": "budget_exhausted",
+          "before_diagnostic_sha256": "bee5df7c3de432b4ad9e343894f40c7e0699fae6669ee4b8231091972506372d",
+          "after_diagnostic_sha256": "39c071f8b35ef790dcbdba7885521da0b23d0a3236e0290207c47a6156f7b6eb"
+        },
+        {
+          "id": "PIW.AdelClassFin.mGen_of",
+          "before": "budget_exhausted",
+          "after": "budget_exhausted",
+          "before_diagnostic_sha256": "39c071f8b35ef790dcbdba7885521da0b23d0a3236e0290207c47a6156f7b6eb",
+          "after_diagnostic_sha256": "d3c243d833a626011a16c755a58fa70415e76621054055cd15bf7c5fc8b0388c"
+        }
+      ],
+      "first_records": [
+        {
+          "name": "source",
+          "bytes": 68496,
+          "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb"
+        },
+        {
+          "name": "reader",
+          "bytes": 10780,
+          "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+        },
+        {
+          "name": "inventory",
+          "bytes": 25017593,
+          "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+        },
+        {
+          "name": "nav",
+          "bytes": 13853,
+          "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+        },
+        {
+          "name": "evidence",
+          "bytes": 111,
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "restart": {
+        "views": [
+          {
+            "name": "source",
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "first_compiled_graph_visible_ms": 1683.8424319999995,
+        "visible_preparation_state": "preparing",
+        "cache_hit": true,
+        "camera_retained": true,
+        "ring_evicted": 0,
+        "semantic_workers": [],
+        "approved": false,
+        "idle": true
+      },
+      "screenshots": {
+        "preparing_sha256": "9bea199d6737072860e9d942b287fafa5f651b6ae292c594167136dd1b09350a",
+        "restart_sha256": "d316c3a96e36a24739dce7c7b2b62966c1909e3a5610ae044e48b1e84967d64a"
+      }
+    },
+    {
+      "project": "ethlib",
+      "host_first_preparation_ms": 87173,
+      "browser_first_preparation_ms": 88475.01140399999,
+      "completed_observation_recovered_without_restarting": false,
+      "graph_binding": {
+        "before": "sha256:972f7f2aeae2b5e88c207f5d4d9a9685273e21dae797ae3246aac4b9be733108",
+        "after": "sha256:b46bbb7128f848920bf044c18a9134ead83cde947e8fff6d36e394e7d0c7ed1c"
+      },
+      "same_formal_source_and_deterministic_descriptions_sha256": "7f8b3a22c6cce8513be3a71a4c895c9e23d1faee0156e188f04af18d4f019e20",
+      "original_inputs_revision": null,
+      "changed_checker_observations": [],
+      "first_records": [
+        {
+          "name": "source",
+          "bytes": 146985,
+          "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390"
+        },
+        {
+          "name": "reader",
+          "bytes": 3034,
+          "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+        },
+        {
+          "name": "inventory",
+          "bytes": 7308199,
+          "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+        },
+        {
+          "name": "nav",
+          "bytes": 1516,
+          "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+        },
+        {
+          "name": "evidence",
+          "bytes": 111,
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "restart": {
+        "views": [
+          {
+            "name": "source",
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "first_compiled_graph_visible_ms": 1426.9434279999987,
+        "visible_preparation_state": "preparing",
+        "cache_hit": true,
+        "camera_retained": true,
+        "ring_evicted": 0,
+        "semantic_workers": [],
+        "approved": false,
+        "idle": true
+      },
+      "screenshots": {
+        "preparing_sha256": "9cca2942c6e1c6def2f3d2e40881de294c15165167d6c41901872466a91e5182",
+        "restart_sha256": "f20d79ca55f0e51b4cf62cecd1ad65a42fd7d9cd02be459efec0e94ca4ea25b2"
+      }
+    }
+  ],
+  "scope": "Backend/application ownership and adapter behavior. No new filesystem/whole-application proof, live-model or cold-install validation, rendering speedup, or completion of remaining metadata-cache orchestration, observation correspondence, native freshness costs and retirement work."
+}

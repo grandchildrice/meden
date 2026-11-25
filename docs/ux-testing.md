@@ -46,6 +46,14 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 ## Experience contract
 
+Backend layout/collection changes must preserve the complete independent Lake
+selection oracle and its frozen evaluator namespace. The shared workspace reader
+must honor the selected format: an actual SMT2 inventory accepts unrelated Lean
+files, refuses new SMT2 entries and detects changed metadata/cancellation without
+Lean preparation. A hardcoded Lean-filter control must fail that same confined
+journey; returning the original Lake layout to common analysis must fail the
+recursive ownership guard. These are adapter checks, not new proof authority.
+
 Workspace/model-session changes must preserve the public processor-review,
 connection replacement, failed-provider recovery and restart journeys. Reopening
 retains original conversations and prepared graphs, but requires fresh model

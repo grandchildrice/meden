@@ -182,7 +182,7 @@ impl Configuration {
     pub fn extract(
         &self,
         files: &BTreeMap<String, String>,
-        bindings: &[crate::analysis::layout::Module],
+        bindings: &[crate::adapters::lean::layout::Module],
         control: &Control,
     ) -> Result<(Extraction, Modules)> {
         let (lean, library) = self.selected()?;
@@ -206,7 +206,7 @@ impl Configuration {
             modules.push(binding.name.replace('.', "/"));
         }
         for (path, source) in files {
-            crate::analysis::observe::relative("", path)?;
+            crate::workspace::observation::relative("", path)?;
             let target = frozen.path().join(path);
             fs::create_dir_all(target.parent().context("source parent missing")?)?;
             fs::write(target, source)?;
@@ -325,7 +325,7 @@ struct Execution<'a> {
 impl Execution<'_> {
     fn compile(
         &self,
-        modules: &[crate::analysis::layout::Module],
+        modules: &[crate::adapters::lean::layout::Module],
         control: &Control,
         started: Instant,
     ) -> Result<()> {

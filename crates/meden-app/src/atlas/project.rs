@@ -33,7 +33,7 @@ impl Configuration {
     pub fn input_fingerprint(
         &self,
         workspace: &Path,
-        modules: &[crate::analysis::layout::Module],
+        modules: &[crate::adapters::lean::layout::Module],
         mode: InputMode,
         control: &Control,
     ) -> Result<crate::identity::snapshots::PreparedRevision> {
@@ -124,7 +124,8 @@ impl Configuration {
             let [mode, encoded] = args else {
                 anyhow::bail!("Expected preparation mode and original module bindings")
             };
-            let bindings: Vec<crate::analysis::layout::Module> = serde_json::from_str(encoded)?;
+            let bindings: Vec<crate::adapters::lean::layout::Module> =
+                serde_json::from_str(encoded)?;
             anyhow::ensure!(
                 matches!(mode.as_str(), "prepare" | "fingerprint")
                     && (1..=32).contains(&bindings.len()),

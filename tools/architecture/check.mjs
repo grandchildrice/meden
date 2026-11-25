@@ -252,6 +252,17 @@ function sources(path) {
   });
 }
 
+function rustSources(path) {
+  return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
+    const file = resolve(path, entry.name);
+    return entry.isDirectory()
+      ? rustSources(file)
+      : entry.name.endsWith(".rs")
+        ? [file]
+        : [];
+  });
+}
+
 export function check() {
   const metadata = JSON.parse(
     execFileSync(
@@ -281,13 +292,11 @@ export function check() {
     "crates/meden-app/src/search.rs",
     "crates/meden-app/src/explanation/cache.rs",
     "crates/meden-app/src/analysis.rs",
-    "crates/meden-app/src/analysis/journal.rs",
-    "crates/meden-app/src/analysis/repair.rs",
+    ...rustSources(resolve(root, "crates/meden-app/src/analysis")),
+    "crates/meden-app/src/workspace/observation.rs",
     "crates/meden-app/src/semantic.rs",
-    "crates/meden-app/src/analysis/sources.rs",
     "crates/meden-app/src/view.rs",
     "crates/meden-app/src/view/sources.rs",
-    "crates/meden-app/src/analysis/prepared.rs",
   ])
     errors.push(
       ...neutralObservationViolations(

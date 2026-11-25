@@ -191,7 +191,7 @@ lean_lib Domain
         terminal.send("y")
         terminal.wait(
             lambda view: (
-                "Lake configuration/import resolution changed" in view and "shift+enter" in view
+                "Workspace metadata changed" in view and "shift+enter" in view
             )
         )
         assert (root / "vendor/base/source/Base.lean").read_text() == original[
@@ -219,7 +219,7 @@ lean_lib Domain
         added.write_text("namespace Store\ndef added : Nat := 7\nend Store\n")
         release.set()
         terminal.wait(
-            lambda view: "Lake source inventory changed" in view and "shift+enter" in view
+            lambda view: "Workspace source inventory changed" in view and "shift+enter" in view
         )
         command("/analysis", "Result: Stale", 7)
         assert entries()[-1]["assessment"] is None

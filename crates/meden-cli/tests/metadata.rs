@@ -1,10 +1,8 @@
 #![cfg(target_os = "linux")]
 //! Real confined metadata checks against an independent host-filesystem oracle.
 use anyhow::{Context, Result};
-use meden_app::analysis::{
-    collect::check_metadata,
-    observe::{Entry, Metadata},
-};
+use meden_app::adapters::lean::collect::check_metadata;
+use meden_app::workspace::observation::{self, Entry, Metadata};
 use meden_runtime::{metrics, process::Control, workspace::Workspace};
 use std::{
     fs,
@@ -56,6 +54,55 @@ fn open(root: &Path) -> Result<Workspace> {
         root,
         Path::new(env!("CARGO_BIN_EXE_meden")),
     )?)
+}
+#[test]
+fn a_solver_inventory_uses_its_selected_format_without_lean_resources() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    fs::create_dir(root.path().join("nested"))?;
+    for (path, text) in [
+        ("a.smt2", "(check-sat)"),
+        ("b.lean", "not a solver input"),
+        ("solver.cfg", "original"),
+    ] {
+        fs::write(root.path().join(path), text)?;
+    }
+    let expected = Metadata {
+        files: [("solver.cfg".into(), Some("original".into()))].into(),
+        directories: [(
+            String::new(),
+            Some(vec![
+                Entry {
+                    name: "a.smt2".into(),
+                    kind: "file".into(),
+                },
+                Entry {
+                    name: "nested".into(),
+                    kind: "directory".into(),
+                },
+            ]),
+        )]
+        .into(),
+    };
+    let select = |entry: &Entry| {
+        entry.kind != "file"
+            || Path::new(&entry.name)
+                .extension()
+                .is_some_and(|ext| ext == "smt2")
+    };
+    let workspace = open(root.path())?;
+    observation::check_metadata(&workspace, &control(), &expected, select)?;
+    fs::write(root.path().join("extra.lean"), "unrelated")?;
+    observation::check_metadata(&workspace, &control(), &expected, select)?;
+    fs::write(root.path().join("new.smt2"), "(check-sat)")?;
+    assert!(observation::check_metadata(&workspace, &control(), &expected, select).is_err());
+    fs::remove_file(root.path().join("new.smt2"))?;
+    fs::write(root.path().join("solver.cfg"), "modified")?;
+    assert!(observation::check_metadata(&workspace, &control(), &expected, select).is_err());
+    fs::write(root.path().join("solver.cfg"), "original")?;
+    let stopped = control();
+    stopped.cancel();
+    assert!(observation::check_metadata(&workspace, &stopped, &expected, select).is_err());
+    Ok(())
 }
 #[test]
 fn complete_batches_preserve_contents_absence_inventory_and_literal_names() -> Result<()> {

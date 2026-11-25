@@ -27,18 +27,30 @@ pub struct Metadata {
     pub files: BTreeMap<String, Option<String>>,
     pub directories: BTreeMap<String, Option<Vec<Entry>>>,
 }
-pub(super) struct Reader<'a> {
+/// Reobserve the original complete namespace through the ordinary confined
+/// file worker. Equality does not restore execution or verification authority.
+pub fn check_metadata(
+    workspace: &Workspace,
+    control: &Control,
+    expected: &Metadata,
+    select: fn(&Entry) -> bool,
+) -> Result<()> {
+    Reader::new(workspace, control, select).check(expected)
+}
+pub(crate) struct Reader<'a> {
     workspace: &'a Workspace,
     control: &'a Control,
+    select: fn(&Entry) -> bool,
     directories: BTreeMap<String, Vec<Entry>>,
     pending_files: BTreeMap<String, Option<String>>,
     pub metadata: Metadata,
 }
 impl<'a> Reader<'a> {
-    pub fn new(workspace: &'a Workspace, control: &'a Control) -> Self {
+    pub fn new(workspace: &'a Workspace, control: &'a Control, select: fn(&Entry) -> bool) -> Self {
         Self {
             workspace,
             control,
+            select,
             directories: BTreeMap::new(),
             pending_files: BTreeMap::new(),
             metadata: Metadata::default(),
@@ -46,10 +58,10 @@ impl<'a> Reader<'a> {
     }
     fn request(operation: Operation, path: &str, payload: Args) -> Result<Request<Args>> {
         let path = crate::workspace::logical_path(path)
-            .context("Lake path leaves the selected workspace")?;
+            .context("Workspace path leaves the selected workspace")?;
         Ok(Request::new(
             operation,
-            path.to_str().context("Lake path is not UTF-8")?.into(),
+            path.to_str().context("Workspace path is not UTF-8")?.into(),
             payload,
         ))
     }
@@ -65,7 +77,7 @@ impl<'a> Reader<'a> {
                 output_bytes: 8_388_608,
             },
         )
-        .map_err(|error| anyhow::anyhow!("Lake workspace observation failed: {error}"))
+        .map_err(|error| anyhow::anyhow!("Workspace observation failed: {error}"))
     }
     fn batch(
         &self,
@@ -92,12 +104,12 @@ impl<'a> Reader<'a> {
                 output_bytes: 67_108_864,
             },
         )
-        .map_err(|error| anyhow::anyhow!("Lake workspace observation failed: {error}"))?;
+        .map_err(|error| anyhow::anyhow!("Workspace observation failed: {error}"))?;
         for value in &values {
             // Preserve the old per-response budget as well as the batch budget.
             anyhow::ensure!(
                 serde_json::to_vec(&Ok::<_, ()>(value))?.len() <= 8_388_608,
-                "Lake workspace response exceeds 8 MiB; no partial observation"
+                "Workspace workspace response exceeds 8 MiB; no partial observation"
             );
         }
         Ok(values)
@@ -150,7 +162,7 @@ impl<'a> Reader<'a> {
                     .map(String::len)
                     .sum::<usize>()
                     <= 1_048_576,
-            "Lake configuration observations exceed bounds"
+            "Workspace metadata observations exceed bounds"
         );
         anyhow::ensure!(
             expected.directories.len() <= 2048
@@ -161,12 +173,12 @@ impl<'a> Reader<'a> {
                     .map(Vec::len)
                     .sum::<usize>()
                     <= 16384,
-            "Lake module inventory exceeds bounds"
+            "Workspace source inventory exceeds bounds"
         );
         for path in expected.files.keys().chain(expected.directories.keys()) {
             anyhow::ensure!(
                 relative("", path)? == *path,
-                "Noncanonical Lake metadata path"
+                "Noncanonical Workspace metadata path"
             );
         }
         self.prefetch_directories(
@@ -178,10 +190,10 @@ impl<'a> Reader<'a> {
         )?;
         self.check_files(expected)?;
         for (directory, entries) in &expected.directories {
-            self.glob_entries(directory)?;
+            self.observe_directory(directory)?;
             anyhow::ensure!(
                 self.metadata.directories.get(directory) == Some(entries),
-                "Lake source inventory changed at {directory}; reread the graph"
+                "Workspace source inventory changed at {directory}; reread the graph"
             );
         }
         Ok(())
@@ -203,7 +215,7 @@ impl<'a> Reader<'a> {
             }
             anyhow::ensure!(
                 self.directories.len().saturating_add(frontier.len()) <= 2048,
-                "Lake directory observation budget exceeded"
+                "Workspace directory observation budget exceeded"
             );
             // Four legacy 8 MiB responses fit completely inside the 64 MiB frame.
             for paths in frontier.chunks(4) {
@@ -226,7 +238,10 @@ impl<'a> Reader<'a> {
         let mut present = Vec::new();
         for (path, value) in &expected.files {
             let exists = self.exists(path)?;
-            anyhow::ensure!(exists == value.is_some(), "Lake configuration/import resolution changed at {path}; reread the graph and explicitly rerun");
+            anyhow::ensure!(
+                exists == value.is_some(),
+                "Workspace metadata changed at {path}; reread the graph and explicitly rerun"
+            );
             if exists {
                 present.push(path.as_str());
             }
@@ -239,23 +254,25 @@ impl<'a> Reader<'a> {
             let values = self.batch(Operation::Snapshot, paths, &payload)?;
             for (path, value) in paths.iter().zip(values) {
                 let text = decode_snapshot(&value, 65_536)?;
-                anyhow::ensure!(expected.files.get(*path) == Some(&Some(text)),
-                    "Lake configuration/import resolution changed at {path}; reread the graph and explicitly rerun");
+                anyhow::ensure!(
+                    expected.files.get(*path) == Some(&Some(text)),
+                    "Workspace metadata changed at {path}; reread the graph and explicitly rerun"
+                );
             }
         }
         Ok(())
     }
-    /// Observe a bounded set of upcoming configuration files together. Keep the
+    /// Observe a bounded set of upcoming metadata files together. Keep the
     /// results private until the original read order admits each file into the
     /// frozen evaluator's inputs. The caller still revalidates complete metadata.
-    pub fn prefetch_configurations(&mut self, paths: &[String]) -> Result<()> {
+    pub fn prefetch_files(&mut self, paths: &[String]) -> Result<()> {
         let paths = paths
             .iter()
             .map(|path| relative("", path))
             .collect::<Result<BTreeSet<_>>>()?;
         anyhow::ensure!(
             paths.len() <= 4096,
-            "Lake configuration observations exceed bounds"
+            "Workspace metadata observations exceed bounds"
         );
         self.prefetch_directories(paths.iter().map(|path| parent_directory(path)))?;
         let mut next = BTreeMap::new();
@@ -301,7 +318,7 @@ impl<'a> Reader<'a> {
         });
         anyhow::ensure!(
             count <= 4096 && bytes <= 1_048_576,
-            "Lake configuration observations exceed bounds"
+            "Workspace metadata observations exceed bounds"
         );
         self.pending_files.extend(next);
         Ok(())
@@ -312,7 +329,7 @@ impl<'a> Reader<'a> {
         }
         anyhow::ensure!(
             self.directories.len() < 2048,
-            "Lake directory observation budget exceeded"
+            "Workspace directory observation budget exceeded"
         );
         let payload = Args::from_iter([
             ("entries".into(), true.into()),
@@ -329,18 +346,13 @@ impl<'a> Reader<'a> {
         }
         Ok(self.entries(parent)?.iter().any(|entry| entry.name == name))
     }
-    pub fn glob_entries(&mut self, directory: &str) -> Result<Vec<Entry>> {
+    pub fn observe_directory(&mut self, directory: &str) -> Result<Vec<Entry>> {
         if !self.exists(directory)? && !directory.is_empty() {
             self.metadata.directories.insert(directory.into(), None);
             return Ok(Vec::new());
         }
         let mut entries = self.entries(directory)?;
-        entries.retain(|e| {
-            e.kind != "file"
-                || Path::new(&e.name)
-                    .extension()
-                    .is_some_and(|ext| ext == "lean")
-        });
+        entries.retain(self.select);
         self.metadata
             .directories
             .insert(directory.into(), Some(entries.clone()));
@@ -352,7 +364,7 @@ impl<'a> Reader<'a> {
                 .map(Vec::len)
                 .sum::<usize>()
                 <= 16384,
-            "Lake module inventory exceeds bounds"
+            "Workspace source inventory exceeds bounds"
         );
         Ok(entries)
     }
@@ -385,7 +397,7 @@ impl<'a> Reader<'a> {
                     .map(String::len)
                     .sum::<usize>()
                     <= 1_048_576,
-            "Lake configuration observations exceed bounds"
+            "Workspace metadata observations exceed bounds"
         );
         Ok(value)
     }
@@ -405,12 +417,12 @@ fn parse_entries(value: serde_json::Value) -> Result<Vec<Entry>> {
 }
 fn decode_snapshot(value: &serde_json::Value, limit: usize) -> Result<String> {
     let bytes = base64::engine::general_purpose::STANDARD
-        .decode(value.as_str().context("Invalid Lake input response")?)?;
+        .decode(value.as_str().context("Invalid workspace input response")?)?;
     anyhow::ensure!(
         bytes.len() <= limit,
-        "Lake input exceeds selected byte limit"
+        "Workspace input exceeds selected byte limit"
     );
-    String::from_utf8(bytes).context("Lake input is not UTF-8")
+    String::from_utf8(bytes).context("Workspace input is not UTF-8")
 }
 /// Normalize declared relative paths before constructing the original worker request.
 /// Parent components are allowed only when they stay within the host workspace.
@@ -419,7 +431,7 @@ pub fn relative(base: &str, child: &str) -> Result<String> {
     let joined = if Path::new(child).is_absolute() {
         Path::new(child)
             .strip_prefix("/workspace")
-            .context("Lake path leaves the selected workspace")?
+            .context("Workspace path leaves the selected workspace")?
             .to_path_buf()
     } else {
         Path::new(base).join(child)
@@ -428,20 +440,24 @@ pub fn relative(base: &str, child: &str) -> Result<String> {
         match part {
             Component::CurDir => {}
             Component::Normal(name) => {
-                components.push(name.to_str().context("Lake path is not UTF-8")?.to_owned());
+                components.push(
+                    name.to_str()
+                        .context("Workspace path is not UTF-8")?
+                        .to_owned(),
+                );
             }
             Component::ParentDir => {
                 anyhow::ensure!(
                     components.pop().is_some(),
-                    "Lake path leaves the selected workspace"
+                    "Workspace path leaves the selected workspace"
                 );
             }
             Component::RootDir | Component::Prefix(_) => {
-                anyhow::bail!("Lake path must be workspace-relative")
+                anyhow::bail!("Workspace path must be workspace-relative")
             }
         }
     }
     let path = components.join("/");
-    anyhow::ensure!(path.len() <= 4096, "Lake path exceeds bounds");
+    anyhow::ensure!(path.len() <= 4096, "Workspace path exceeds bounds");
     Ok(path)
 }

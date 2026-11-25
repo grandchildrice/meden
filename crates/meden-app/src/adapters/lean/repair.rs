@@ -12,7 +12,7 @@ pub struct Context {
     method: String,
     resources: String,
     prepared: Option<crate::identity::snapshots::PreparedRevision>,
-    collection: analysis::collect::Collection,
+    collection: super::collect::Collection,
 }
 fn method() -> String {
     format!(

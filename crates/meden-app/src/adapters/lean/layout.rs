@@ -1,9 +1,9 @@
 //! Lake's evaluated package layout plus the exact host-observed metadata.
-use super::observe::{relative, Reader};
 use crate::atlas::{
     lake::{Dependency, Glob, Package},
     Configuration,
 };
+use crate::workspace::observation::{relative, Entry, Reader};
 use anyhow::{Context, Result};
 use meden_runtime::process::Control;
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,13 @@ use std::{
     collections::{BTreeMap, BTreeSet, VecDeque},
     path::Path,
 };
+
+pub(super) fn source_entry(entry: &Entry) -> bool {
+    entry.kind != "file"
+        || Path::new(&entry.name)
+            .extension()
+            .is_some_and(|ext| ext == "lean")
+}
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -310,7 +317,7 @@ fn prefetch_dependencies(
         .flatten()
         .map(|(_, path)| path)
         .collect::<Vec<_>>();
-    reader.prefetch_configurations(&upcoming)
+    reader.prefetch_files(&upcoming)
 }
 fn configuration(
     reader: &mut Reader<'_>,
@@ -470,7 +477,7 @@ fn walk(
     directory: &str,
     files: &mut BTreeMap<String, String>,
 ) -> Result<()> {
-    for entry in reader.glob_entries(directory)? {
+    for entry in reader.observe_directory(directory)? {
         let path = relative(directory, &entry.name)?;
         match entry.kind.as_str() {
             "directory" => walk(reader, &path, files)?,

@@ -1,7 +1,9 @@
 //! Lean adapters compose their decoded data and independent application roles.
 pub mod cache;
+pub mod collect;
 mod compiler;
 pub(super) mod definition;
+pub mod layout;
 pub mod pipeline;
 pub mod repair;
 pub mod saved;

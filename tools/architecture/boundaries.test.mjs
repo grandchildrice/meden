@@ -45,6 +45,8 @@ test("common observations accept typed source owners and pure generic projection
 for (const concrete of [
   "use crate::adapters::lean::Snapshot;",
   "use crate::adapters::finite::Snapshot;",
+  "use crate::atlas::{lake::Package, Configuration};",
+  "fn collect(atlas: crate::atlas::Configuration) {}",
   "pub struct Snapshot { pub atlas: Option<atlas::Extraction> }",
   "let graph = snapshot.atlas.as_ref();",
   "let metadata = snapshot.collection.as_ref();",

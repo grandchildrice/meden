@@ -39,14 +39,14 @@ impl Compiler for Lake {
         request: Invocation<super::lean::Snapshot>,
     ) -> Result<Compiled<super::lean::Snapshot>> {
         let atlas = &self.atlas;
-        let mut snapshot = crate::analysis::collect::roots(
+        let mut snapshot = crate::adapters::lean::collect::roots(
             context.workspace,
             context.control,
             request.paths(),
             atlas.clone(),
         )?;
         let collection = &mut snapshot.collection;
-        crate::analysis::collect::check_metadata(
+        crate::adapters::lean::collect::check_metadata(
             context.workspace,
             context.control,
             &collection.metadata,
@@ -87,7 +87,7 @@ impl Compiler for Lake {
             prepared == after,
             "Prepared Lake inputs changed during extraction"
         );
-        crate::analysis::collect::check_metadata(
+        crate::adapters::lean::collect::check_metadata(
             context.workspace,
             context.control,
             &collection.metadata,
@@ -126,7 +126,7 @@ impl Compiler for Lake {
 
 fn bind_nodes(
     graph: &mut serde_json::Value,
-    bindings: &[crate::analysis::layout::Module],
+    bindings: &[crate::adapters::lean::layout::Module],
 ) -> Result<()> {
     for node in graph
         .get_mut("nodes")
@@ -149,7 +149,7 @@ fn bind_nodes(
 fn external_modules(
     atlas: &crate::atlas::Configuration,
     files: &std::collections::BTreeMap<String, String>,
-    bindings: &[crate::analysis::layout::Module],
+    bindings: &[crate::adapters::lean::layout::Module],
     control: &meden_runtime::process::Control,
 ) -> Result<Vec<String>> {
     Ok(atlas

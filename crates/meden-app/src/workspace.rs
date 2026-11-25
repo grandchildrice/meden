@@ -1,5 +1,6 @@
 //! Logical workspace tool router. File access occurs only in the worker.
 use anyhow::Result;
+pub mod observation;
 use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::file::{Operation, Request};

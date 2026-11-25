@@ -8,9 +8,9 @@ pub(crate) fn compiler(
     let implementation = [
         implementation,
         include_bytes!("snapshot.rs"),
-        include_bytes!("../../analysis/collect.rs"),
-        include_bytes!("../../analysis/layout.rs"),
-        include_bytes!("../../analysis/observe.rs"),
+        include_bytes!("collect.rs"),
+        include_bytes!("layout.rs"),
+        include_bytes!("../../workspace/observation.rs"),
         include_bytes!("../../analysis/sources.rs"),
         include_bytes!("../../identity/snapshots.rs"),
         include_bytes!("../../compiler.rs"),

@@ -1,8 +1,8 @@
 //! Bounded project import closure with frozen Lake configuration and path bindings.
-use super::{
-    layout::{Layout, Module, PackageView},
-    observe::{relative, Metadata, Reader},
-    sources,
+use super::layout::{Layout, Module, PackageView};
+use crate::{
+    analysis::sources,
+    workspace::observation::{relative, Metadata, Reader},
 };
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
@@ -109,7 +109,7 @@ fn select<'a>(
         .iter()
         .map(|path| relative("", path))
         .collect::<Result<Vec<_>>>()?;
-    let mut reader = Reader::new(workspace, control);
+    let mut reader = Reader::new(workspace, control, super::layout::source_entry);
     let selected = if paths.is_empty() {
         BTreeMap::new()
     } else {
@@ -128,7 +128,7 @@ fn select<'a>(
         for path in files.keys() {
             insert(&mut modules, &layout.bind_selected(path)?)?;
         }
-        anyhow::ensure!(!files.is_empty(), "Select a Lean source file, or use /atlas in a Lake project with library/executable roots");
+        anyhow::ensure!(!files.is_empty(), "Select a Lean source file, or use /graph in a Lake project with library/executable roots");
     } else {
         for path in files.keys() {
             insert(&mut modules, &layout.bind_selected(path)?)?;
@@ -201,5 +201,10 @@ fn insert(modules: &mut BTreeMap<String, Module>, module: &Module) -> Result<()>
     Ok(())
 }
 pub fn check_metadata(workspace: &Workspace, control: &Control, expected: &Metadata) -> Result<()> {
-    Reader::new(workspace, control).check(expected)
+    crate::workspace::observation::check_metadata(
+        workspace,
+        control,
+        expected,
+        super::layout::source_entry,
+    )
 }

@@ -145,7 +145,7 @@ impl Searcher for Plausible {
                 == original.source.files,
             "Sources changed during search"
         );
-        crate::analysis::collect::check_metadata(
+        crate::adapters::lean::collect::check_metadata(
             context.workspace,
             context.control,
             &collection.metadata,

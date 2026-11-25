@@ -362,7 +362,7 @@ fn artifacts(
         {
             continue;
         }
-        if crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
+        if crate::adapters::lean::collect::check_metadata(workspace, control, &collection.metadata)
             .is_err()
         {
             continue;

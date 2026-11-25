@@ -30,7 +30,7 @@ impl Configuration {
         let job = tempfile::tempdir()?;
         let frozen = tempfile::tempdir()?;
         for (path, source) in files {
-            crate::analysis::observe::relative("", path)?;
+            crate::workspace::observation::relative("", path)?;
             let target = frozen.path().join(path);
             fs::create_dir_all(target.parent().context("import source parent missing")?)?;
             fs::write(target, source)?;

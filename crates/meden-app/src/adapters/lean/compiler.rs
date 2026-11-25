@@ -38,7 +38,8 @@ impl Compiler for Lean {
         if let Some(cached) = cache::compiled(workspace, control, paths, &request)? {
             return Ok(cached);
         }
-        let snapshot = crate::analysis::collect::capture(workspace, control, paths, atlas.clone())?;
+        let snapshot =
+            crate::adapters::lean::collect::capture(workspace, control, paths, atlas.clone())?;
         let observed = snapshot.source.files.keys().cloned().collect::<Vec<_>>();
         let collection = &snapshot.collection;
         if paths.is_empty() {
@@ -47,14 +48,14 @@ impl Compiler for Lean {
                 return Ok(cached);
             }
         }
-        crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
+        crate::adapters::lean::collect::check_metadata(workspace, control, &collection.metadata)?;
         let (mut graph, modules) =
             atlas.extract(&snapshot.source.files, &collection.modules, control)?;
         graph.revision = GraphRevision::from_digest(sha2::Sha256::digest(serde_json::to_vec(&(
             &graph.revision,
             collection,
         ))?));
-        crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
+        crate::adapters::lean::collect::check_metadata(workspace, control, &collection.metadata)?;
         anyhow::ensure!(
             crate::analysis::sources::capture(workspace, control, &observed)?.revision
                 == snapshot.source.revision,

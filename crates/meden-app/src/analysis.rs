@@ -10,10 +10,7 @@ use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
-pub mod collect;
 pub mod journal;
-pub mod layout;
-pub mod observe;
 pub mod prepared;
 pub mod repair;
 pub mod sources;

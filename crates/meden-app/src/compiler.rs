@@ -190,7 +190,7 @@ impl<O: Observation> Registration<'_, O> {
         let selected = request
             .paths()
             .iter()
-            .map(|p| crate::analysis::observe::relative("", p))
+            .map(|p| crate::workspace::observation::relative("", p))
             .collect::<Result<Vec<_>>>()?;
         let definition = self.installed.definition.clone();
         let original = request.clone();

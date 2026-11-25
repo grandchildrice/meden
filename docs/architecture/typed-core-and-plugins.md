@@ -1162,3 +1162,12 @@ labels saved navigation and preserves the camera through refresh, without
 restoring execution inputs, model authority or proof evidence. Normal complete
 observation and the serial command queue remain. This advances early navigation
 in step 4; it does not complete freshness, layout, rendering or retirement exits.
+
+[Backend-owned layout and collection](../performance/lean-collection-ownership.md)
+now place Lake package/module selection and import closure in the Lean adapter.
+Common workspace observation retains bounded original metadata and a trusted
+backend's directory selection instead of embedding Lean format rules. Its actual
+SMT2 inventory, complete Lake-selection oracle and rejected hardcoded-filter and
+retired-layout controls cover the separation. This advances steps 3/4; metadata
+cache orchestration, observation correspondence, remaining rendering/native waits
+and the complete retirement audit still require completion evidence.

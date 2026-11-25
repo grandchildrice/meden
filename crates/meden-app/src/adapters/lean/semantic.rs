@@ -92,7 +92,7 @@ impl crate::analysis::Observation for Snapshot {
 }
 pub(super) fn check_binding(
     context: &crate::adapters::Context<'_>,
-    collection: &crate::analysis::collect::Collection,
+    collection: &crate::adapters::lean::collect::Collection,
     prepared: Option<&crate::identity::snapshots::PreparedRevision>,
     resources: &str,
 ) -> Result<Freshness> {
@@ -100,7 +100,7 @@ pub(super) fn check_binding(
     let control = context.control;
     {
         if let Err(error) =
-            crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
+            crate::adapters::lean::collect::check_metadata(workspace, control, &collection.metadata)
         {
             return Ok(Freshness::Stale(error));
         }

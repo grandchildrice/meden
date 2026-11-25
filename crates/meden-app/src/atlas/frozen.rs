@@ -90,7 +90,7 @@ impl Configuration {
         &self,
         files: &BTreeMap<String, String>,
         sources: &BTreeMap<String, String>,
-        bindings: &[crate::analysis::layout::Module],
+        bindings: &[crate::adapters::lean::layout::Module],
     ) -> Result<Id> {
         Ok(Id(digest(&serde_json::to_vec(&(
             self.current_resources()?,
@@ -103,7 +103,7 @@ impl Configuration {
         &self,
         job: &tempfile::TempDir,
         sources: &BTreeMap<String, String>,
-        bindings: &[crate::analysis::layout::Module],
+        bindings: &[crate::adapters::lean::layout::Module],
     ) -> Result<Modules> {
         let files = files(&job.path().join("modules"))?;
         let id = self.modules_id(&files, sources, bindings)?;

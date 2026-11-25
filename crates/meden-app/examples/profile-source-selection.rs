@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     for sample in 0..samples {
         let started = Instant::now();
         let selected =
-            meden_app::analysis::collect::roots(&workspace, &control, &paths, atlas.clone())?;
+            meden_app::adapters::lean::collect::roots(&workspace, &control, &paths, atlas.clone())?;
         let elapsed_ms = started.elapsed().as_secs_f64() * 1000.0;
         let bytes = serde_json::to_vec(&selected)?;
         let collection = &selected.collection;

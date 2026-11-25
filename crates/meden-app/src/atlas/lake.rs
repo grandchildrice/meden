@@ -1,6 +1,6 @@
 //! Evaluate only frozen Lake configuration in a disposable offline analysis job.
 use super::{Configuration, Execution};
-use crate::analysis::observe::Metadata;
+use crate::workspace::observation::Metadata;
 use anyhow::{Context, Result};
 use meden_runtime::process::Control;
 use serde::{Deserialize, Serialize};
@@ -126,7 +126,7 @@ impl Configuration {
         let frozen = tempfile::tempdir()?;
         for (path, value) in &metadata.files {
             if let Some(value) = value {
-                let path = crate::analysis::observe::relative("", path)?;
+                let path = crate::workspace::observation::relative("", path)?;
                 let target = frozen.path().join(path);
                 fs::create_dir_all(target.parent().context("Lake input parent missing")?)?;
                 fs::write(target, value)?;

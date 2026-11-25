@@ -1,6 +1,7 @@
 //! Lean-owned source observations and disjoint compiled input owners.
+use super::collect::Collection;
 use crate::{
-    analysis::{collect::Collection, sources},
+    analysis::sources,
     atlas::Extraction,
     identity::snapshots::{PreparedRevision, SourceRevision},
 };
@@ -133,7 +134,7 @@ pub(crate) fn fixture(source: sources::Snapshot, graph: Extraction) -> Snapshot 
         external_modules: Vec::new(),
         modules: Vec::new(),
         packages: Vec::new(),
-        metadata: crate::analysis::observe::Metadata::default(),
+        metadata: crate::workspace::observation::Metadata::default(),
     };
     Snapshot::compiled(
         source,
