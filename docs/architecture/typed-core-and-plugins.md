@@ -169,8 +169,9 @@ filesystem or concurrent-snapshot proof.
 This is the first application extraction, not the complete multi-backend registry.
 The compiler port now retains a backend-owned decoded observation type; neutral
 source capture and prepared-view retention do not contain Lean records. The
-native compiler composition, semantic orchestration and repair still
-select Lean observations. The search port and immutable storage bodies now
+native compiler composition and repair still select Lean observations. Shared
+meaning assessment now accepts typed backend-owned context/freshness; native
+preparation remains explicitly Lean. The search port and immutable storage bodies now
 retain backend-owned types; Lean owns its graph/cache projection. Complete role-wide plugin/resource/schema bindings
 and the remaining orchestration are still required.
 The verifier role now has two real host registrations:
@@ -1044,6 +1045,16 @@ binding checks and report validation. Finite typed conformance uses the real
 data parser without claiming a solver integration. Native heterogeneous
 composition, semantic orchestration, repair, prepared module ownership and the
 remaining latency/retirement work are still open.
+The [assessment-context migration](../performance/generic-assessment-contexts.md)
+removes Lean snapshots from common meaning preparation, assessment and original
+source retention. Backend-owned typed contexts become frozen model messages
+once, while the shared service checks the complete original body and source
+before/after model work. Lean retains its scope/resource/dependency checks, and
+plain text and finite typed conformance use the same service. The retired JSON
+context projection is test-only; complete generated and selected actual-module
+comparisons retain its original output. Native preparation composition, reviewed
+repair, prepared module ownership and remaining performance/retirement work
+still need their own completion audit.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

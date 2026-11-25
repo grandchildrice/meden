@@ -57,7 +57,7 @@ pub(super) fn prepare(
         .source_preparation
         .begin(path, "Resolving modules")?;
     super::lock(view).sources.forget_file(path);
-    let result = crate::analysis::extract_cached(
+    let result = crate::adapters::lean::pipeline::extract_cached(
         workspace,
         control,
         &[path.into()],
@@ -157,7 +157,7 @@ pub(super) fn extract_atlas(
             .map(|path| view.source_preparation.begin(path, "Resolving modules"))
             .collect::<Result<Vec<_>>>()?
     };
-    let extraction = crate::analysis::extract_cached(
+    let extraction = crate::adapters::lean::pipeline::extract_cached(
         workspace,
         control,
         paths,

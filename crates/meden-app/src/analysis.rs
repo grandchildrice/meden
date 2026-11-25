@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 
 use crate::model::Model;
 use crate::semantic::{self, Assessment, Input, Prepared, Stage};
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
@@ -17,20 +17,15 @@ pub mod observe;
 pub mod repair;
 pub mod sources;
 
-/// Explicit local source observation. Inference approval is unrelated to this
-/// policy-bound read/compilation service; host adapters choose preparation.
-pub fn read_sources(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-    compiled: bool,
-) -> Result<crate::adapters::lean::Snapshot> {
-    if compiled {
-        extract(workspace, control, paths)
-    } else {
-        sources::capture(workspace, control, paths)
-            .map(crate::adapters::lean::Snapshot::source_only)
-    }
+/// Backend freshness observations, never proof evidence or execution authority.
+pub enum Freshness {
+    Current,
+    Stale(anyhow::Error),
+}
+/// The backend checks its own dependency/resource bindings. Original source
+/// bytes and the complete retained body are checked independently by this use case.
+pub trait Observation: semantic::Observation + Serialize {
+    fn check(&self, context: &crate::adapters::Context<'_>) -> Result<Freshness>;
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
@@ -132,84 +127,18 @@ pub fn load(root: &Path) -> Result<Option<Record>> {
     Ok(journal::list(root)?.pop())
 }
 
-pub fn extract(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-) -> Result<crate::adapters::lean::Snapshot> {
-    Ok(extract_cached(workspace, control, paths, None)?.0)
-}
-
-pub fn extract_cached(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-    observer: Option<crate::adapters::Observer>,
-) -> Result<(crate::adapters::lean::Snapshot, bool)> {
-    let _timing = meden_runtime::metrics::Span::start("analysis.extract");
-    let context = crate::adapters::Context {
-        workspace,
-        control,
-        observer,
-    };
-    let atlas = crate::atlas::Configuration::host(context.workspace.path())
-        .with_observer(context.observer.clone());
-    atlas.ensure_prepared(control)?;
-    let (registry, selected) = crate::adapters::compilers(atlas)?;
-    let snapshot = registry
-        .select(selected)?
-        .compile(&context, crate::compiler::Request::new(paths.to_vec())?)?;
-    let original = control.with_active(|| {
-        crate::adapters::lean::cache::retain_observation(workspace, snapshot)
-            .map_err(std::io::Error::other)
-    })?;
-    let (searchers, selected) = crate::adapters::searchers(
-        crate::atlas::Configuration::host(workspace.path()).with_observer(context.observer.clone()),
-    )?;
-    let original =
-        crate::adapters::lean::cache::search(&context, original, &searchers.select(selected)?)?;
-    if let Some(observer) = &context.observer {
-        observer("Preparing explanations", std::time::Duration::ZERO, None);
-    }
-    let renderer = crate::adapters::informath::Prepared::discover()?;
-    if let Some(snapshot) =
-        crate::adapters::lean::cache::rendering(workspace, &original, renderer.definition())?
-    {
-        renderer.validate()?;
-        return Ok((control.with_active(|| Ok(snapshot))?, original.reused()));
-    }
-    let mut snapshot = original.snapshot().clone();
-    renderer.enrich(
-        snapshot.atlas.as_mut().context("Missing compiled graph")?,
-        control,
-    )?;
-    control.with_active(|| {
-        crate::adapters::lean::cache::retain_rendering(
-            workspace,
-            original,
-            renderer.definition(),
-            &mut snapshot,
-        )
-        .map_err(std::io::Error::other)
-    })?;
-    Ok((snapshot, false))
-}
-
-pub fn run(
+pub fn run<O: Observation>(
     workspace: &Workspace,
     gateway: &dyn Model,
     judge: Option<&dyn Model>,
     control: &Control,
-    snapshot: &crate::adapters::lean::Snapshot,
+    snapshot: &O,
     input: Input,
     notify: &dyn Fn(&Record),
 ) -> Result<Record> {
-    let prepared = Prepared::new(
-        input.clone(),
-        snapshot.source.files.clone(),
-        snapshot.atlas.as_ref(),
-    )?;
-    let source_artifact = journal::retain_sources(workspace.path(), snapshot)?;
+    let original = serde_json::to_value(snapshot)?;
+    let prepared = Prepared::new(input.clone(), snapshot)?;
+    let source_artifact = journal::retain_sources(workspace.path(), &original)?;
     let translator = crate::model::bind(gateway, workspace.session_id());
     let comparer = crate::model::bind(judge.unwrap_or(gateway), workspace.session_id());
     let record = RefCell::new(journal::begin(
@@ -227,7 +156,7 @@ pub fn run(
                 && crate::model::authorized(judge, workspace.session_id()),
             "Review both configured processors before meaning analysis"
         );
-        observe(workspace, control, snapshot, &record)?;
+        observe(workspace, control, snapshot, &original, &record)?;
         let assessment = semantic::analyze(
             &translator,
             &comparer,
@@ -251,7 +180,7 @@ pub fn run(
                 && crate::model::authorized(judge, workspace.session_id()),
             "Processor permission ended; no meaning-analysis result admitted"
         );
-        observe(workspace, control, snapshot, &record)?;
+        observe(workspace, control, snapshot, &original, &record)?;
         control.with_active(|| {
             // Frozen input is owned by this invocation; presentation cannot replace it.
             let mut completed = record.borrow().clone();
@@ -293,44 +222,33 @@ pub fn run(
     Ok(record.into_inner())
 }
 
-fn observe(
+fn observe<O: Observation>(
     workspace: &Workspace,
     control: &Control,
-    snapshot: &crate::adapters::lean::Snapshot,
+    snapshot: &O,
+    original: &serde_json::Value,
     record: &RefCell<Record>,
 ) -> Result<()> {
-    let paths = snapshot.source.files.keys().cloned().collect::<Vec<_>>();
+    let _timing = meden_runtime::metrics::Span::start("analysis.observe");
+    if &serde_json::to_value(snapshot)? != original {
+        record.borrow_mut().state = State::Stale;
+        anyhow::bail!("Observed analysis context changed; reread and run again");
+    }
+    let paths = snapshot.sources().files.keys().cloned().collect::<Vec<_>>();
     let current = sources::capture(workspace, control, &paths)?;
-    if current.revision != snapshot.source.revision {
+    if current.revision != snapshot.sources().revision {
         record.borrow_mut().state = State::Stale;
         anyhow::bail!("Sources changed during meaning analysis. Reread the graph and run again; no current result admitted.");
     }
-    if let Some(collection) = &snapshot.collection {
-        if let Err(error) = collect::check_metadata(workspace, control, &collection.metadata) {
+    match snapshot.check(&crate::adapters::Context {
+        workspace,
+        control,
+        observer: None,
+    })? {
+        Freshness::Current => Ok(()),
+        Freshness::Stale(error) => {
             record.borrow_mut().state = State::Stale;
-            return Err(error);
-        }
-        if let Some(expected) = &collection.prepared {
-            let observed = crate::atlas::Configuration::host(workspace.path()).input_fingerprint(
-                workspace.path(),
-                &collection.modules,
-                crate::atlas::InputMode::Fingerprint,
-                control,
-            )?;
-            if &observed != expected {
-                record.borrow_mut().state = State::Stale;
-                anyhow::bail!(
-                    "Prepared dependencies changed; reread the file before meaning analysis"
-                );
-            }
+            Err(error)
         }
     }
-    if let Some(atlas) = &snapshot.atlas {
-        anyhow::ensure!(
-            crate::atlas::Configuration::host(workspace.path()).current_resources()?
-                == atlas.resources_sha256,
-            "Atlas resources changed; reread the graph and run again"
-        );
-    }
-    Ok(())
 }

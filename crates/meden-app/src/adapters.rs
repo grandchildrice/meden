@@ -6,6 +6,8 @@ pub mod lake;
 pub mod lean;
 pub mod plausible;
 pub mod source;
+#[path = "adapters/source/semantic.rs"]
+mod source_semantic;
 #[path = "adapters/source/view.rs"]
 mod source_view;
 
@@ -66,6 +68,7 @@ fn compiler_definition(
         include_bytes!("compiler.rs"),
         include_bytes!("explanation/cache.rs"),
         include_bytes!("adapters/lean/cache.rs"),
+        include_bytes!("adapters/lean/pipeline.rs"),
         include_bytes!("adapters.rs"),
         include_bytes!("atlas/mod.rs"),
         include_bytes!("atlas/resources.rs"),

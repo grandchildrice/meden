@@ -172,8 +172,9 @@ impl App {
             let result = (|| -> Result<String> {
                 match task {
                     SourceTask::Read { paths, atlas } => {
-                        let source =
-                            crate::analysis::read_sources(&workspace, &control, &paths, atlas)?;
+                        let source = crate::adapters::lean::pipeline::read_sources(
+                            &workspace, &control, &paths, atlas,
+                        )?;
                         control.with_active(|| {
                             let _ = tx.send(Update::Sources(Box::new(source)));
                             Ok(())
@@ -436,7 +437,7 @@ pub(super) fn execute(
     let result = (|| -> Result<String> {
         match task {
             Task::Analyze { snapshot, input } => {
-                let record = session.analyze(&snapshot, input, &|record| {
+                let record = session.analyze(snapshot.as_ref(), input, &|record| {
                     let _ = tx.send(Update::Analysis(Box::new(record.clone())));
                 })?;
                 Ok(record.summary())

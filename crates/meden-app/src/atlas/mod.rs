@@ -20,6 +20,7 @@ mod project;
 pub use project::InputMode;
 mod resources;
 mod toolchain;
+pub(crate) use graph::Node;
 pub use graph::{Extraction, SearchKind};
 pub const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
 

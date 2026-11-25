@@ -190,11 +190,7 @@ pub fn prepare(
             ),
         "The Finding is unavailable or stale; reread and analyze again"
     );
-    semantic::Prepared::new(
-        record.input.clone(),
-        snapshot.source.files.clone(),
-        snapshot.atlas.as_ref(),
-    )?;
+    semantic::Prepared::new(record.input.clone(), snapshot)?;
     let metadata = snapshot
         .collection
         .as_ref()

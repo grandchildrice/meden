@@ -176,13 +176,13 @@ mod tests {
             let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files).unwrap()));
             let snapshot = Snapshot {revision: revision.clone(), files: files.clone()};
             prop_assert_eq!(serde_json::to_value(&snapshot).unwrap(), json!({"revision":old,"files":files}));
-            let mut page = SourcePage::from_snapshot(&crate::adapters::lean::Snapshot::source_only(snapshot)).unwrap();
+            let mut page = SourcePage::from_snapshot(&crate::adapters::lean::Snapshot::source_only(snapshot.clone())).unwrap();
             prop_assert_eq!(page.revision.as_str(), &old);
             prop_assert_eq!(page.graph.as_ref().unwrap().revision.as_str(), &old);
             page.revision = SourceRevision::from_digest(Sha256::digest(b"another complete input"));
             prop_assert!(page.validate().is_err());
             let input = semantic::Input {source_revision:page.revision,graph_revision:None,target:semantic::Target{file:"Spec.rs".into(),line:1,name:"target".into()},requirement:"Original requirement".into()};
-            prop_assert!(semantic::Prepared::new(input, files, None).is_err());
+            prop_assert!(semantic::Prepared::new(input, &snapshot).is_err());
         }
     }
 }

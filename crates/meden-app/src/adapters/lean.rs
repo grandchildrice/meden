@@ -1,6 +1,8 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
 pub mod cache;
+pub mod pipeline;
 pub mod search;
+pub mod semantic;
 mod view;
 use super::Context;
 use crate::compiler::{Compiled, Compiler, Invocation};

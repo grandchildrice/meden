@@ -182,12 +182,17 @@ impl Session {
         paths: &[String],
         atlas: bool,
     ) -> Result<crate::adapters::lean::Snapshot> {
-        crate::analysis::read_sources(&self.workspace, &self.processes, paths, atlas)
+        crate::adapters::lean::pipeline::read_sources(
+            &self.workspace,
+            &self.processes,
+            paths,
+            atlas,
+        )
     }
 
-    pub(crate) fn analyze(
+    pub(crate) fn analyze<O: crate::analysis::Observation>(
         &self,
-        snapshot: &crate::adapters::lean::Snapshot,
+        snapshot: &O,
         input: crate::semantic::Input,
         notify: &dyn Fn(&crate::analysis::Record),
     ) -> Result<crate::analysis::Record> {

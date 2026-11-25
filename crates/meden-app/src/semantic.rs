@@ -2,7 +2,6 @@
 //! Prompt framing/output fields adapted from claimcheck; see semantic/README.md.
 use crate::identity::snapshots::GraphRevision;
 use crate::identity::snapshots::SourceRevision;
-use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use anyhow::{Context, Result};
@@ -35,19 +34,25 @@ pub struct Input {
     #[schemars(length(min = 1, max = 16_384))]
     pub requirement: String,
 }
-/// Frozen data only. This value carries no approval or verification authority.
+/// Backend-owned decoded meaning, separate from source/graph presentation.
+/// Context is serialized only at the final model-message boundary; the shared
+/// workflow does not interpret a universal AST or execute a compiler here.
+pub trait Observation: crate::analysis::sources::Source {
+    type Context: Serialize;
+    fn graph_revision(&self) -> Option<&GraphRevision>;
+    fn context(&self, target: &Target) -> Result<Option<Self::Context>>;
+}
+
+/// Frozen model messages only. No AST, approval or verification authority.
 pub struct Prepared {
     input: Input,
-    files: BTreeMap<String, String>,
-    elaborated: Option<Value>,
+    translation: Vec<Value>,
 }
 impl Prepared {
-    pub fn new(
-        input: Input,
-        files: BTreeMap<String, String>,
-        atlas: Option<&crate::atlas::Extraction>,
-    ) -> Result<Self> {
+    pub fn new<O: Observation>(input: Input, original: &O) -> Result<Self> {
         input.validate()?;
+        original.sources().validate()?;
+        let files = &original.sources().files;
         anyhow::ensure!(
             !files.is_empty() && files.len() <= 32,
             "semantic context needs 1–32 files"
@@ -75,35 +80,35 @@ impl Prepared {
                 .is_some(),
             "selected source line is unavailable"
         );
-        let elaborated = match (&input.graph_revision, atlas) {
-            (None, None) => None,
-            (Some(revision), Some(atlas)) if revision == &atlas.revision => {
-                Some(atlas.meaning(&input.target)?)
-            }
-            _ => anyhow::bail!(
-                "Atlas graph revision changed; reread and select the declaration again"
-            ),
-        };
+        anyhow::ensure!(
+            input.graph_revision.as_ref() == original.graph_revision(),
+            "Semantic graph revision changed; reread and select the declaration again"
+        );
+        let elaborated = original.context(&input.target)?;
+        anyhow::ensure!(
+            elaborated.is_some() == input.graph_revision.is_some(),
+            "Backend meaning context does not match its original graph binding"
+        );
+        // Freeze once before any model call. Later backend mutation cannot
+        // rewrite these messages or introduce the independently held intent.
+        let elaborated = elaborated.map(serde_json::to_value).transpose()?;
         if let Some(context) = &elaborated {
             anyhow::ensure!(
                 serde_json::to_vec(context)?.len() <= 1_048_576,
                 "Elaborated meaning context exceeds 1 MiB; select a smaller target/module set"
             );
         }
-        Ok(Self {
-            input,
-            files,
-            elaborated,
-        })
-    }
-    fn translation_messages(&self) -> Vec<Value> {
-        messages(
+        let translation = messages(
             include_str!("semantic/informalize.md"),
-            &self.elaborated.as_ref().map_or_else(
-                || json!({"target":self.input.target,"files":self.files}),
-                |context| json!({"target":self.input.target,"elaborated":context}),
+            &elaborated.as_ref().map_or_else(
+                || json!({"target":input.target,"files":files}),
+                |context| json!({"target":input.target,"elaborated":context}),
             ),
-        )
+        );
+        Ok(Self { input, translation })
+    }
+    fn translation_messages(&self) -> &[Value] {
+        &self.translation
     }
 }
 impl Input {
@@ -194,7 +199,7 @@ pub fn analyze(
     progress(Stage::Translating);
     ensure_active(cancelled)?;
     let translation: Translation = decode(
-        translator.reply(&prepared.translation_messages(), &[translation_tool()])?,
+        translator.reply(prepared.translation_messages(), &[translation_tool()])?,
         "record_informalization",
     )?;
     translation.validate(&prepared.input.target.name)?;
@@ -346,7 +351,7 @@ mod tests {
     use super::*;
     use meden_agent::conversation::{FunctionCall, ModelError, ToolCall};
     use std::cell::RefCell;
-    use std::collections::VecDeque;
+    use std::collections::{BTreeMap, VecDeque};
 
     struct Model<'a> {
         replies: RefCell<VecDeque<Reply>>,
@@ -393,16 +398,23 @@ mod tests {
             &json!({"lemmaName":"Demo.bound","match":matches,"discrepancy":discrepancy,"weakeningType":weakening,"explanation":"exact requested comparison"}),
         )
     }
-    fn prepared() -> Result<Prepared> {
+    fn source() -> Result<crate::analysis::sources::Snapshot> {
         let files = BTreeMap::from([(
             "Spec.lean".into(),
             "namespace Demo\ntheorem bound : FORMAL_ONLY_SENTINEL := by sorry\nend Demo".into(),
         )]);
         let source_revision =
             SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files)?));
+        Ok(crate::analysis::sources::Snapshot {
+            revision: source_revision,
+            files,
+        })
+    }
+    fn prepared() -> Result<Prepared> {
+        let source = source()?;
         Prepared::new(
             Input {
-                source_revision,
+                source_revision: source.revision.clone(),
                 graph_revision: None,
                 target: Target {
                     file: "Spec.lean".into(),
@@ -411,8 +423,7 @@ mod tests {
                 },
                 requirement: "ORIGINAL_REQUIREMENT_SENTINEL".into(),
             },
-            files,
-            None,
+            &source,
         )
     }
     #[test]
@@ -566,13 +577,71 @@ mod tests {
         let prepared = prepared()?;
         assert!(Prepared::new(
             prepared.input.clone(),
-            BTreeMap::from([("Spec.lean".into(), "replacement".into())]),
-            None,
+            &crate::analysis::sources::Snapshot {
+                revision: prepared.input.source_revision.clone(),
+                files: BTreeMap::from([("Spec.lean".into(), "replacement".into())])
+            },
         )
         .is_err());
         let mut changed = prepared.input.clone();
         changed.target.line = 100;
-        assert!(Prepared::new(changed, prepared.files, None).is_err());
+        assert!(Prepared::new(changed, &source()?).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn backend_context_is_serialized_once_and_later_mutation_cannot_rewrite_model_messages(
+    ) -> Result<()> {
+        use std::sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc,
+        };
+        struct Mutable {
+            source: crate::analysis::sources::Snapshot,
+            graph: GraphRevision,
+            value: Arc<AtomicUsize>,
+        }
+        struct Context(Arc<AtomicUsize>);
+        impl Serialize for Context {
+            fn serialize<S: serde::Serializer>(
+                &self,
+                serializer: S,
+            ) -> std::result::Result<S::Ok, S::Error> {
+                self.0.load(Ordering::SeqCst).serialize(serializer)
+            }
+        }
+        impl crate::analysis::sources::Source for Mutable {
+            fn sources(&self) -> &crate::analysis::sources::Snapshot {
+                &self.source
+            }
+        }
+        impl Observation for Mutable {
+            type Context = Context;
+            fn graph_revision(&self) -> Option<&GraphRevision> {
+                Some(&self.graph)
+            }
+            fn context(&self, _: &Target) -> Result<Option<Context>> {
+                Ok(Some(Context(self.value.clone())))
+            }
+        }
+        let mut original = Mutable {
+            source: source()?,
+            graph: GraphRevision::from_digest(Sha256::digest(b"original graph")),
+            value: Arc::new(AtomicUsize::new(12345)),
+        };
+        let mut input = prepared()?.input;
+        input.graph_revision = Some(original.graph.clone());
+        let frozen = Prepared::new(input, &original)?;
+        let before = frozen.translation_messages();
+        original.value.store(98765, Ordering::SeqCst);
+        original.source.files.clear();
+        assert_eq!(frozen.translation_messages(), before);
+        let body = serde_json::to_string(&before)?;
+        assert!(
+            body.contains("12345")
+                && !body.contains("98765")
+                && !body.contains("ORIGINAL_REQUIREMENT_SENTINEL")
+        );
         Ok(())
     }
 }
