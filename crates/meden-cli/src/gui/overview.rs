@@ -1,7 +1,7 @@
 //! Read-only workspace inventory through the policy-bound file worker. This is
 //! a lexical navigation index, never compiler evidence or contract acceptance.
 use super::{lock, View};
-use crate::adapters::source::{headers, symbols, Symbol};
+use crate::adapters::source::Symbol;
 use anyhow::{Context, Result};
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
@@ -217,9 +217,7 @@ fn capture(
                 };
                 if entry.kind == "directory" {
                     pending.push((path, depth.saturating_add(1)));
-                } else if entry.kind == "file"
-                    && crate::adapters::source::supports(Path::new(&path))
-                {
+                } else if entry.kind == "file" && crate::adapters::navigation::supports(&path) {
                     paths.push(path);
                     anyhow::ensure!(
                         paths.len() <= 250_000,
@@ -440,13 +438,13 @@ fn source_file(path: &str, value: Value) -> Result<(File, usize)> {
         indexed: false,
     };
     if let Content::Text { text, .. } = content {
-        let lean = Path::new(path).extension().is_some_and(|ext| ext == "lean");
-        let (declarations, theorems, imports) = headers(&text, lean);
+        let (declarations, theorems, imports, symbols) =
+            crate::adapters::navigation::index(path, &text);
         file.sha256 = format!("{:x}", Sha256::digest(text.as_bytes()));
         file.declarations = declarations;
         file.theorems = theorems;
         file.imports = imports;
-        file.symbols = symbols(&text, lean);
+        file.symbols = symbols;
         file.indexed = true;
     }
     Ok((file, observed))

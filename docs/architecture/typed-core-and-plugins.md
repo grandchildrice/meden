@@ -169,8 +169,8 @@ filesystem or concurrent-snapshot proof.
 This is the first application extraction, not the complete multi-backend registry.
 The compiler port now retains a backend-owned decoded observation type; neutral
 source capture and prepared-view retention do not contain Lean records. Production
-native compiler composition still selects Lean; source/assessment/repair
-retention is backend-neutral. Shared meaning assessment accepts typed
+native preparation now registers Lean and finite-transition implementations;
+source/assessment/repair retention is backend-neutral. Shared meaning assessment accepts typed
 backend-owned context/freshness. The search port and immutable storage bodies now
 retain backend-owned types; Lean owns its graph/cache projection. Complete role-wide plugin/resource/schema bindings
 and the remaining orchestration are still required.
@@ -1101,3 +1101,15 @@ an actual pipeline-only executable update retains original artifacts. Finite
 AST/real-Z3 conformance uses the same native owner, without granting accepted
 project evidence. Production native heterogeneous selection and the remaining
 layout/collection, latency and retirement work remain open.
+
+The native preparation registry now selects a finite-transition backend from an
+explicit host suffix registration. Its compiler, real Z3 search and deterministic
+renderer retain distinct typed artifacts. The same existing GUI and shared repair
+owner handle it without a concrete AST or new authority branch. Pure finite JSON
+navigation extends the host composition while preserving unchanged lexical-cache
+identities for other files. The public TUI uses `/graph`; the retired `/atlas`
+command has no alias. Finite data decoding is separate from solver configuration.
+The meaning prompt accepts backend-owned formal domains, with a new assessment
+engine identity; historical assessments retain their original identity. Remaining
+generic layout/collection, navigation annotation ownership, measured browser/native
+waits and the retirement audit still require their own completion evidence.

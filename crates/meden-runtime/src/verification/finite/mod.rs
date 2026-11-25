@@ -7,7 +7,7 @@ use super::{
 use crate::process::{self, Control, Limits, Termination};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeMap,
     fmt::Write as _,
     io,
     path::{Path, PathBuf},
@@ -16,234 +16,25 @@ use std::{
 mod terms;
 pub use terms::{Model, Predicate, Word};
 
-/// Exact backend-owned data schema. It cannot contain executable SMT text.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
-pub enum Format {
-    /// Version one of finite unsigned bit-vector transition contracts.
-    #[serde(rename = "finite-bitvectors-v1")]
-    FiniteBitvectors,
-}
-/// A named safety property over one original input and simultaneous output.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Property {
-    /// Stable short label.
-    pub name: String,
-    /// Reviewed intended behavior.
-    pub description: String,
-    /// Actual finite unsigned predicate checked by the backend.
-    pub statement: Predicate,
-}
-/// Bounded proposal data, never authority to check or accept anything.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Contract {
-    /// Unambiguous host-registered contract format.
-    pub format: Format,
-    /// Reviewed title.
-    pub name: String,
-    /// Reviewed natural-language intent, not a proved equivalence claim.
-    pub description: String,
-    /// Workspace-relative JSON transition file.
-    pub source_path: String,
-    /// All fields and parameters have this unsigned width (1 through 8).
-    #[schemars(range(min = 1, max = 8))]
-    pub width: u8,
-    /// Ordered simultaneous state fields.
-    #[schemars(length(min = 1, max = 4))]
-    pub fields: Vec<String>,
-    /// Ordered finite transition arguments.
-    #[schemars(length(max = 4))]
-    pub parameters: Vec<String>,
-    /// Nonempty exact property set.
-    #[schemars(length(min = 1, max = 16))]
-    pub properties: Vec<Property>,
-    /// Environmental assumptions for host review; no hidden logical premises.
-    #[serde(default)]
-    #[schemars(length(max = 16))]
-    pub assumptions: Vec<String>,
-}
-fn invalid(message: &str) -> io::Error {
-    io::Error::other(message)
-}
-fn require(value: bool, message: &str) -> io::Result<()> {
-    if value {
-        Ok(())
-    } else {
-        Err(invalid(message))
-    }
-}
-fn name(value: &str) -> bool {
-    !value.is_empty()
-        && value.len() <= 32
-        && value
-            .as_bytes()
-            .first()
-            .is_some_and(u8::is_ascii_alphabetic)
-        && value
-            .bytes()
-            .all(|c| c.is_ascii_alphanumeric() || c == b'_')
-}
+mod data;
+use data::{invalid, require};
+pub use data::{Contract, Format, Property};
 fn hash(bytes: &[u8]) -> String {
     super::artifact::hash(bytes)
 }
 
+/// Identity of the data decoder and finite term validator; does not select or run Z3.
+pub fn decoding_identity() -> String {
+    data::identity()
+}
+
 impl Contract {
-    /// Model-facing shape generated from the actual backend-owned data types.
-    pub fn schema() -> io::Result<serde_json::Value> {
-        serde_json::to_value(schemars::schema_for!(Self)).map_err(io::Error::other)
-    }
-    /// Decode only the bounded data schema; no tool is run.
-    pub fn parse(text: &str) -> io::Result<Self> {
-        require(text.len() <= 65_536, "Finite contract exceeds 64 KiB")?;
-        let value: Self = serde_json::from_str(text)?;
-        value.validate()?;
-        Ok(value)
-    }
-    /// Check identifiers, finite scope, expression typing and computation bounds.
-    pub fn validate(&self) -> io::Result<()> {
-        require(
-            !self.name.is_empty() && self.name.len() <= 256 && self.description.len() <= 4096,
-            "Invalid finite contract metadata",
-        )?;
-        require(
-            !self.source_path.is_empty()
-                && self.source_path.len() <= 128
-                && Path::new(&self.source_path)
-                    .extension()
-                    .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
-                && self.source_path.split('/').all(|p| {
-                    !p.is_empty()
-                        && p != "."
-                        && p != ".."
-                        && p.bytes()
-                            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-' | b'.'))
-                }),
-            "Finite source must be a normalized relative .json path",
-        )?;
-        require(
-            (1..=8).contains(&self.width)
-                && !self.fields.is_empty()
-                && self.fields.len() <= 4
-                && self.parameters.len() <= 4,
-            "Finite words require width 1..8, 1..4 fields and 0..4 parameters",
-        )?;
-        for names in [&self.fields, &self.parameters] {
-            require(
-                names.iter().all(|s| name(s))
-                    && names.iter().collect::<BTreeSet<_>>().len() == names.len(),
-                "Finite field/parameter labels must be unique ASCII identifiers",
-            )?;
-        }
-        require(self.total_bits()<=16,"Finite verification supports at most 16 total input bits; no partial domain is checked")?;
-        require(
-            !self.properties.is_empty()
-                && self.properties.len() <= 16
-                && self
-                    .properties
-                    .iter()
-                    .map(|p| &p.name)
-                    .collect::<BTreeSet<_>>()
-                    .len()
-                    == self.properties.len(),
-            "Declare 1..16 uniquely named finite properties",
-        )?;
-        require(
-            self.assumptions.len() <= 16 && self.assumptions.iter().all(|s| s.len() <= 1024),
-            "Finite assumptions exceed bounds",
-        )?;
-        let mut nodes = 0;
-        for p in &self.properties {
-            require(
-                name(&p.name) && p.description.len() <= 1024,
-                "Invalid finite property metadata",
-            )?;
-            p.statement.validate(
-                &self.fields,
-                &self.parameters,
-                self.width,
-                true,
-                0,
-                &mut nodes,
-            )?;
-        }
-        require(
-            u64::try_from(nodes)
-                .unwrap_or(u64::MAX)
-                .saturating_mul(u64::from(self.cases()?))
-                <= 4_194_304,
-            "Finite property/domain work exceeds the complete-check budget",
-        )
-    }
-    fn total_bits(&self) -> usize {
-        self.fields
-            .len()
-            .saturating_add(self.parameters.len())
-            .saturating_mul(usize::from(self.width))
-    }
-    fn cases(&self) -> io::Result<u32> {
-        1u32.checked_shl(u32::try_from(self.total_bits()).map_err(io::Error::other)?)
-            .ok_or_else(|| invalid("Invalid finite domain"))
-    }
-    /// Original canonical property and scope bytes used for host review.
-    pub fn canonical(&self) -> io::Result<Vec<u8>> {
-        serde_json::to_vec(self).map_err(io::Error::other)
-    }
     /// Frozen checker recipe, schema and finite settings, without model input code.
     pub fn checker_id(&self) -> io::Result<String> {
         Ok(hash(&serde_json::to_vec(&(
             self,
             descriptor()?.identity(),
         ))?))
-    }
-    /// Exact finite claim; it is not an unbounded-time or native-code proof.
-    pub fn scope(&self) -> String {
-        format!("Bounded one-step check of every input in the {}-bit unsigned domain ({} total input bits, {} assignments). Addition/subtraction wrap modulo 2^{}. No reachability, unbounded time, Rust correspondence or whole-application claim.",self.width,self.total_bits(),self.cases().unwrap_or(0),self.width)
-    }
-    /// Full unambiguous host review, independent of executable source.
-    pub fn review_text(&self) -> String {
-        let mut text=format!("{}\n\n{}\n\nSource: {}\n\nEvidence: bounded finite bit-vector checking\n{}\n\nState fields: {}\nParameters: {}\nAll output assignments are simultaneous. Every original state and argument is checked, not just sampled or reachable states.\n",self.name,self.description,self.source_path,self.scope(),self.fields.join(", "),self.parameters.join(", "));
-        for p in &self.properties {
-            let _ = writeln!(
-                text,
-                "\n{}: {}\n{}",
-                p.name,
-                p.description,
-                p.statement.text()
-            );
-        }
-        for assumption in &self.assumptions {
-            let _ = writeln!(text, "\nReviewed environmental assumption: {assumption}");
-        }
-        text
-    }
-    fn model(&self, source: &str) -> io::Result<Model> {
-        require(source.len() <= 65_536, "Finite source exceeds 64 KiB")?;
-        let model: Model = serde_json::from_str(source)?;
-        require(
-            model.version == 1
-                && model.transition.keys().collect::<BTreeSet<_>>() == self.fields.iter().collect(),
-            "Finite transition must assign exactly every declared field",
-        )?;
-        let mut nodes = 0;
-        for expression in model.transition.values() {
-            expression.validate(
-                &self.fields,
-                &self.parameters,
-                self.width,
-                false,
-                0,
-                &mut nodes,
-            )?;
-        }
-        require(
-            u64::try_from(nodes)
-                .unwrap_or(u64::MAX)
-                .saturating_mul(u64::from(self.cases()?))
-                <= 4_194_304,
-            "Finite source/domain work exceeds the complete-check budget",
-        )?;
-        Ok(model)
     }
     fn program(&self, model: &Model) -> io::Result<String> {
         let width = self.width;
@@ -283,16 +74,34 @@ impl Contract {
 }
 
 /// Counterexample independently evaluated from the finite source, not solver prose.
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Counterexample {
     /// Original ordered state.
+    #[schemars(length(max = 4))]
     pub before: Vec<u16>,
     /// Original ordered arguments.
+    #[schemars(length(max = 4))]
     pub arguments: Vec<u16>,
     /// Simultaneous calculated output.
+    #[schemars(length(max = 4))]
     pub after: Vec<u16>,
-    /// Exact failed accepted property.
+    /// Exact failed original property.
+    #[schemars(length(min = 1, max = 32))]
     pub property: String,
+}
+/// Read-only solver/evaluator agreement. It cannot supply checked files, a job
+/// completion or a verification receipt.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Observation {
+    /// Complete finite enumeration and Z3 agree that this query has no witness.
+    NotFound,
+    /// A concrete original-domain witness independently calculated from source.
+    Counterexample {
+        /// Independently evaluated original-domain values and failed property.
+        witness: Counterexample,
+    },
 }
 fn enumerate(
     contract: &Contract,
@@ -403,23 +212,11 @@ pub fn prepare(
         .validate()
         .map_err(|e| Failure::new(FailureKind::Unverified, e))?;
     let model = contract
-        .model(source)
+        .decode_model(source)
         .map_err(|e| Failure::new(FailureKind::Unverified, e))?;
     let program = contract.program(&model).map_err(Failure::unavailable)?;
     active(control)?;
-    let executable = crate::sandbox::Sandbox::public_tool("z3").ok_or_else(|| {
-        Failure::unavailable(
-            "Public Z3 is not installed; prepare Z3 on the host before selecting this backend",
-        )
-    })?;
-    let bytes = std::fs::read(&executable)?;
-    require(
-        bytes.starts_with(b"\x7fELF"),
-        "Z3 must be a prepared public ELF executable, not a wrapper",
-    )?;
-    let objects = crate::sandbox::Sandbox::tool_objects(&executable)?;
-    let resources_hash = resources(&objects)?;
-    let worker = worker.canonicalize()?;
+    let (executable, objects, worker, resources_hash) = selected_resources(worker)?;
     let registration = descriptor()?;
     let inputs = Inputs {
         registration_sha256: registration.identity().into(),
@@ -443,6 +240,39 @@ pub fn prepare(
         resources: tempfile::tempdir()?,
     })
 }
+fn selected_resources(worker: &Path) -> Result<(PathBuf, Vec<PathBuf>, PathBuf, String), Failure> {
+    let executable = crate::sandbox::Sandbox::public_tool("z3").ok_or_else(|| {
+        Failure::unavailable(
+            "Public Z3 is not installed; prepare Z3 on the host before selecting this backend",
+        )
+    })?;
+    let bytes = std::fs::read(&executable)?;
+    require(
+        bytes.starts_with(b"\x7fELF"),
+        "Z3 must be a prepared public ELF executable, not a wrapper",
+    )?;
+    let objects = crate::sandbox::Sandbox::tool_objects(&executable)?;
+    let resources_hash = resources(&objects)?;
+    let worker = worker.canonicalize()?;
+
+    Ok((executable, objects, worker, resources_hash))
+}
+/// Exact current host-selected solver/worker binding for observational freshness.
+/// Reads only resources; dispatch still requires a newly prepared consuming call.
+pub fn resource_identity(worker: &Path) -> Result<String, Failure> {
+    let (executable, _, worker, resources_hash) = selected_resources(worker)?;
+    Ok(hash(
+        &serde_json::to_vec(&(
+            descriptor()?.identity(),
+            executable,
+            resources_hash,
+            &worker,
+            hash(&std::fs::read(&worker)?),
+        ))
+        .map_err(Failure::unavailable)?,
+    ))
+}
+
 impl Prepared {
     /// Exact input/resource/checker binding issued to the existing job controller.
     pub fn inputs(&self) -> &Inputs {
@@ -458,6 +288,69 @@ impl Prepared {
         observer: Option<&dyn Fn(&process::OutputProgress)>,
     ) -> Result<Checked, Failure> {
         let _timing = crate::metrics::Span::start("verification.z3");
+        let output = self.execute(control, observer)?;
+        let verdict = verdict(&output.stdout)?;
+        let counterexample = enumerate(&self.contract, &self.model, control).map_err(|error| {
+            Failure::new(
+                if error.kind() == io::ErrorKind::Interrupted {
+                    FailureKind::Inconclusive
+                } else {
+                    FailureKind::Unavailable
+                },
+                error,
+            )
+        })?;
+        admit(verdict, counterexample.as_ref())?;
+        self.current_resources()?;
+        active(control)?;
+        let files: BTreeMap<String, Vec<u8>> = BTreeMap::from([
+            ("source.json".into(), self.source.into_bytes()),
+            ("contract.json".into(), self.contract.canonical()?),
+            ("query.smt2".into(), self.program.into_bytes()),
+            ("solver.txt".into(), output.stdout.into_bytes()),
+        ]);
+        let hashes: BTreeMap<_, _> = files.iter().map(|(n, b)| (n.clone(), hash(b))).collect();
+        let report=Report{contract:serde_json::to_value(&self.contract).map_err(Failure::unavailable)?,contract_sha256:hash(&self.contract.canonical()?),registration:self.registration,class:Class::Bounded,
+            source_sha256:self.inputs.source_sha256,source_file:"source.json".into(),bundle_sha256:self.inputs.bundle_sha256,checker_sha256:self.inputs.checker_sha256,worker_sha256:self.inputs.worker_sha256,
+            artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?),files:hashes,audit:vec![format!("Z3 QF_BV: unsat; independent complete enumeration: {} assignments; all {} properties hold",self.contract.cases()?,self.contract.properties.len())],scope:self.contract.scope()};
+        Ok(Checked { report, files })
+    }
+    /// Consume one prepared observational search; no checked artifact is returned.
+    pub fn observe(
+        self,
+        control: &Control,
+        observer: Option<&dyn Fn(&process::OutputProgress)>,
+    ) -> Result<Observation, Failure> {
+        let _timing = crate::metrics::Span::start("analysis.z3.search");
+        let output = self.execute(control, observer)?;
+        let verdict = verdict(&output.stdout)?;
+        let witness = enumerate(&self.contract, &self.model, control).map_err(|error| {
+            Failure::new(
+                if error.kind() == io::ErrorKind::Interrupted {
+                    FailureKind::Inconclusive
+                } else {
+                    FailureKind::Unavailable
+                },
+                error,
+            )
+        })?;
+        let observation =
+            match (verdict, witness) {
+                (Verdict::Unsat, None) => Observation::NotFound,
+                (Verdict::Sat, Some(witness)) => Observation::Counterexample { witness },
+                _ => return Err(Failure::unavailable(
+                    "Z3 disagrees with the independent finite evaluator; no observation admitted",
+                )),
+            };
+        self.current_resources()?;
+        active(control)?;
+        Ok(observation)
+    }
+    fn execute(
+        &self,
+        control: &Control,
+        observer: Option<&dyn Fn(&process::OutputProgress)>,
+    ) -> Result<process::Output, Failure> {
         active(control)?;
         self.current_resources()?;
         let mut command = crate::sandbox::Sandbox::adapter_command(
@@ -492,31 +385,7 @@ impl Prepared {
                 ),
             ));
         }
-        let verdict = verdict(&output.stdout)?;
-        let counterexample = enumerate(&self.contract, &self.model, control).map_err(|error| {
-            Failure::new(
-                if error.kind() == io::ErrorKind::Interrupted {
-                    FailureKind::Inconclusive
-                } else {
-                    FailureKind::Unavailable
-                },
-                error,
-            )
-        })?;
-        admit(verdict, counterexample.as_ref())?;
-        self.current_resources()?;
-        active(control)?;
-        let files: BTreeMap<String, Vec<u8>> = BTreeMap::from([
-            ("source.json".into(), self.source.into_bytes()),
-            ("contract.json".into(), self.contract.canonical()?),
-            ("query.smt2".into(), self.program.into_bytes()),
-            ("solver.txt".into(), output.stdout.into_bytes()),
-        ]);
-        let hashes: BTreeMap<_, _> = files.iter().map(|(n, b)| (n.clone(), hash(b))).collect();
-        let report=Report{contract:serde_json::to_value(&self.contract).map_err(Failure::unavailable)?,contract_sha256:hash(&self.contract.canonical()?),registration:self.registration,class:Class::Bounded,
-            source_sha256:self.inputs.source_sha256,source_file:"source.json".into(),bundle_sha256:self.inputs.bundle_sha256,checker_sha256:self.inputs.checker_sha256,worker_sha256:self.inputs.worker_sha256,
-            artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?),files:hashes,audit:vec![format!("Z3 QF_BV: unsat; independent complete enumeration: {} assignments; all {} properties hold",self.contract.cases()?,self.contract.properties.len())],scope:self.contract.scope()};
-        Ok(Checked { report, files })
+        Ok(output)
     }
     fn current_resources(&self) -> Result<(), Failure> {
         let current = crate::sandbox::Sandbox::tool_objects(&self.executable)?;
@@ -543,7 +412,11 @@ fn limits() -> Limits {
 /// Exact host-selected finite method; resource bytes are frozen at preparation.
 pub fn descriptor() -> io::Result<crate::plugin::Descriptor> {
     use crate::plugin::{Definition, Descriptor, Role};
-    let implementation = serde_json::to_vec(&(include_str!("mod.rs"), include_str!("terms.rs")))?;
+    let implementation = serde_json::to_vec(&(
+        include_str!("mod.rs"),
+        include_str!("data.rs"),
+        include_str!("terms.rs"),
+    ))?;
     let limits = limits();
     Descriptor::new(Definition {
         id: "z3.finite.v1",

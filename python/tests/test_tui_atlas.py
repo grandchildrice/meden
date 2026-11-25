@@ -107,7 +107,7 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
     def command(text, result):
         terminal.paste(text)
         terminal.send("\r")
-        if text.startswith("/atlas"):
+        if text.startswith("/graph"):
             terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
@@ -123,17 +123,17 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
         terminal.wait(lambda view: "Connection details" in view)
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/atlas-prepare", "Atlas is ready")
-        command("/atlas App.lean", "permitted · App.lean:3")
+        command("/lean-prepare", "Atlas is ready")
+        command("/graph App.lean", "permitted · App.lean:3")
         assert "Source graph ready: 3 files" in terminal.view()
         assert "Selected roots: App.lean" in terminal.view()
         assert not requests
         # A missing import stops collection; never keep the older graph as current.
         (root / "Broken.lean").write_text("import Missing\n")
-        command("/atlas Broken.lean", "Project-local import collection failed")
+        command("/graph Broken.lean", "Project-local import collection failed")
         assert len(requests) == 0
         command("/analyze permitted -- must not use old graph", "Read the source graph first")
-        command("/atlas App.lean", "permitted · App.lean:3")
+        command("/graph App.lean", "permitted · App.lean:3")
         assert "Source graph ready: 3 files" in terminal.view()
         command(
             "/analyze permitted -- REQUIREMENT_ONLY: Establish eligibility for every input.",

@@ -44,6 +44,7 @@ test("common observations accept typed source owners and pure generic projection
 });
 for (const concrete of [
   "use crate::adapters::lean::Snapshot;",
+  "use crate::adapters::finite::Snapshot;",
   "pub struct Snapshot { pub atlas: Option<atlas::Extraction> }",
   "let graph = snapshot.atlas.as_ref();",
   "let metadata = snapshot.collection.as_ref();",
@@ -227,6 +228,8 @@ test("native retention accepts backend-neutral owners alongside host status setu
 });
 for (const source of [
   "Sources<crate::adapters::lean::Snapshot>",
+  "Sources<crate::adapters::finite::Snapshot>",
+  "Queue<finite::Repair>",
   "Queue<lean::repair::Context>",
   "struct State { graph: atlas::Extraction }",
 ])

@@ -13,8 +13,8 @@ const BROKEN: &str =
 fn independent_enumeration_detects_wrap_and_refuses_incorrect_solver_verdicts() -> io::Result<()> {
     let c = Contract::parse(CONTRACT)?;
     let control = control();
-    assert!(enumerate(&c, &c.model(MODEL)?, &control)?.is_none());
-    let witness = enumerate(&c, &c.model(BROKEN)?, &control)?
+    assert!(enumerate(&c, &c.decode_model(MODEL)?, &control)?.is_none());
+    let witness = enumerate(&c, &c.decode_model(BROKEN)?, &control)?
         .ok_or_else(|| invalid("missing wrap witness"))?;
     assert_eq!(witness.before, vec![15]);
     assert_eq!(witness.arguments, vec![1]);
@@ -68,8 +68,8 @@ fn finite_contract_and_source_are_bounded_typed_data_not_commands() -> io::Resul
         "{\"version\":1,\"transition\":{\"value\":{\"op\":\"constant\",\"value\":16}}}",
         "{\"version\":1,\"transition\":{\"value\":{\"op\":\"include\",\"file\":\"/host\"}}}",
         "{\"version\":1,\"transition\":{\"value\":{\"op\":\"constant\",\"value\":0},\"value\":{\"op\":\"constant\",\"value\":1}}}",
-    ] {assert!(c.model(text).is_err(),"{text}");}
-    let program = c.program(&c.model(MODEL)?)?;
+    ] {assert!(c.decode_model(text).is_err(),"{text}");}
+    let program = c.program(&c.decode_model(MODEL)?)?;
     assert!(program.contains("(set-logic QF_BV)"));
     assert!(!program.contains("counter.model.json"));
     Ok(())
@@ -316,5 +316,78 @@ fn real_checked_output_cannot_complete_a_job_after_a_source_edit() -> Result<(),
     assert!(admitted.is_none());
     assert!(!current.is_active() && !current.eligible(1, b"candidate artifact".to_vec()));
     assert_eq!(std::fs::read_dir(storage)?.count(), 0);
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn real_observational_search_retains_refutations_and_refuses_failure_or_disagreement(
+) -> Result<(), Failure> {
+    let worker = worker()?;
+    let contract = Contract::parse(CONTRACT)?;
+    assert_eq!(
+        prepare(MODEL, &contract, &worker, &control())?.observe(&control(), None)?,
+        Observation::NotFound
+    );
+    let Observation::Counterexample { witness } =
+        prepare(BROKEN, &contract, &worker, &control())?.observe(&control(), None)?
+    else {
+        return Err(Failure::unavailable("missing real observational witness"));
+    };
+    assert!(contract.validates_witness(&contract.decode_model(BROKEN)?, &witness)?);
+    let mut invalid_witness = witness.clone();
+    *invalid_witness
+        .after
+        .first_mut()
+        .ok_or_else(|| Failure::unavailable("witness output missing"))? = 1;
+    assert!(!contract.validates_witness(&contract.decode_model(BROKEN)?, &invalid_witness)?);
+    for (source, query, kind) in [
+        (
+            BROKEN,
+            "(assert false)\n(check-sat)\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+        (MODEL, "(check-sat)\n(exit)\n", FailureKind::Unavailable),
+        (
+            MODEL,
+            "(echo \"unknown\")\n(exit)\n",
+            FailureKind::Inconclusive,
+        ),
+        (
+            MODEL,
+            "(echo \"unsat\")\n(echo \"sat\")\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+        (MODEL, "(not-a-command)\n(exit)\n", FailureKind::Unavailable),
+    ] {
+        let control = control();
+        let mut prepared = prepare(source, &contract, &worker, &control)?;
+        prepared.program = query.into();
+        assert_eq!(
+            prepared.observe(&control, None).err().map(|e| e.kind),
+            Some(kind)
+        );
+    }
+    let timeout_control = control();
+    let mut prepared = prepare(MODEL, &contract, &worker, &timeout_control)?;
+    prepared.program = timeout_probe();
+    prepared.limits.timeout = Duration::from_secs(1);
+    assert_eq!(
+        prepared
+            .observe(&timeout_control, None)
+            .err()
+            .map(|e| e.kind),
+        Some(FailureKind::Inconclusive)
+    );
+    let cancelled_control = control();
+    let prepared = prepare(MODEL, &contract, &worker, &cancelled_control)?;
+    cancelled_control.cancel();
+    assert_eq!(
+        prepared
+            .observe(&cancelled_control, None)
+            .err()
+            .map(|e| e.kind),
+        Some(FailureKind::Inconclusive)
+    );
     Ok(())
 }

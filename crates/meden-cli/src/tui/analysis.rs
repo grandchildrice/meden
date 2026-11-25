@@ -18,7 +18,7 @@ pub(super) enum WorkTask {
 
 /// Local source operations never select, approve or invoke a model.
 pub(super) enum SourceTask {
-    Read { paths: Vec<String>, atlas: bool },
+    Read { paths: Vec<String>, compiled: bool },
     Prepare,
 }
 
@@ -171,7 +171,7 @@ impl App {
         std::thread::spawn(move || {
             let result = (|| -> Result<String> {
                 match task {
-                    SourceTask::Read { paths, atlas } => {
+                    SourceTask::Read { paths, compiled } => {
                         let source = crate::adapters::preparation::read(
                             &crate::adapters::Context {
                                 workspace: &workspace,
@@ -179,7 +179,7 @@ impl App {
                                 observer: None,
                             },
                             &paths,
-                            atlas,
+                            compiled,
                         )?;
                         control.with_active(|| {
                             let _ = tx.send(Update::Sources(Box::new(source)));
@@ -189,7 +189,7 @@ impl App {
                     }
                     SourceTask::Prepare => {
                         crate::atlas::Configuration::host(workspace.path()).prepare(&control)?;
-                        Ok("Atlas is ready. Use /atlas FILE.lean to read declarations.".into())
+                        Ok("Atlas is ready. Use /graph FILE.lean to read declarations.".into())
                     }
                 }
             })();
@@ -247,10 +247,9 @@ impl App {
         let (selection, requirement) = arguments.split_once(" -- ").context(
             "Use /analyze NAME -- requirement, or /analyze FILE:LINE NAME -- requirement",
         )?;
-        let snapshot = self
-            .source_snapshot
-            .as_ref()
-            .context("Read the source graph first: /atlas FILE.lean or /sources FILE.rs")?;
+        let snapshot = self.source_snapshot.as_ref().context(
+            "Read the source graph first: /graph FILE.contract.json or FILE.lean, or /sources FILE",
+        )?;
         let parts: Vec<_> = selection.split_whitespace().collect();
         let target = match parts.as_slice() {
             [name] => {

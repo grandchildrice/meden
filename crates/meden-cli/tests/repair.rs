@@ -204,9 +204,12 @@ impl Scripted {
         })
     }
     fn assessment(&self) -> Result<()> {
+        self.assessment_for("step")
+    }
+    fn assessment_for(&self, name: &str) -> Result<()> {
         self.replies.lock().map_err(|e|anyhow::anyhow!(e.to_string()))?.extend([
-            ("record_informalization",json!({"lemmaName":"step","naturalLanguage":"The counter uses the supplied finite transition.","preconditions":"Four-bit inputs","postcondition":"One simultaneous transition","scope":"One step","strength":"moderate","confidence":0.9})),
-            ("record_comparison",json!({"lemmaName":"step","match":false,"discrepancy":"Scripted counter mismatch","weakeningType":"wrong-property","explanation":"An actual solver result is checked separately"})),
+            ("record_informalization",json!({"lemmaName":name,"naturalLanguage":"The counter uses the supplied finite transition.","preconditions":"Four-bit inputs","postcondition":"One simultaneous transition","scope":"One step","strength":"moderate","confidence":0.9})),
+            ("record_comparison",json!({"lemmaName":name,"match":false,"discrepancy":"Scripted counter mismatch","weakeningType":"wrong-property","explanation":"An actual solver result is checked separately"})),
         ]);
         Ok(())
     }
@@ -793,5 +796,171 @@ fn native_owner_refuses_context_drift_since_binding_before_the_first_model_call(
     assert!(!project.stored_status()?.verified);
     body.store(0, Ordering::SeqCst);
     assert_eq!(serde_json::to_value(cloned)?, frozen);
+    Ok(())
+}
+
+fn production_finite_page(
+    selected: &analysis::prepared::Preparation,
+    context: &meden_app::adapters::Context<'_>,
+) -> Result<(analysis::prepared::Snapshot, meden_app::view::SourcePage)> {
+    use meden_app::view::SourcePage;
+    let span = meden_runtime::metrics::Span::start("test.finite_source");
+    let (original, hit) = selected.read(context, &[DEP.into()])?;
+    assert!(!hit);
+    let page = SourcePage::from_snapshot(&original)?;
+    let graph = page.graph.as_ref().context("finite graph")?;
+    assert_eq!(graph.declarations.len(), 3);
+    assert_eq!(graph.edges.len(), 2);
+    assert!(graph
+        .declarations
+        .iter()
+        .all(|n| matches!(n.proof_status, meden_app::view::ProofHint::Unknown)));
+    let node = graph
+        .declarations
+        .iter()
+        .find(|n| n.name == "property.step")
+        .context("original property")?;
+    let explanation = node.semantic.as_ref().context("prepared reading/search")?;
+    assert_eq!(explanation.checker.status, "counterexample");
+    assert!(explanation
+        .checker
+        .candidates
+        .iter()
+        .any(|c| c.contains("input.value = 15")
+            && c.contains("argument.amount = 1")
+            && c.contains("output.value = 0")));
+    let trace = serde_json::to_value(span.context())?
+        .get("trace")
+        .context("trace")?
+        .clone();
+    let metrics = serde_json::to_value(meden_runtime::metrics::snapshot())?;
+    let before = metrics
+        .get("records")
+        .and_then(Value::as_array)
+        .context("timing records")?
+        .iter()
+        .filter_map(|r| r.pointer("/context/span").and_then(Value::as_u64))
+        .max()
+        .unwrap_or(0);
+    let (cached, hit) = selected.read(context, &[DEP.into()])?;
+    assert!(hit);
+    assert_eq!(
+        serde_json::to_value(SourcePage::from_snapshot(&cached)?)?,
+        serde_json::to_value(&page)?
+    );
+    let metrics = serde_json::to_value(meden_runtime::metrics::snapshot())?;
+    let warm = metrics
+        .get("records")
+        .and_then(Value::as_array)
+        .context("warm records")?
+        .iter()
+        .filter(|r| {
+            r.pointer("/context/trace") == Some(&trace)
+                && r.pointer("/context/span")
+                    .and_then(Value::as_u64)
+                    .is_some_and(|id| id > before)
+        })
+        .collect::<Vec<_>>();
+    assert!(warm
+        .iter()
+        .any(|r| r.get("name").and_then(Value::as_str) == Some("analysis.finite.prepare")));
+    assert!(!warm.iter().any(|r| matches!(
+        r.get("name").and_then(Value::as_str),
+        Some("finite.compile" | "analysis.z3.search" | "finite.render")
+    )));
+
+    Ok((original, page))
+}
+
+#[test]
+fn production_finite_native_source_caches_actual_search_and_repairs_through_original_backend(
+) -> Result<()> {
+    use meden_app::{
+        adapters::finite::Backend,
+        analysis::prepared::{Preparation, Repairs, Run},
+        view::SourcePage,
+    };
+    let (_temp, workspace, project, model) = setup()?;
+    let control = control();
+    let context = meden_app::adapters::Context {
+        workspace: &workspace,
+        control: &control,
+        observer: None,
+    };
+    let selected = Preparation::new(Backend::new(worker().into()));
+    let (original, page) = production_finite_page(&selected, &context)?;
+    let graph = page.graph.as_ref().context("graph")?;
+    let node = graph
+        .declarations
+        .iter()
+        .find(|n| n.name == "transition.value")
+        .context("original transition")?;
+    let input = semantic::Input {
+        source_revision: page.revision.clone(),
+        graph_revision: Some(graph.revision.clone()),
+        target: semantic::Target {
+            file: node.source.file.clone(),
+            line: usize::try_from(node.source.line.context("original line")?)?,
+            name: node.name.clone(),
+        },
+        requirement: "Preserve the original counter behavior without overflow".into(),
+    };
+    let run = Run {
+        workspace: &workspace,
+        gateway: &model,
+        judge: None,
+        control: &control,
+        notify: &|_| {},
+    };
+    model.assessment_for("transition.value")?;
+    let finding = original.analyze(&run, input.clone())?;
+    assert!(finding.finding_id.is_some());
+    let first = serde_json::to_string(
+        &model
+            .requests
+            .lock()
+            .map_err(|e| anyhow::anyhow!(e.to_string()))?
+            .first()
+            .context("first actual translation request")?,
+    )?;
+    assert!(first.contains("simultaneous_transition") && first.contains("selected"));
+    assert!(
+        !first.contains("independently")
+            && !first.contains("Return the incremented value exactly")
+            && !first.contains("counterexample")
+    );
+    model.proposal(BROKEN, FIXED, FILE)?;
+    let pending = original.prepare_repair(
+        &run,
+        &meden_app::workspace::file_policy()?,
+        &finding,
+        &project.stored_status()?,
+    )?;
+    let mut repairs = Repairs::default();
+    let review = repairs.install(&workspace, pending)?;
+    model.assessment_for("transition.value")?;
+    let (after, record) = repairs.apply(&run, &review.reference, None, &|| {})?;
+    assert_eq!(record.input.requirement, input.requirement);
+    assert_ne!(record.input.source_revision, input.source_revision);
+    let next = SourcePage::from_snapshot(&after)?;
+    assert!(next
+        .graph
+        .as_ref()
+        .context("repaired graph")?
+        .declarations
+        .iter()
+        .filter(|n| matches!(n.kind, meden_app::view::Kind::Theorem))
+        .all(|n| n
+            .semantic
+            .as_ref()
+            .is_some_and(|s| s.checker.status == "not_found")));
+    assert_eq!(
+        after.sources().files.get(FILE).map(String::as_str),
+        Some(FIXED)
+    );
+    assert!(!project.stored_status()?.verified);
+    assert!(repairs
+        .apply(&run, &review.reference, None, &|| {})
+        .is_err());
     Ok(())
 }

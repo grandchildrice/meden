@@ -1,9 +1,11 @@
 //! Host-selected implementations of application role ports. Source formats,
 //! compiler resources, rendering and execution stay outside the core.
 use meden_runtime::{process::Control, workspace::Workspace};
+pub mod finite;
 pub mod informath;
 pub mod lake;
 pub mod lean;
+pub mod navigation;
 pub mod plausible;
 pub mod preparation;
 pub mod source;

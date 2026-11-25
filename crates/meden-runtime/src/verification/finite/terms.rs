@@ -389,7 +389,7 @@ impl Predicate {
 }
 
 /// Simultaneous finite transition assignments, not Rust or SMT-LIB source.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Model {
     /// Exact data-format version.

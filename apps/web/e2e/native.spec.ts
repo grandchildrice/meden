@@ -227,6 +227,270 @@ test.describe("native GUI with real offline workers", () => {
     await rm(root, { recursive: true, force: true });
   });
 
+  test("registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean", async ({
+    page,
+  }, info) => {
+    test.setTimeout(120000);
+    const spec = await readFile(
+      resolve("verification/examples/finite-counter.contract.json"),
+      "utf8",
+    );
+    const broken = await readFile(
+      resolve("verification/examples/finite-counter-broken.model.json"),
+      "utf8",
+    );
+    const fixed = await readFile(
+      resolve("verification/examples/finite-counter.model.json"),
+      "utf8",
+    );
+    const rootFile = "counter.contract.json";
+    await writeFile(resolve(project, rootFile), spec);
+    await writeFile(resolve(project, "counter.model.json"), broken);
+    await writeFile(
+      resolve(project, "missing.contract.json"),
+      JSON.stringify({ ...JSON.parse(spec), source_path: "absent.model.json" }),
+    );
+    const environment = {
+      MEDEN_ATLAS_LEAN: resolve(root, "not-installed-lean"),
+    };
+    const commandTypes: string[] = [];
+    page.on("request", (r) => {
+      if (r.url().endsWith("/api/command"))
+        commandTypes.push(r.postDataJSON().type);
+    });
+    await page.goto(await start(0, environment));
+    await page
+      .getByRole("button", { name: "File: missing.contract.json", exact: true })
+      .click();
+    await expect(
+      page.getByText("Preparing analysis stopped.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(page.getByLabel("File contents")).toContainText(
+      "absent.model.json",
+    );
+    const before = performance.now();
+    await page
+      .getByRole("button", { name: "File: " + rootFile, exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation[rootFile]?.outcome.state,
+        { timeout: 30000 },
+      )
+      .toBe("ready");
+    const coldMs = performance.now() - before;
+    const source = await nativeSource(page);
+    expect(source.compiled).toBe(true);
+    expect(Object.keys(source.files).sort()).toEqual([
+      rootFile,
+      "counter.model.json",
+    ]);
+    expect(source.graph.declarations.map((n: any) => n.name).sort()).toEqual([
+      "property.monotone",
+      "property.step",
+      "transition.value",
+    ]);
+    expect(
+      source.graph.declarations.every((n: any) => n.proofStatus === "unknown"),
+    ).toBe(true);
+    const node = source.graph.declarations.find(
+      (n: any) => n.name === "property.step",
+    );
+    expect(node.semantic.checker.status).toBe("counterexample");
+    expect(node.semantic.checker.candidates.join(" ")).toContain(
+      "input.value = 15; argument.amount = 1; output.value = 0",
+    );
+    expect(source.graph.edges).toHaveLength(2);
+    const file = page.locator(".ide-file-page").filter({
+      has: page.getByRole("region", {
+        name: "File: " + rootFile,
+        exact: true,
+      }),
+    });
+    const graph = file.locator(".native-source-graph .cone-graph");
+    await expect(graph).toBeVisible();
+    const inspections = commandTypes.filter((t) => t === "inspect_file").length;
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await expect(
+      page.getByRole("region", { name: "Project map", exact: true }),
+    ).toBeVisible();
+    await page.getByRole("tab", { name: rootFile, exact: true }).click();
+    await expect(graph).toBeVisible();
+    expect(commandTypes.filter((t) => t === "inspect_file")).toHaveLength(
+      inspections,
+    );
+    await graph
+      .getByRole("button", { name: /property\.step.*: select/ })
+      .click();
+    await expect(
+      file.locator("[aria-current=location] .editor-line-number"),
+    ).toHaveText(node.source.line + ":");
+    const transition = source.graph.declarations.find(
+      (n: any) => n.name === "transition.value",
+    );
+    await graph
+      .locator('[data-id="' + transition.id + '"] > .radar-node > button')
+      .click();
+    const modelPage = page.locator(".ide-file-page").filter({
+      has: page.getByRole("region", {
+        name: "File: counter.model.json",
+        exact: true,
+      }),
+    });
+    await expect(
+      page.getByRole("tab", { name: "counter.model.json", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      modelPage.locator("[aria-current=location] .editor-line-number"),
+    ).toHaveText(transition.source.line + ":");
+    expect(requests).toHaveLength(0);
+    expect((await nativeState(page)).authorized).toBe(false);
+    await page.screenshot({
+      path: info.outputPath("finite-source-counterexample.png"),
+    });
+    const translation = (fixed: boolean) =>
+      tool("record_informalization", {
+        lemmaName: "transition.value",
+        naturalLanguage: fixed
+          ? "The increment is used when it fits; otherwise the original value is retained."
+          : "The transition can wrap and decrease the counter.",
+        preconditions: "All unsigned four-bit inputs",
+        postcondition: fixed
+          ? "Output is at least input"
+          : "A modular sum may be smaller than input",
+        scope: "One simultaneous transition",
+        strength: "moderate",
+        confidence: 0.9,
+      });
+    const comparison = (fixed: boolean) =>
+      tool("record_comparison", {
+        lemmaName: "transition.value",
+        match: fixed,
+        discrepancy: fixed ? "" : "Overflow permits a decrease",
+        weakeningType: fixed ? "none" : "wrong-property",
+        explanation: "Compare the original one-step requirement.",
+      });
+    responses.push(
+      ...[
+        translation(false),
+        comparison(false),
+        tool("propose_repair", {
+          file: "counter.model.json",
+          old_text: broken,
+          new_text: fixed,
+          explanation: "Retain the original value instead of overflowing.",
+        }),
+        translation(true),
+        comparison(true),
+      ].map(
+        (message) => (response: ServerResponse) => reply(response, message),
+      ),
+    );
+    await page
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
+      .fill("The counter never decreases.");
+    await page
+      .getByRole("button", { name: "Choose model", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Use this model" }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
+    await expect(
+      page.getByLabel("Meaning analysis result", { exact: true }),
+    ).toContainText("Candidate mismatch (Model assessment)", {
+      timeout: 30000,
+    });
+    expect(JSON.stringify(requests[0])).toContain("simultaneous_transition");
+    expect(JSON.stringify(requests[0])).not.toContain(
+      "Return the incremented value exactly",
+    );
+    await page
+      .getByRole("button", { name: "Prepare patch for this Finding" })
+      .click();
+    const review = page.getByRole("dialog", {
+      name: "Review patch and original requirement",
+    });
+    await expect(review.getByLabel("Exact patch to apply")).toContainText(
+      "counter.model.json",
+    );
+    await review
+      .getByRole("button", { name: "Apply this patch once and reanalyze" })
+      .click();
+    await expect(
+      page.getByLabel("Meaning analysis result", { exact: true }),
+    ).toContainText("Candidate match (Model assessment)", { timeout: 30000 });
+    expect(await readFile(resolve(project, "counter.model.json"), "utf8")).toBe(
+      fixed,
+    );
+    const repaired = await nativeSource(page);
+    expect(
+      repaired.graph.declarations
+        .filter((n: any) => n.kind === "theorem")
+        .every((n: any) => n.semantic.checker.status === "not_found"),
+    ).toBe(true);
+    expect(
+      hasCurrentEvidence(await projectEvidence(page, await nativeState(page))),
+    ).toBe(false);
+    expect(requests).toHaveLength(5);
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port, environment));
+    const reopened = performance.now();
+    await page
+      .getByRole("button", { name: "File: " + rootFile, exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation[rootFile]?.outcome.state,
+        { timeout: 30000 },
+      )
+      .toBe("ready");
+    const reopenedMs = performance.now() - reopened;
+    expect(
+      (await nativeState(page)).source_preparation[rootFile].outcome.cache_hit,
+    ).toBe(true);
+    expect(await nativeSource(page)).toEqual(repaired);
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(5);
+    const metrics = await page.evaluate(async () =>
+      (
+        await fetch("/api/metrics", {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        })
+      ).json(),
+    );
+    expect(
+      metrics.records.some((r: any) =>
+        ["finite.compile", "analysis.z3.search", "finite.render"].includes(
+          r.name,
+        ),
+      ),
+    ).toBe(false);
+    await page.screenshot({
+      path: info.outputPath("finite-source-reopened.png"),
+    });
+    await info.attach("finite-native-preparation", {
+      body: Buffer.from(
+        JSON.stringify({
+          cold_ms: coldMs,
+          reopened_ms: reopenedMs,
+          metrics,
+          scope:
+            "Actual confined Z3 and installed public worker, scripted meaning/repair replies; no Lean installation, live-model quality, native-code correspondence or evidence admission claim.",
+        }),
+      ),
+      contentType: "application/json",
+    });
+  });
+
   test("registered finite verifier reviews, refutes, repairs and reopens with bounded evidence", async ({
     page,
   }) => {

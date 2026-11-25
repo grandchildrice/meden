@@ -177,7 +177,7 @@ export function neutralObservationViolations(source) {
     .split("\n")
     .filter((line) => !/^\s*\/\//.test(line))
     .join("\n");
-  return /\b(?:atlas|lean|lake)::|\.(?:atlas|collection|lean_version)\b/.test(
+  return /\b(?:atlas|lean|lake|finite)::|\.(?:atlas|collection|lean_version)\b/.test(
     production,
   )
     ? [
@@ -194,7 +194,7 @@ export function nativeObservationViolations(source) {
     .split("\n")
     .filter((line) => !/^\s*\/\//.test(line))
     .join("\n");
-  return /\b(?:lean|lake)::(?:Snapshot|repair::Context)\b|\batlas::(?:Extraction|Graph|Node)\b/.test(
+  return /\b(?:lean|lake)::(?:Snapshot|repair::Context)\b|\bfinite::(?:Snapshot|Compiled|Repair|Report)\b|\batlas::(?:Extraction|Graph|Node)\b/.test(
     production,
   )
     ? [
@@ -309,6 +309,8 @@ export function check() {
   for (const path of [
     "crates/meden-app/src/adapters/lean/definition.rs",
     "crates/meden-app/src/adapters/plausible.rs",
+    "crates/meden-app/src/adapters/finite/compiled.rs",
+    "crates/meden-app/src/adapters/finite/search.rs",
   ])
     errors.push(
       ...compilerCaptureViolations(

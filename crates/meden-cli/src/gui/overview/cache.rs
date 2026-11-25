@@ -44,7 +44,10 @@ fn directory(workspace: &Workspace) -> Result<std::path::PathBuf> {
         .join(parser))
 }
 fn key(path: &str) -> String {
-    let digest = crate::atlas::digest(path.as_bytes());
+    let digest = crate::adapters::navigation::additional_identity(path).map_or_else(
+        || crate::atlas::digest(path.as_bytes()),
+        |method| crate::atlas::digest(format!("{method}\0{path}").as_bytes()),
+    );
     format!(
         "{}/{digest}.json",
         digest.chars().take(2).collect::<String>()
@@ -87,7 +90,15 @@ pub(super) fn prepare(
     fresh: bool,
 ) -> Result<()> {
     let directory = directory(workspace)?;
-    let inventory = crate::atlas::digest(&serde_json::to_vec(paths)?);
+    let additional = paths
+        .iter()
+        .filter_map(|p| crate::adapters::navigation::additional_identity(p).map(|id| (p, id)))
+        .collect::<Vec<_>>();
+    let inventory = crate::atlas::digest(&if additional.is_empty() {
+        serde_json::to_vec(paths)?
+    } else {
+        serde_json::to_vec(&(paths, additional))?
+    });
     let complete: Option<Seal> = crate::storage::read(&directory.join("complete.json"))
         .ok()
         .flatten();

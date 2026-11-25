@@ -81,7 +81,7 @@ def main(argv=None):
             return json.loads(files[0].read_text())["entries"] if files else []
 
         def atlas():
-            terminal.command("/atlas")
+            terminal.command("/graph")
             terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
             terminal.wait(
                 lambda view: (
@@ -102,7 +102,7 @@ def main(argv=None):
             milestone("both processor bindings reviewed")
             terminal.send("y")
             terminal.wait(lambda view: "shift+enter" in view)
-            terminal.command("/atlas-prepare")
+            terminal.command("/lean-prepare")
             terminal.wait(lambda view: "Atlas is ready" in view and "shift+enter" in view)
             atlas()
             milestone("Lake roots and four cross-package source paths")
@@ -123,7 +123,7 @@ def main(argv=None):
             artifacts = list((root / "data/meden/projects").glob("*/analysis-sources/*.json"))
             report["source_artifacts"] = [json.loads(path.read_text()) for path in artifacts]
             milestone("candidate mismatch from transitive threshold definition")
-            terminal.command("/atlas missing.lean")
+            terminal.command("/graph missing.lean")
             terminal.wait(lambda view: "Analysis stopped" in view and "shift+enter" in view)
             terminal.command("/analyze Domain.eligible -- refuse an older graph")
             terminal.wait(lambda view: "Read the source graph first" in view)

@@ -443,7 +443,7 @@ not a whole-project Lean/proof build. The actual Riemann corpus has 175,187 file
 With an installed Lean distribution, opening a local Lean file prepares its compiled
 dependencies automatically. The optional tools action **Extract compiled dependencies**
 requests an explicit rebuild. The first preparation automatically compiles the pinned public Atlas library offline without sending
-source to a model. The public TUI `/atlas` command performs the same preparation.
+source to a model. The public TUI `/graph` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
 including a custom `ELAN_HOME`. Without a project pin it uses Elan's default,
 or a complete public distribution on the host PATH. It never runs a repository
@@ -538,7 +538,7 @@ executable analysis input, rather than Meden's restricted contract-data language
 The prepared library and fixed scripts are separate read-only resources. There is
 no unconfined fallback. Import/compile/metadata/OS attribution remains an adapter.
 
-The [MIT-licensed extraction core](../crates/meden-app/src/atlas/vendor/README.md)
+The [MIT-licensed extraction core](../crates/meden-app/src/graph/vendor/README.md)
 is pinned to Lean Atlas `06be1eb76fb926b8cf8bd42a4a51208d128c327d`. Its actual
 constant classifier and type/value dependency functions run on the imported
 environment. Meden selects the observed modules, retains cross-module edges,
@@ -962,7 +962,7 @@ The [Lake cloud trial](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.jso
 used the public TUI to prepare real Lean/Lake, discover four modules across local
 and prepopulated manifest packages, compare `Domain.eligible` through minimax-m3
 and gpt-oss:120b, observe the expected 150/100 mismatch, refuse an older graph after
-a missing input, recover through `/atlas` and restart with fresh processor review.
+a missing input, recover through `/graph` and restart with fresh processor review.
 It retained the exact graph/source/configuration snapshot and unchanged fixture
 files. This is a synthetic-data cloud workflow, not Git-origin attestation, native
 project proof, cold installation, general semantic accuracy or local inference.

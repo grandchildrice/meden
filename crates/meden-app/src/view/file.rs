@@ -225,7 +225,9 @@ pub fn observe(workspace: &Workspace, control: &Control, path: &str) -> Result<F
     };
     Ok(FileView {
         path: path.into(),
-        navigation: if crate::adapters::source::supports(Path::new(path)) {
+        navigation: if crate::adapters::source::supports(Path::new(path))
+            || crate::adapters::preparation::supports(path)
+        {
             Navigation::Declarations
         } else {
             Navigation::SourceOnly

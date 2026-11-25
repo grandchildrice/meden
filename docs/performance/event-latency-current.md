@@ -1,10 +1,13 @@
 # Deployed event latency, November 25
 
 The [complete numeric record](../../results/event-latency-current-20261125.json)
-measures the currently deployed `ce0c88f` executable and unchanged browser assets.
+measures the `ce0c88f` executable deployed at capture time and its browser assets.
 **The largest repeatable interaction stall is first-detail project-map zoom;
 requesting a cached file has a separate native input-validation wait.** This
 measurement changes no product implementation, deployment or verification rule.
+The later [finite native backend integration](native-finite-source.md) uses the
+same browser assets; these original captures are not relabeled as measurements
+of that later executable.
 
 Two fresh-browser captures per project run sequentially, in Riemann/EthLib order,
 with Chrome 149.0.7827.53, normal motion, a 1440 × 960 viewport and no throttling.

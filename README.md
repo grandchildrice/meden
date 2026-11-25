@@ -260,13 +260,36 @@ specifications and Python integration checks. Work on `main` and follow the
 
 [Apache-2.0](LICENSE).
 
+### Inspect finite transition models
+
+Open a workspace containing a `.contract.json` file in `meden gui`, then select
+that file in the explorer. The default registered finite backend reads its
+workspace-relative JSON transition, runs actual offline Z3 counterexample searches
+and prepares English descriptions before publishing the shared source/graph view.
+Properties and assignments keep their original JSON locations. Retained tabs and
+restart reuse separate compilation, search and reading artifacts after current
+input/resource checks. Model approval is needed only for explicit assessment or
+reviewed repair; search observations do not admit project evidence.
+
+The installed public Z3 executable is required. This is the bounded one-step
+`finite-bitvectors-v1` data format in `verification/examples/finite-counter.*.json`,
+not a general SMT-LIB or native-code frontend. To use the public TUI without
+preparing the unrelated Lean verifier:
+
+```sh
+meden tui --workspace /path/to/project --verifier z3.finite.v1
+# In the TUI:
+/graph counter.contract.json
+/analyze transition.value -- Preserve state when an increment would overflow.
+```
+
 ### Inspect candidate meaning in the TUI
 
-After choosing your connection, use `/atlas` to discover Lake library/executable roots, or
-`/atlas src/App.lean` to select a source. Lake package/library `srcDir`, local path
+Local graphs do not require model approval. Use `/graph` to discover Lake library/executable roots, or
+`/graph src/App.lean` to select a source. Lake package/library `srcDir`, local path
 dependencies and already-populated manifest packages are resolved offline.
 The project's installed Lean is detected automatically, and the Atlas library is
-prepared offline on first use. `/atlas-prepare` can also prepare it explicitly.
+prepared offline on first use. `/lean-prepare` can also prepare it explicitly.
 The collected module closure is compiled and listed with its original file paths. Run
 `/analyze Demo.stock_bound -- Stock always decreases on purchase` to compare a
 requirement with a blind natural-language translation of that declaration.

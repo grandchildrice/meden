@@ -73,21 +73,33 @@ pub fn lean() -> Result<Preparation> {
         lake: super::lake::enabled()?,
     }))
 }
+fn registry() -> Result<crate::analysis::prepared::Registry> {
+    let mut registry = crate::analysis::prepared::Registry::default();
+    registry.register("lean.semantic", &[".lean"], lean)?;
+    registry.register("finite.transition", &[".contract.json"], || {
+        Ok(Preparation::new(super::finite::Backend::new(
+            std::env::current_exe()?,
+        )))
+    })?;
+    Ok(registry)
+}
+/// Pure format availability. Resource discovery occurs only after selection.
+pub fn supports(path: &str) -> bool {
+    registry().is_ok_and(|r| r.supports(path))
+}
 /// Default native file registration, chosen only from trusted host implementations.
 pub fn for_path(path: &str) -> Result<Option<Preparation>> {
-    if std::path::Path::new(path)
-        .extension()
-        .is_some_and(|e| e == "lean")
-    {
-        lean().map(Some)
-    } else {
-        Ok(None)
-    }
+    registry()?.select(path)
 }
 pub fn read(context: &Context<'_>, paths: &[String], compiled: bool) -> Result<Snapshot> {
-    if compiled {
-        lean()?.read(context, paths).map(|(snapshot, _)| snapshot)
-    } else {
-        plain(context, paths)
+    if !compiled {
+        return plain(context, paths);
     }
+    let selected = if let Some(path) = paths.first() {
+        for_path(path)?
+            .ok_or_else(|| anyhow::anyhow!("No graph preparation is registered for {path}"))?
+    } else {
+        lean()?
+    };
+    selected.read(context, paths).map(|(snapshot, _)| snapshot)
 }

@@ -1,0 +1,1735 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "baseline_commit": "b7b384a5fe0a584f3bdf809f5a779258d06211c2",
+  "scope": "Production finite native source preparation through existing typed compiler/search/renderer and native assessment/repair owners; no concrete finite AST in shared viewer or new authority transition.",
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176/meden",
+    "sha256": "cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176"
+  },
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 341775,
+      "sha256": "d5f29072ef79d8af76147295f55860d2b2b8cf421d6842cb19d145c1ba1c6015"
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "bytes": 1804,
+      "sha256": "d03f8422cc9d2e47cced7c8c2bb53f4a73a6dd00ad61f2a2cd7bc69d285a575d"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/cache.rs",
+      "bytes": 7725,
+      "sha256": "09f2b05b879b0d7dd67bddfe2fa7efa46d945ef787077157d9c18d1280476302"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/compiled.rs",
+      "bytes": 5505,
+      "sha256": "08190a4192df094f290bde1e889693da591d47a3b4522eb87119849ee5be2cda"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/mod.rs",
+      "bytes": 1029,
+      "sha256": "6b80600905eee1f1b9d9afc71983b9179cf23e1fb770077a13650c81ed044a66"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/navigation.rs",
+      "bytes": 2638,
+      "sha256": "95b87e9a1c1394847326e73bc495211e9eacbad0d44d3a1b9ad3e49691e4308d"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/positions.rs",
+      "bytes": 5921,
+      "sha256": "7736d3532590b6984bc93dad0004e744ce45188d101912cb7361958f1a3e3f01"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/render.rs",
+      "bytes": 7258,
+      "sha256": "8e9c0a02cbd0e2d187295d22a919868d34b3b4f31fb09686eafad45739b2f21a"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/search.rs",
+      "bytes": 4161,
+      "sha256": "8b0218c6a43a0eb16791d89082089be849f6d1be785e45930af81a5a7887e854"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/finite/snapshot.rs",
+      "bytes": 15067,
+      "sha256": "36d7624ea222317a180711fb07408e92ea1f455e1651f13e4785efd3a283494a"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation.rs",
+      "bytes": 1218,
+      "sha256": "75bb196fffa2cc59f4cbc80f061bb874399cbab34289f43b09116c0872beef6e"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/preparation.rs",
+      "bytes": 3392,
+      "sha256": "97c5e1c1ee0c996f3523cf53d0ed5ccbcc71c0a9d3f151353f1eef91837815e9"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/prepared.rs",
+      "bytes": 17471,
+      "sha256": "2dcdc2f478da3ab93c2e5b6df2d5581dd039aabf1989b5a285805b9be2435668"
+    },
+    {
+      "path": "crates/meden-app/src/semantic.rs",
+      "bytes": 23361,
+      "sha256": "8e890cf8108ba81079d1894cac6e188cbcd7ef8a5e99a6814e7b6c9c6b9aa460"
+    },
+    {
+      "path": "crates/meden-app/src/semantic/informalize.md",
+      "bytes": 2191,
+      "sha256": "febe4dc98ae7b73df9dbeffa97af93aa91ae24d20d87431b42ebce9e75f22f65"
+    },
+    {
+      "path": "crates/meden-app/src/view/file.rs",
+      "bytes": 10963,
+      "sha256": "e4bbd9be839d1b60ae8b1490853967371d169990831636f2616b9d69a53074d8"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 22806,
+      "sha256": "3791dc2c788460a2b29c8eacd84b91ff76cea2dcb9061aef7a699532f5e64e73"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview/cache.rs",
+      "bytes": 9433,
+      "sha256": "75e04cee049a6b1f4ba5caa47a9c65fefbc2d7976fee336151af932bb1fc1385"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/analysis.rs",
+      "bytes": 19133,
+      "sha256": "728b8bac7256ad6c7888aa38ca4721892f1849271641038619a039c8aa485a92"
+    },
+    {
+      "path": "crates/meden-cli/src/tui/commands.rs",
+      "bytes": 13607,
+      "sha256": "e29388dc1a9bdaeb7a59ab4741744fbbf78f91424538e83ca7581ce9759e635a"
+    },
+    {
+      "path": "crates/meden-cli/tests/repair.rs",
+      "bytes": 33690,
+      "sha256": "a7a1c9ae7044809d1a23f4b195539a5727035113e2a539c51653b8d5f137cd84"
+    },
+    {
+      "path": "crates/meden-runtime/src/verification/finite/data.rs",
+      "bytes": 11150,
+      "sha256": "c289f856adef7803847bf1ea803db86099802f157d4b20074455b9b3f5cf6645"
+    },
+    {
+      "path": "crates/meden-runtime/src/verification/finite/mod.rs",
+      "bytes": 17720,
+      "sha256": "0ab1e3b82e4dfdb8523306b756ce14702dea9b009a0241ce16e338efdeab50ff"
+    },
+    {
+      "path": "crates/meden-runtime/src/verification/finite/terms.rs",
+      "bytes": 14714,
+      "sha256": "f4e930f85f80d771cfc790f7fe13f92e86f772b6f0060728ce840c36b26ab4de"
+    },
+    {
+      "path": "crates/meden-runtime/src/verification/finite/tests.rs",
+      "bytes": 14694,
+      "sha256": "3905f44e0fb674f73dbca2920e1b4bad5261cde38d0f874ab00ff917bdb9d1ef"
+    },
+    {
+      "path": "python/meden_checks/lake_smoke.py",
+      "bytes": 7340,
+      "sha256": "7d5b14e3d76486c6b0254ad26b47e7cb7ca5c783989586f90d0ec11f04555a95"
+    },
+    {
+      "path": "python/meden_checks/meaning_smoke.py",
+      "bytes": 12198,
+      "sha256": "6219fdacd7fd2fc5ddd77cea6ee8897881b85f097f8ea7dc593b16cfd65c705c"
+    },
+    {
+      "path": "python/tests/test_tui_atlas.py",
+      "bytes": 6565,
+      "sha256": "94a7ebb1b91c164945feae2109c6535cce4c5bcf8ff2108501f31d91b5c329e7"
+    },
+    {
+      "path": "python/tests/test_tui_finite_source.py",
+      "bytes": 3583,
+      "sha256": "59980b8f7de05bff168eb698f87f6d74ed7f1fbb7ad38e16a289a091e0716bdb"
+    },
+    {
+      "path": "python/tests/test_tui_lake.py",
+      "bytes": 10613,
+      "sha256": "420e526ec383167fbe7705ca85cb01880b932235c6f6db65c84bfbe94b667c5a"
+    },
+    {
+      "path": "tools/architecture/boundaries.test.mjs",
+      "bytes": 7165,
+      "sha256": "aa9520c991bd6b23f75c4aac4ea331e0d4028f1e3e27112deae9103fd9338a2c"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "bytes": 12349,
+      "sha256": "382f68ed21923e7d75ecf87da372c80fd85f4fea501572e6976fe34ffb55f67a"
+    }
+  ],
+  "unchanged_frontend_assets": {
+    "count": 88,
+    "sha256": "efaf3ca5531ff5f3df474e4db12eeaa8c8dd51c99e90b2ba5168b2bc40bb0a6b"
+  },
+  "validation": {
+    "rust_unit_integration_and_doc": 361,
+    "architecture": 55,
+    "focused_python": 15,
+    "required_tui": 37,
+    "decoded_tui_journeys": 9,
+    "clippy": true,
+    "schema": true,
+    "rust_format": true,
+    "format": true,
+    "python_lint": true,
+    "gui": {
+      "stats": {
+        "total": 81,
+        "expected": 80,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "initial_failure": "New finite source repair reached comparison but exceeded the default 5s DOM assertion while three real-tool journeys were running. Only that new case received explicit 30s operation-completion assertions; no performance budget changed.",
+      "focused": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    "gui_skipped": 0,
+    "gui_flaky": 0,
+    "serialized_motion_gates": [
+      {
+        "phase": "motion-reduce",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "attachments": [
+          {
+            "name": "hidden-file-layout.json",
+            "data": {
+              "hidden_textarea_style_reads": 0,
+              "maximum_hidden_reads": 0,
+              "real_compiled_editor_input": true,
+              "held_original_navigation_applied": true,
+              "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+            }
+          },
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 33134.906239,
+              "warm_tab_two_raf_ms": [
+                26.19999999552965, 28.80000000447035, 22.5, 29.30000000447035,
+                25.200000002980232, 26, 28.799999997019768, 27.700000002980232,
+                25.700000002980232, 26.899999998509884
+              ],
+              "p95_ms": 29.30000000447035,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          }
+        ]
+      },
+      {
+        "phase": "motion-normal",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "attachments": [
+          {
+            "name": "hidden-file-layout.json",
+            "data": {
+              "hidden_textarea_style_reads": 0,
+              "maximum_hidden_reads": 0,
+              "real_compiled_editor_input": true,
+              "held_original_navigation_applied": true,
+              "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+            }
+          },
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "no-preference",
+              "cold_analysis_store_preparation_ms": 33986.835470000005,
+              "warm_tab_two_raf_ms": [
+                26.799999997019768, 21, 12.599999994039536, 13.200000002980232,
+                17.69999999552965, 21.599999994039536, 25.899999998509884, 28.5,
+                22, 18.399999998509884
+              ],
+              "p95_ms": 28.5,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          }
+        ]
+      }
+    ],
+    "worker_scope": "Public TUI/GUI and production finite repair/runtime helpers use the sealed candidate. Multi-package Cargo feature unification also builds distinct integration executables; not every Cargo subprocess is asserted byte-identical to the sealed GUI worker."
+  },
+  "native_finite": {
+    "cold_preparation_ms": 4034.6185879999994,
+    "reopened_preparation_ms": 2980.1972929999993,
+    "reopened_metrics": {
+      "capacity": 4096,
+      "evicted": 0,
+      "records": [
+        {
+          "context": {
+            "trace": 1,
+            "span": 2
+          },
+          "parent": 1,
+          "name": "sandbox.public_tools",
+          "start_us": 116,
+          "wall_us": 72859,
+          "thread_cpu_us": 9474
+        },
+        {
+          "context": {
+            "trace": 1,
+            "span": 3
+          },
+          "parent": 1,
+          "name": "sandbox.libraries",
+          "start_us": 73145,
+          "wall_us": 42112,
+          "thread_cpu_us": 4716
+        },
+        {
+          "context": {
+            "trace": 1,
+            "span": 4
+          },
+          "parent": 1,
+          "name": "sandbox.nix_closure",
+          "start_us": 115274,
+          "wall_us": 50776,
+          "thread_cpu_us": 1600
+        },
+        {
+          "context": {
+            "trace": 1,
+            "span": 1
+          },
+          "parent": null,
+          "name": "sandbox.prepare",
+          "start_us": 0,
+          "wall_us": 166072,
+          "thread_cpu_us": 16102
+        },
+        {
+          "context": {
+            "trace": 5,
+            "span": 5
+          },
+          "parent": null,
+          "name": "view.evidence.materialize",
+          "start_us": 196640,
+          "wall_us": 33,
+          "thread_cpu_us": 31
+        },
+        {
+          "context": {
+            "trace": 6,
+            "span": 6
+          },
+          "parent": null,
+          "name": "view.analysis_history.materialize",
+          "start_us": 196934,
+          "wall_us": 175,
+          "thread_cpu_us": 175
+        },
+        {
+          "context": {
+            "trace": 7,
+            "span": 7
+          },
+          "parent": null,
+          "name": "view.analysis.materialize",
+          "start_us": 197111,
+          "wall_us": 70,
+          "thread_cpu_us": 70
+        },
+        {
+          "context": {
+            "trace": 8,
+            "span": 8
+          },
+          "parent": null,
+          "name": "view.history.materialize",
+          "start_us": 197207,
+          "wall_us": 17,
+          "thread_cpu_us": 17
+        },
+        {
+          "context": {
+            "trace": 9,
+            "span": 9
+          },
+          "parent": null,
+          "name": "atlas.resources.select",
+          "start_us": 197257,
+          "wall_us": 2,
+          "thread_cpu_us": 2
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 10
+          },
+          "parent": null,
+          "name": "gui.enqueue",
+          "start_us": 197593,
+          "wall_us": 1,
+          "thread_cpu_us": 1
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 11
+          },
+          "parent": 10,
+          "name": "job.queue",
+          "start_us": 197594,
+          "wall_us": 14,
+          "thread_cpu_us": null
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 13
+          },
+          "parent": 12,
+          "name": "process.run",
+          "start_us": 197919,
+          "wall_us": 30695,
+          "thread_cpu_us": 339
+        },
+        {
+          "context": {
+            "trace": 14,
+            "span": 14
+          },
+          "parent": null,
+          "name": "process.run",
+          "start_us": 229160,
+          "wall_us": 20603,
+          "thread_cpu_us": 305
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 15
+          },
+          "parent": 12,
+          "name": "atlas.resources.select",
+          "start_us": 250987,
+          "wall_us": 6,
+          "thread_cpu_us": 5
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 16
+          },
+          "parent": 12,
+          "name": "atlas.resources.select",
+          "start_us": 251117,
+          "wall_us": 1,
+          "thread_cpu_us": 0
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 17
+          },
+          "parent": 12,
+          "name": "view.inventory.materialize",
+          "start_us": 251163,
+          "wall_us": 179,
+          "thread_cpu_us": 179
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 18
+          },
+          "parent": 12,
+          "name": "view.evidence.materialize",
+          "start_us": 251370,
+          "wall_us": 9,
+          "thread_cpu_us": 9
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 19
+          },
+          "parent": 12,
+          "name": "view.history.materialize",
+          "start_us": 251414,
+          "wall_us": 17,
+          "thread_cpu_us": 17
+        },
+        {
+          "context": {
+            "trace": 10,
+            "span": 12
+          },
+          "parent": 10,
+          "name": "gui.job",
+          "start_us": 197611,
+          "wall_us": 53831,
+          "thread_cpu_us": 1638
+        },
+        {
+          "context": {
+            "trace": 20,
+            "span": 21
+          },
+          "parent": 20,
+          "name": "gui.serialize_respond",
+          "start_us": 392149,
+          "wall_us": 271,
+          "thread_cpu_us": 245
+        },
+        {
+          "context": {
+            "trace": 20,
+            "span": 20
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 391775,
+          "wall_us": 662,
+          "thread_cpu_us": 617
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 23
+          },
+          "parent": 22,
+          "name": "gui.enqueue",
+          "start_us": 452478,
+          "wall_us": 0,
+          "thread_cpu_us": 0
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 24
+          },
+          "parent": 23,
+          "name": "job.queue",
+          "start_us": 452479,
+          "wall_us": 24,
+          "thread_cpu_us": null
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 26
+          },
+          "parent": 22,
+          "name": "gui.serialize_respond",
+          "start_us": 452512,
+          "wall_us": 90,
+          "thread_cpu_us": 73
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 22
+          },
+          "parent": null,
+          "name": "gui.command",
+          "start_us": 452406,
+          "wall_us": 200,
+          "thread_cpu_us": 181
+        },
+        {
+          "context": {
+            "trace": 29,
+            "span": 29
+          },
+          "parent": null,
+          "name": "gui.history_respond",
+          "start_us": 454125,
+          "wall_us": 50,
+          "thread_cpu_us": 42
+        },
+        {
+          "context": {
+            "trace": 30,
+            "span": 30
+          },
+          "parent": null,
+          "name": "gui.analysis_respond",
+          "start_us": 454276,
+          "wall_us": 114,
+          "thread_cpu_us": 88
+        },
+        {
+          "context": {
+            "trace": 31,
+            "span": 31
+          },
+          "parent": null,
+          "name": "gui.evidence_respond",
+          "start_us": 455202,
+          "wall_us": 67,
+          "thread_cpu_us": 57
+        },
+        {
+          "context": {
+            "trace": 33,
+            "span": 33
+          },
+          "parent": null,
+          "name": "gui.inventory_respond",
+          "start_us": 455313,
+          "wall_us": 50,
+          "thread_cpu_us": 37
+        },
+        {
+          "context": {
+            "trace": 32,
+            "span": 32
+          },
+          "parent": null,
+          "name": "gui.analysis_history_respond",
+          "start_us": 455274,
+          "wall_us": 111,
+          "thread_cpu_us": 86
+        },
+        {
+          "context": {
+            "trace": 34,
+            "span": 35
+          },
+          "parent": 34,
+          "name": "gui.serialize_respond",
+          "start_us": 463818,
+          "wall_us": 587,
+          "thread_cpu_us": 515
+        },
+        {
+          "context": {
+            "trace": 34,
+            "span": 34
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 463444,
+          "wall_us": 1000,
+          "thread_cpu_us": 922
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 28
+          },
+          "parent": 27,
+          "name": "process.run",
+          "start_us": 452769,
+          "wall_us": 30698,
+          "thread_cpu_us": 379
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 27
+          },
+          "parent": 25,
+          "name": "view.directory.observe",
+          "start_us": 452514,
+          "wall_us": 31216,
+          "thread_cpu_us": 897
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 36
+          },
+          "parent": 25,
+          "name": "view.evidence.materialize",
+          "start_us": 483779,
+          "wall_us": 15,
+          "thread_cpu_us": 14
+        },
+        {
+          "context": {
+            "trace": 22,
+            "span": 25
+          },
+          "parent": 23,
+          "name": "gui.job",
+          "start_us": 452506,
+          "wall_us": 31307,
+          "thread_cpu_us": 986
+        },
+        {
+          "context": {
+            "trace": 37,
+            "span": 38
+          },
+          "parent": 37,
+          "name": "gui.serialize_respond",
+          "start_us": 788568,
+          "wall_us": 183,
+          "thread_cpu_us": 161
+        },
+        {
+          "context": {
+            "trace": 37,
+            "span": 37
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 788410,
+          "wall_us": 354,
+          "thread_cpu_us": 331
+        },
+        {
+          "context": {
+            "trace": 39,
+            "span": 39
+          },
+          "parent": null,
+          "name": "gui.directory_respond",
+          "start_us": 794697,
+          "wall_us": 98,
+          "thread_cpu_us": 83
+        },
+        {
+          "context": {
+            "trace": 40,
+            "span": 40
+          },
+          "parent": null,
+          "name": "gui.inventory_chunk_respond",
+          "start_us": 795676,
+          "wall_us": 86,
+          "thread_cpu_us": 71
+        },
+        {
+          "context": {
+            "trace": 41,
+            "span": 41
+          },
+          "parent": null,
+          "name": "gui.inventory_chunk_respond",
+          "start_us": 840138,
+          "wall_us": 97,
+          "thread_cpu_us": 81
+        },
+        {
+          "context": {
+            "trace": 42,
+            "span": 43
+          },
+          "parent": 42,
+          "name": "gui.serialize_respond",
+          "start_us": 1141428,
+          "wall_us": 183,
+          "thread_cpu_us": 161
+        },
+        {
+          "context": {
+            "trace": 42,
+            "span": 42
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1141263,
+          "wall_us": 365,
+          "thread_cpu_us": 341
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 45
+          },
+          "parent": 44,
+          "name": "gui.enqueue",
+          "start_us": 1199790,
+          "wall_us": 0,
+          "thread_cpu_us": 0
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 46
+          },
+          "parent": 45,
+          "name": "job.queue",
+          "start_us": 1199790,
+          "wall_us": 18,
+          "thread_cpu_us": null
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 49
+          },
+          "parent": 44,
+          "name": "gui.serialize_respond",
+          "start_us": 1199820,
+          "wall_us": 75,
+          "thread_cpu_us": 64
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 44
+          },
+          "parent": null,
+          "name": "gui.command",
+          "start_us": 1199734,
+          "wall_us": 163,
+          "thread_cpu_us": 150
+        },
+        {
+          "context": {
+            "trace": 51,
+            "span": 52
+          },
+          "parent": 51,
+          "name": "gui.serialize_respond",
+          "start_us": 1206797,
+          "wall_us": 537,
+          "thread_cpu_us": 487
+        },
+        {
+          "context": {
+            "trace": 51,
+            "span": 51
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1206513,
+          "wall_us": 853,
+          "thread_cpu_us": 802
+        },
+        {
+          "context": {
+            "trace": 53,
+            "span": 54
+          },
+          "parent": 53,
+          "name": "gui.serialize_respond",
+          "start_us": 1218851,
+          "wall_us": 287,
+          "thread_cpu_us": 262
+        },
+        {
+          "context": {
+            "trace": 53,
+            "span": 53
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1218606,
+          "wall_us": 552,
+          "thread_cpu_us": 525
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 50
+          },
+          "parent": 48,
+          "name": "process.run",
+          "start_us": 1200075,
+          "wall_us": 20550,
+          "thread_cpu_us": 286
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 48
+          },
+          "parent": 47,
+          "name": "gui.reader_prepare",
+          "start_us": 1199818,
+          "wall_us": 21156,
+          "thread_cpu_us": 880
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 58
+          },
+          "parent": 57,
+          "name": "process.run",
+          "start_us": 1227394,
+          "wall_us": 20677,
+          "thread_cpu_us": 369
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 57
+          },
+          "parent": 56,
+          "name": "analysis.capture_sources",
+          "start_us": 1227214,
+          "wall_us": 21343,
+          "thread_cpu_us": 1034
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 60
+          },
+          "parent": 59,
+          "name": "process.run",
+          "start_us": 1249221,
+          "wall_us": 31154,
+          "thread_cpu_us": 628
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 61
+          },
+          "parent": 59,
+          "name": "process.run",
+          "start_us": 1281077,
+          "wall_us": 30677,
+          "thread_cpu_us": 322
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 59
+          },
+          "parent": 56,
+          "name": "analysis.capture_sources",
+          "start_us": 1248859,
+          "wall_us": 63173,
+          "thread_cpu_us": 2267
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 56
+          },
+          "parent": 55,
+          "name": "finite.decode_inputs",
+          "start_us": 1227208,
+          "wall_us": 86237,
+          "thread_cpu_us": 5015
+        },
+        {
+          "context": {
+            "trace": 62,
+            "span": 63
+          },
+          "parent": 62,
+          "name": "gui.serialize_respond",
+          "start_us": 1384358,
+          "wall_us": 194,
+          "thread_cpu_us": 169
+        },
+        {
+          "context": {
+            "trace": 62,
+            "span": 62
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1384169,
+          "wall_us": 397,
+          "thread_cpu_us": 369
+        },
+        {
+          "context": {
+            "trace": 64,
+            "span": 65
+          },
+          "parent": 64,
+          "name": "gui.serialize_respond",
+          "start_us": 1493909,
+          "wall_us": 210,
+          "thread_cpu_us": 183
+        },
+        {
+          "context": {
+            "trace": 64,
+            "span": 64
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1493730,
+          "wall_us": 403,
+          "thread_cpu_us": 374
+        },
+        {
+          "context": {
+            "trace": 66,
+            "span": 66
+          },
+          "parent": null,
+          "name": "gui.reader_respond",
+          "start_us": 1500036,
+          "wall_us": 91,
+          "thread_cpu_us": 78
+        },
+        {
+          "context": {
+            "trace": 67,
+            "span": 68
+          },
+          "parent": 67,
+          "name": "gui.serialize_respond",
+          "start_us": 1645328,
+          "wall_us": 327,
+          "thread_cpu_us": 284
+        },
+        {
+          "context": {
+            "trace": 67,
+            "span": 67
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1645089,
+          "wall_us": 586,
+          "thread_cpu_us": 542
+        },
+        {
+          "context": {
+            "trace": 69,
+            "span": 70
+          },
+          "parent": 69,
+          "name": "gui.serialize_respond",
+          "start_us": 1846237,
+          "wall_us": 220,
+          "thread_cpu_us": 203
+        },
+        {
+          "context": {
+            "trace": 69,
+            "span": 69
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 1846053,
+          "wall_us": 418,
+          "thread_cpu_us": 393
+        },
+        {
+          "context": {
+            "trace": 71,
+            "span": 72
+          },
+          "parent": 71,
+          "name": "gui.serialize_respond",
+          "start_us": 2154503,
+          "wall_us": 215,
+          "thread_cpu_us": 173
+        },
+        {
+          "context": {
+            "trace": 71,
+            "span": 71
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 2154333,
+          "wall_us": 396,
+          "thread_cpu_us": 352
+        },
+        {
+          "context": {
+            "trace": 73,
+            "span": 74
+          },
+          "parent": 73,
+          "name": "gui.serialize_respond",
+          "start_us": 2198850,
+          "wall_us": 329,
+          "thread_cpu_us": 293
+        },
+        {
+          "context": {
+            "trace": 73,
+            "span": 73
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 2198586,
+          "wall_us": 613,
+          "thread_cpu_us": 573
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 76
+          },
+          "parent": 75,
+          "name": "process.run",
+          "start_us": 2334116,
+          "wall_us": 20652,
+          "thread_cpu_us": 326
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 77
+          },
+          "parent": 75,
+          "name": "process.run",
+          "start_us": 2355163,
+          "wall_us": 30814,
+          "thread_cpu_us": 356
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 75
+          },
+          "parent": 55,
+          "name": "analysis.capture_sources",
+          "start_us": 2333938,
+          "wall_us": 52301,
+          "thread_cpu_us": 1509
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 55
+          },
+          "parent": 47,
+          "name": "analysis.finite.prepare",
+          "start_us": 1221040,
+          "wall_us": 1165235,
+          "thread_cpu_us": 1006615
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 78
+          },
+          "parent": 47,
+          "name": "analysis.bind_backend",
+          "start_us": 2386282,
+          "wall_us": 432,
+          "thread_cpu_us": 431
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 79
+          },
+          "parent": 47,
+          "name": "analysis.materialize_view",
+          "start_us": 2386716,
+          "wall_us": 1215,
+          "thread_cpu_us": 1204
+        },
+        {
+          "context": {
+            "trace": 80,
+            "span": 80
+          },
+          "parent": null,
+          "name": "process.run",
+          "start_us": 2388393,
+          "wall_us": 20669,
+          "thread_cpu_us": 397
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 81
+          },
+          "parent": 47,
+          "name": "atlas.resources.select",
+          "start_us": 2410114,
+          "wall_us": 5,
+          "thread_cpu_us": 5
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 82
+          },
+          "parent": 47,
+          "name": "view.evidence.materialize",
+          "start_us": 2410161,
+          "wall_us": 22,
+          "thread_cpu_us": 22
+        },
+        {
+          "context": {
+            "trace": 44,
+            "span": 47
+          },
+          "parent": 45,
+          "name": "gui.job",
+          "start_us": 1199811,
+          "wall_us": 1210389,
+          "thread_cpu_us": 1009568
+        },
+        {
+          "context": {
+            "trace": 83,
+            "span": 84
+          },
+          "parent": 83,
+          "name": "gui.serialize_respond",
+          "start_us": 2553026,
+          "wall_us": 504,
+          "thread_cpu_us": 459
+        },
+        {
+          "context": {
+            "trace": 83,
+            "span": 83
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 2552521,
+          "wall_us": 1037,
+          "thread_cpu_us": 964
+        },
+        {
+          "context": {
+            "trace": 85,
+            "span": 85
+          },
+          "parent": null,
+          "name": "gui.source_respond",
+          "start_us": 2564293,
+          "wall_us": 178,
+          "thread_cpu_us": 149
+        },
+        {
+          "context": {
+            "trace": 86,
+            "span": 87
+          },
+          "parent": 86,
+          "name": "gui.serialize_respond",
+          "start_us": 2907749,
+          "wall_us": 506,
+          "thread_cpu_us": 452
+        },
+        {
+          "context": {
+            "trace": 86,
+            "span": 86
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 2907359,
+          "wall_us": 939,
+          "thread_cpu_us": 882
+        },
+        {
+          "context": {
+            "trace": 88,
+            "span": 89
+          },
+          "parent": 88,
+          "name": "gui.serialize_respond",
+          "start_us": 3177108,
+          "wall_us": 405,
+          "thread_cpu_us": 366
+        },
+        {
+          "context": {
+            "trace": 88,
+            "span": 88
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 3176622,
+          "wall_us": 915,
+          "thread_cpu_us": 853
+        },
+        {
+          "context": {
+            "trace": 90,
+            "span": 91
+          },
+          "parent": 90,
+          "name": "gui.serialize_respond",
+          "start_us": 3194960,
+          "wall_us": 496,
+          "thread_cpu_us": 468
+        },
+        {
+          "context": {
+            "trace": 90,
+            "span": 90
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 3194538,
+          "wall_us": 949,
+          "thread_cpu_us": 908
+        },
+        {
+          "context": {
+            "trace": 92,
+            "span": 93
+          },
+          "parent": 92,
+          "name": "gui.serialize_respond",
+          "start_us": 3252118,
+          "wall_us": 372,
+          "thread_cpu_us": 346
+        },
+        {
+          "context": {
+            "trace": 92,
+            "span": 92
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 3251742,
+          "wall_us": 773,
+          "thread_cpu_us": 737
+        },
+        {
+          "context": {
+            "trace": 94,
+            "span": 95
+          },
+          "parent": 94,
+          "name": "gui.serialize_respond",
+          "start_us": 3262539,
+          "wall_us": 735,
+          "thread_cpu_us": 654
+        },
+        {
+          "context": {
+            "trace": 94,
+            "span": 94
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 3261819,
+          "wall_us": 1494,
+          "thread_cpu_us": 1391
+        },
+        {
+          "context": {
+            "trace": 96,
+            "span": 96
+          },
+          "parent": null,
+          "name": "gui.source_respond",
+          "start_us": 3311603,
+          "wall_us": 167,
+          "thread_cpu_us": 141
+        },
+        {
+          "context": {
+            "trace": 97,
+            "span": 98
+          },
+          "parent": 97,
+          "name": "gui.serialize_respond",
+          "start_us": 3375198,
+          "wall_us": 379,
+          "thread_cpu_us": 356
+        },
+        {
+          "context": {
+            "trace": 97,
+            "span": 97
+          },
+          "parent": null,
+          "name": "gui.state",
+          "start_us": 3374819,
+          "wall_us": 785,
+          "thread_cpu_us": 751
+        }
+      ]
+    },
+    "real_confined_z3": true,
+    "all_original_properties_observed": true,
+    "all_graph_proof_hints_unknown": true,
+    "actual_counterexample": "input.value = 15; argument.amount = 1; output.value = 0",
+    "cross_file_original_source_lines": true,
+    "reviewed_exact_model_repair_and_real_reanalysis": true,
+    "complete_cached_restart_without_compile_search_render": true,
+    "scripted_inference_not_live_model_quality": true,
+    "no_project_evidence_admission": true,
+    "scope": "Actual confined Z3 and installed public worker, scripted meaning/repair replies; no Lean installation, live-model quality, native-code correspondence or evidence admission claim."
+  },
+  "live_model": {
+    "provider": "hermes:ollama-cloud",
+    "model": "minimax-m3",
+    "verifier": "z3.finite.v1",
+    "success": false,
+    "seconds": 0.611,
+    "engine": "meden-claimcheck-roundtrip-v2",
+    "error": "model endpoint returned HTTP 429: provider usage or rate limit reached; wait for the account limit to reset; no automatic retry, account rotation or API-key fallback",
+    "source_unchanged": true,
+    "translation": null,
+    "assessment": null,
+    "repair_not_reached": true,
+    "no_automatic_retry_or_account_or_credential_fallback": true,
+    "scope": "Explicitly reviewed Ollama Cloud trial with synthetic Rust input. First request HTTP429; no live translation, repair, independent-check, local-inference, confidentiality or cold-install success."
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "cache_hit": true,
+      "file_click_to_observed_ready_ms": 21209.33122,
+      "complete_original_source_reader_inventory_navigation_evidence_unchanged": true,
+      "original_compiler_search_rendering_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875",
+        "search_id": "3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed",
+        "rendering_id": "f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "03bac0d61dbe7a7db0d2acf8e73655a04d17ebdb84a0c83f399ac61e1f80763d",
+          "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "9eb0881d0a749a893235921310e8c0d95cf135375141db4b204bf0ab5b809267"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "d16d69bc31d56b332be7a13bc52f32d8faef9b23b8ea36f68c01e3619cf19857",
+          "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+          "input_schema_sha256": "4ec3f6e6e25c4ef3ede5705efab16e1ef2d85af900a6e5cbf0a386a0e262e997",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "history_candidates_unchanged": true,
+      "quiet_chat": true,
+      "cameras_preserved": true,
+      "source_navigation": true,
+      "semantic_workers": [],
+      "spans": [
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.701,
+          "current_thread_cpu_ms": 1.153
+        },
+        {
+          "name": "analysis.saved_view",
+          "wall_ms": 279.815,
+          "current_thread_cpu_ms": 236.276
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.74,
+          "current_thread_cpu_ms": 1.235
+        },
+        {
+          "name": "analysis.discover_layout",
+          "wall_ms": 1275.205,
+          "current_thread_cpu_ms": 623.359
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.886,
+          "current_thread_cpu_ms": 1.109
+        },
+        {
+          "name": "atlas.project.query",
+          "wall_ms": 9768.684,
+          "current_thread_cpu_ms": 87.589
+        },
+        {
+          "name": "atlas.project.fingerprint",
+          "wall_ms": 6774.756,
+          "current_thread_cpu_ms": 76.311
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.541,
+          "current_thread_cpu_ms": 1.053
+        },
+        {
+          "name": "analysis.extract",
+          "wall_ms": 18983.432,
+          "current_thread_cpu_ms": 1236.876
+        },
+        {
+          "name": "analysis.bind_backend",
+          "wall_ms": 4.465,
+          "current_thread_cpu_ms": 4.451
+        },
+        {
+          "name": "analysis.materialize_view",
+          "wall_ms": 6.196,
+          "current_thread_cpu_ms": 6.178
+        }
+      ],
+      "scope": "Functional deployed observation; concurrent desktop state is uncontrolled. Not a paired performance improvement or first-graph-visibility measurement."
+    },
+    {
+      "project": "ethlib",
+      "cache_hit": true,
+      "file_click_to_observed_ready_ms": 3234.044347,
+      "complete_original_source_reader_inventory_navigation_evidence_unchanged": true,
+      "original_compiler_search_rendering_chain": {
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376",
+        "search_id": "c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509",
+        "rendering_id": "be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "dcccbaf00be2e016d987d1a2818575cf5f7f9a3829d1f9779845f3d116202bc0",
+          "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "9eb0881d0a749a893235921310e8c0d95cf135375141db4b204bf0ab5b809267"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": ["lean-module-v1"],
+          "implementation_sha256": "d16d69bc31d56b332be7a13bc52f32d8faef9b23b8ea36f68c01e3619cf19857",
+          "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+          "input_schema_sha256": "4ec3f6e6e25c4ef3ede5705efab16e1ef2d85af900a6e5cbf0a386a0e262e997",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": ["dedukti-v1"],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      "history_candidates_unchanged": true,
+      "quiet_chat": true,
+      "cameras_preserved": true,
+      "source_navigation": true,
+      "semantic_workers": [],
+      "spans": [
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.567,
+          "current_thread_cpu_ms": 0.767
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.153,
+          "current_thread_cpu_ms": 0.738
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 41.259,
+          "current_thread_cpu_ms": 0.749
+        },
+        {
+          "name": "analysis.saved_view",
+          "wall_ms": 294.314,
+          "current_thread_cpu_ms": 252.526
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 52.113,
+          "current_thread_cpu_ms": 1.229
+        },
+        {
+          "name": "analysis.extract",
+          "wall_ms": 966.195,
+          "current_thread_cpu_ms": 465.669
+        },
+        {
+          "name": "analysis.bind_backend",
+          "wall_ms": 7.144,
+          "current_thread_cpu_ms": 7.123
+        },
+        {
+          "name": "analysis.materialize_view",
+          "wall_ms": 10.969,
+          "current_thread_cpu_ms": 10.934
+        },
+        {
+          "name": "analysis.capture_sources",
+          "wall_ms": 51.663,
+          "current_thread_cpu_ms": 1.02
+        }
+      ],
+      "scope": "Functional deployed observation; concurrent desktop state is uncontrolled. Not a paired performance improvement or first-graph-visibility measurement."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-finite-candidate.json",
+      "bytes": 218,
+      "sha256": "edcdd459c4340c13a4bc57541aca6f59631b946bdee83e6cc01419dbcafc7112"
+    },
+    {
+      "path": "/tmp/meden-finite-gates-state.json",
+      "bytes": 685,
+      "sha256": "4c01eda9bf8fc1ed4ca24dbe7ae9b9c131dfb48c82c2e76b63acb31c757a88d3"
+    },
+    {
+      "path": "/tmp/meden-finite-follow-state.json",
+      "bytes": 173,
+      "sha256": "079c1be591f18156ceeb2a3f938f069d000754f86d560843fdd0fb34ca30c803"
+    },
+    {
+      "path": "/tmp/meden-finite-reviewed-validation.json",
+      "bytes": 1715,
+      "sha256": "e9532a049fb78e0bc14c45596bf4650422e86188b633097d5598f8fb6f8fd7af"
+    },
+    {
+      "path": "/tmp/meden-finite-browser-report.json",
+      "bytes": 896697,
+      "sha256": "f89b6e921fe34082ef7f1f7b82e848494cc36e90cd7766ed2188a1444fff0eb7"
+    },
+    {
+      "path": "/tmp/meden-finite-finite-gui-report.json",
+      "bytes": 34611,
+      "sha256": "7134ddcf0a668bc1e0739d49d02863e481bc6a290c5e92509733b37e6634719a"
+    },
+    {
+      "path": "/tmp/meden-finite-decoded-screens.json",
+      "bytes": 5430,
+      "sha256": "6bb3108bda14ecd22ebe5faf2d7585ae600c675418b817d5f9521938f1380c2b"
+    },
+    {
+      "path": "/tmp/meden-finite-neutral-prompt-live-20261125.json",
+      "bytes": 18469,
+      "sha256": "7313ba3562055f9ca6b35c4235dd271b282a9985c414d90aa6dac857d56b5600"
+    },
+    {
+      "path": "/tmp/meden-finite-neutral-prompt-live-20261125.log",
+      "bytes": 17,
+      "sha256": "bb1ee2c2880151b072ac45b3fc4aa9a59ac1e5c23db95e5cb3c313417bca1d98"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-rust.log",
+      "bytes": 37453,
+      "sha256": "9c148689ae477e00a6f240841e72110ac33feafb5e29efc1d677153bc3b1496a"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-clippy.log",
+      "bytes": 72,
+      "sha256": "299f16a2c523be18fef769975d2df00e0505521db047540feea3a74b94666887"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-architecture.log",
+      "bytes": 11467,
+      "sha256": "a4486acca1fa83a5ef6b37b2b4e060227baaf34a874b45e1948335bb54d84773"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-rust-format.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-python-lint.log",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-focused-python.log",
+      "bytes": 111,
+      "sha256": "5305896bbd9e7189bc8bf6f712cce81aa45fa04049352e090ac2ef978af405e9"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-tui.log",
+      "bytes": 189,
+      "sha256": "695bfae16be0b2068219aba4fb4692ad63f97936079fe9db34620d29cfa595b3"
+    },
+    {
+      "path": "/tmp/meden-finite-gate-gui.log",
+      "bytes": 26125,
+      "sha256": "65e96fa8f6acc48a6122202301da462e8b348bb0b7b6af26c737d414c1142871"
+    },
+    {
+      "path": "/tmp/meden-finite-finite-gui.log",
+      "bytes": 2398,
+      "sha256": "70e61b5c8b09b47be330ed64239625df8b12c97d891dc44d01a7d04b171581d8"
+    },
+    {
+      "path": "/tmp/meden-finite-motion-reduce.log",
+      "bytes": 2375,
+      "sha256": "47af84dcc5919d644e31b5c738f5ddf2cc742eadece5a29b864a9ece8cb912c0"
+    },
+    {
+      "path": "/tmp/meden-finite-motion-normal.log",
+      "bytes": 2375,
+      "sha256": "e4cd039da513bec5bfb60fd7e9a0689234e98e59876d8c2e5a9b540d2a6eff10"
+    },
+    {
+      "path": "target/finite-native-smoke.mjs",
+      "bytes": 8964,
+      "sha256": "8e0277b060aa77cfff30636e0b7583a403880e9443f95cb3e67a333fc2daa56b"
+    }
+  ],
+  "remaining": "Generic layout/collection and navigation annotation ownership, measured browser/native waits and final retirement audit remain open in the original migration plan. Existing event measurements are recorded separately; these functional observations do not establish latency improvement. No new core refinement or whole-plugin/session I/O proof."
+}

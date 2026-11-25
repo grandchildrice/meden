@@ -10,7 +10,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-pub const ENGINE: &str = "meden-claimcheck-roundtrip-v1";
+pub const ENGINE: &str = "meden-claimcheck-roundtrip-v2";
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]

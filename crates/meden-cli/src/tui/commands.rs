@@ -30,10 +30,13 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
         "Portable history, local Lean checks and resume: /work ID",
     ),
     (
-        "/atlas-prepare",
+        "/lean-prepare",
         "Prepare the installed Lean Atlas library offline",
     ),
-    ("/atlas", "Read Lean declarations: /atlas FILE.lean ..."),
+    (
+        "/graph",
+        "Read prepared declarations: /graph FILE.contract.json or FILE.lean",
+    ),
     ("/sources", "Read source files: /sources FILE ..."),
     ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
     (
@@ -233,9 +236,9 @@ impl App {
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
             ("/work", _) => self.work_command(text.strip_prefix("/work").unwrap_or_default().trim()),
-            ("/atlas-prepare", []) => self.source_task(super::analysis::SourceTask::Prepare),
-            ("/atlas" | "/sources", paths) if !paths.is_empty() || command == "/atlas" => {
-                self.source_task(super::analysis::SourceTask::Read { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });
+            ("/lean-prepare", []) => self.source_task(super::analysis::SourceTask::Prepare),
+            ("/graph" | "/sources", paths) if !paths.is_empty() || command == "/graph" => {
+                self.source_task(super::analysis::SourceTask::Read { paths: paths.iter().map(|s| (*s).to_owned()).collect(), compiled: command == "/graph" });
             }
             ("/analyze", _) => {
                 match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {
@@ -266,7 +269,7 @@ impl App {
                 }
             }
             ("/analysis", []) => {
-                let text = self.analysis.as_ref().map_or_else(|| "No meaning analysis yet. Read files with /atlas or /sources, then /analyze NAME -- requirement.".into(), crate::analysis::Record::summary);
+                let text = self.analysis.as_ref().map_or_else(|| "No meaning analysis yet. Read files with /graph or /sources, then /analyze NAME -- requirement.".into(), crate::analysis::Record::summary);
                 self.say(text, Style::new().fg(Color::Gray));
             }
             ("/contract", []) => self.open_contract(),

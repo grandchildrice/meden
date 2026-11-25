@@ -135,7 +135,7 @@ lean_lib Domain
         failures = terminal.view().count("Source preparation stopped:")
         terminal.paste(text)
         terminal.send("\r")
-        if text.startswith("/atlas"):
+        if text.startswith("/graph"):
             terminal.wait(lambda view: "Reading sources / preparing local compiler" in view)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
@@ -164,7 +164,7 @@ lean_lib Domain
         )
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/atlas", "Domain.eligible · vendor/logic/lean/Domain.lean:3", 0)
+        command("/graph", "Domain.eligible · vendor/logic/lean/Domain.lean:3", 0)
         assert "Source graph ready: 4 files" in terminal.view()
         assert "Lake package: shop" in terminal.view()
         assert "Extra.tag · .lake/packages/cached/sub/code/Extra.lean:2" in terminal.view()
@@ -198,7 +198,7 @@ lean_lib Domain
             "vendor/base/source/Base.lean"
         ]
         assert len(requests) == 3, "stale metadata must stop before edit or inference"
-        command("/atlas", "Source graph ready: 4 files", 3)
+        command("/graph", "Source graph ready: 4 files", 3)
         command(
             "/analyze Domain.eligible -- REQUIREMENT_ONLY: balance >= 100 and stock > 0",
             "Candidate Mismatch",
@@ -223,10 +223,10 @@ lean_lib Domain
         )
         command("/analysis", "Result: Stale", 7)
         assert entries()[-1]["assessment"] is None
-        command("/atlas missing.lean", "Analysis stopped", 7)
+        command("/graph missing.lean", "Analysis stopped", 7)
         assert "Source observation failed for missing.lean" in terminal.view()
         command("/analyze Domain.eligible -- no older graph", "Read the source graph first", 7)
-        command("/atlas", "Source graph ready: 5 files", 7)
+        command("/graph", "Source graph ready: 5 files", 7)
         terminal.quit()
         terminal.close()
         terminal = Terminal(args, env, root)

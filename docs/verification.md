@@ -1896,7 +1896,7 @@ Atlas selects the workspace's installed Elan toolchain automatically, including
 custom Elan homes. Unpinned projects use Elan's default or a complete host PATH
 distribution; a missing project pin never falls back to another version.
 Discovery reads bounded metadata without running Elan or repository programs.
-The first GUI extraction and public TUI `/atlas` prepare the extraction library
+The first GUI extraction and public TUI `/graph` prepare the extraction library
 offline automatically. Existing corrupted resources are refused and require
 explicit preparation. The GUI shows the requested version's install command and
 can rediscover an installation without restarting. This discovery remains an
@@ -2525,7 +2525,7 @@ revision/subdirectory and path bindings must agree with the manifest. This is
 source-snapshot validation, not attestation that a dirty cached checkout matches
 its advertised Git commit.
 
-`/atlas` (or a blank GUI target field) selects existing Lake library/executable
+`/graph` (or a blank GUI target field) selects existing Lake library/executable
 roots and module globs. Explicit source files still work. Limits remain 32 source
 files, 1 MiB per file and 16 MiB of source; metadata and package traversal have
 separate bounds. This does not promise a complete Mathlib graph or replay arbitrary

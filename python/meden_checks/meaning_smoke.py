@@ -107,6 +107,10 @@ def main(argv=None):
         type=Path,
         help="Explicit installed verifier prerequisite; never a cold-install claim",
     )
+    parser.add_argument(
+        "--verifier",
+        help="Host-selected verification method; source assessment does not accept a contract",
+    )
     parser.add_argument("--judge-model")
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--out", type=Path, required=True)
@@ -119,6 +123,7 @@ def main(argv=None):
         "provider": args.provider,
         "model": args.model,
         "judge_model": args.judge_model,
+        "verifier": args.verifier,
         "binary": str(binary),
         "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
         "verifier_bundle": str(args.verifier_bundle)
@@ -151,6 +156,9 @@ def main(argv=None):
             "--provider" if args.provider else "--base-url",
             args.provider or args.base_url,
         ]
+
+        if args.verifier:
+            command.extend(["--verifier", args.verifier])
 
         if args.judge_model:
             command.extend(["--judge-model", args.judge_model])

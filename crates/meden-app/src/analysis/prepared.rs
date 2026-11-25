@@ -381,3 +381,129 @@ impl Repairs {
             .apply(run, reference, accepted, dirty)
     }
 }
+
+/// Explicit trusted-host preparation registrations; never decoded from source,
+/// browser commands or model data. Factories run only after unique selection.
+#[derive(Default)]
+pub struct Registry {
+    entries: std::collections::BTreeMap<String, Entry>,
+}
+struct Entry {
+    suffixes: Vec<String>,
+    factory: Box<dyn Fn() -> Result<Preparation> + Send + Sync>,
+}
+impl Registry {
+    pub fn register(
+        &mut self,
+        id: &str,
+        suffixes: &[&str],
+        factory: impl Fn() -> Result<Preparation> + Send + Sync + 'static,
+    ) -> Result<()> {
+        anyhow::ensure!(
+            !id.is_empty()
+                && id.len() <= 128
+                && id
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-')),
+            "Invalid native preparation registration"
+        );
+        anyhow::ensure!(
+            self.entries.len() < 64 && !self.entries.contains_key(id),
+            "Duplicate or excessive native preparation registration"
+        );
+        anyhow::ensure!(
+            !suffixes.is_empty()
+                && suffixes.len() <= 16
+                && suffixes.iter().all(|s| s.starts_with('.')
+                    && s.len() > 1
+                    && s.len() <= 64
+                    && s.bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-')))
+                && suffixes
+                    .iter()
+                    .collect::<std::collections::BTreeSet<_>>()
+                    .len()
+                    == suffixes.len(),
+            "Invalid native source suffixes"
+        );
+        self.entries.insert(
+            id.into(),
+            Entry {
+                suffixes: suffixes.iter().map(|s| (*s).into()).collect(),
+                factory: Box::new(factory),
+            },
+        );
+        Ok(())
+    }
+    pub fn supports(&self, path: &str) -> bool {
+        self.entries
+            .values()
+            .any(|e| e.suffixes.iter().any(|s| path.ends_with(s)))
+    }
+    pub fn select(&self, path: &str) -> Result<Option<Preparation>> {
+        let mut found = self
+            .entries
+            .values()
+            .filter(|e| e.suffixes.iter().any(|s| path.ends_with(s)));
+        let Some(entry) = found.next() else {
+            return Ok(None);
+        };
+        anyhow::ensure!(
+            found.next().is_none(),
+            "Ambiguous native preparation format; no backend selected"
+        );
+        (entry.factory)().map(Some)
+    }
+}
+
+#[cfg(test)]
+mod registry_tests {
+    use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    struct NeverRead;
+    impl Backend for NeverRead {
+        type Output = sources::Snapshot;
+        fn read(&self, _: &Context<'_>, _: &[String]) -> Result<(Self::Output, bool)> {
+            anyhow::bail!("Selection does not dispatch a source read")
+        }
+    }
+    #[test]
+    fn selection_is_unique_and_lazy_without_fallback_or_resource_discovery() -> Result<()> {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut registry = Registry::default();
+        let first = Arc::clone(&calls);
+        registry.register("first", &[".lean"], move || {
+            first.fetch_add(1, Ordering::SeqCst);
+            Ok(Preparation::new(NeverRead))
+        })?;
+        assert!(!registry.supports("source.rs"));
+        assert!(registry.select("source.rs")?.is_none());
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        assert!(registry.supports("source.lean"));
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        assert!(registry.select("source.lean")?.is_some());
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        let second = Arc::clone(&calls);
+        registry.register("second", &[".contract.lean"], move || {
+            second.fetch_add(1, Ordering::SeqCst);
+            Ok(Preparation::new(NeverRead))
+        })?;
+        assert!(registry.select("source.contract.lean").is_err());
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert!(registry
+            .register("first", &[".json"], || Ok(Preparation::new(NeverRead)))
+            .is_err());
+        for suffixes in [
+            vec![],
+            vec!["json"],
+            vec!["."],
+            vec![".json", ".json"],
+            vec![".json/path"],
+        ] {
+            assert!(registry
+                .register("invalid", &suffixes, || Ok(Preparation::new(NeverRead)))
+                .is_err());
+        }
+        Ok(())
+    }
+}
