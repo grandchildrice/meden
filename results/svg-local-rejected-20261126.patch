@@ -1,0 +1,280 @@
+diff --git a/apps/web/e2e/map-geometry.ts b/apps/web/e2e/map-geometry.ts
+index d0cadf5..2269aba 100644
+--- a/apps/web/e2e/map-geometry.ts
++++ b/apps/web/e2e/map-geometry.ts
+@@ -234,7 +234,8 @@ export function measureMapGeometry(element: Element) {
+   const nodes = [...svg.querySelectorAll<SVGGElement>("[data-symbol-id]")],
+     centers: DOMPoint[] = [];
+   for (const node of nodes) {
+-    const marker = node.querySelector<SVGGElement>(":scope > g")!,
++    const marker =
++        node.querySelector<SVGGraphicsElement>(".map-symbol-marker")!,
+       m = marker.getScreenCTM()!;
+     close(Math.hypot(m.a, m.b), 1, "marker scale");
+     centers.push(point(m, 0, 0));
+@@ -247,7 +248,8 @@ export function measureMapGeometry(element: Element) {
+     close(p.x - m.e, 9, "symbol label x");
+     close(p.y - m.f, 4, "symbol label y");
+     close(
+-      parseFloat(getComputedStyle(text).fontSize) * unit,
++      parseFloat(getComputedStyle(text).fontSize) *
++        Math.hypot(text.getScreenCTM()!.a, text.getScreenCTM()!.b),
+       11,
+       "symbol font",
+     );
+@@ -259,7 +261,10 @@ export function measureMapGeometry(element: Element) {
+   ];
+   for (const line of lines) {
+     close(
+-      parseFloat(getComputedStyle(line).strokeWidth) * unit,
++      parseFloat(getComputedStyle(line).strokeWidth) *
++        (getComputedStyle(line).vectorEffect === "non-scaling-stroke"
++          ? 1
++          : unit),
+       1,
+       "reference stroke",
+     );
+@@ -361,3 +366,43 @@ export function observeTargetCreation() {
+     original.call(this, name, value);
+   };
+ }
++
++// Observe only existing declaration/reference primitives so initial creation does
++// not hide repeated screen-space geometry writes during subsequent zooms.
++export function observeRetainedDeclarationWrites(svg: SVGSVGElement) {
++  const labels = new Set(svg.querySelectorAll("[data-symbol-id] > text"));
++  const references = new Set(svg.querySelectorAll(".map-reference"));
++  const declarations = new Set(svg.querySelectorAll("[data-symbol-id]"));
++  const changes = {
++    labels: labels.size,
++    references: references.size,
++    transforms: 0,
++    text_geometry: 0,
++    reference_widths: 0,
++  };
++  const observe = (records: MutationRecord[]) => {
++    for (const record of records) {
++      const name = record.attributeName;
++      if (declarations.has(record.target as Element) && name === "transform")
++        changes.transforms++;
++      if (
++        labels.has(record.target as Element) &&
++        ["x", "y", "font-size"].includes(name!)
++      )
++        changes.text_geometry++;
++      if (references.has(record.target as Element) && name === "stroke-width")
++        changes.reference_widths++;
++    }
++  };
++  const observer = new MutationObserver(observe);
++  observer.observe(svg, {
++    attributes: true,
++    subtree: true,
++    attributeFilter: ["transform", "x", "y", "font-size", "stroke-width"],
++  });
++  (window as any).__declarationWrites = () => {
++    observe(observer.takeRecords());
++    observer.disconnect();
++    return changes;
++  };
++}
+diff --git a/apps/web/e2e/native.spec.ts b/apps/web/e2e/native.spec.ts
+index 9d79409..5a0a104 100644
+--- a/apps/web/e2e/native.spec.ts
++++ b/apps/web/e2e/native.spec.ts
+@@ -40,6 +40,7 @@ import {
+   measureMapGeometry,
+   expectMapKeyboardFocus,
+   observeRetainedAreaWrites,
++  observeRetainedDeclarationWrites,
+   observeTargetCreation,
+ } from "./map-geometry";
+ 
+@@ -5188,6 +5189,31 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
+       await page.setViewportSize({ width: 1200, height: 820 });
+       await settle();
+       samples.push(await geometry());
++      await map
++        .locator(".continuous-map-scene")
++        .evaluate(observeRetainedDeclarationWrites);
++      const detailBox = (await map
++        .locator(".workspace-overview-canvas")
++        .boundingBox())!;
++      await page.mouse.move(
++        detailBox.x + detailBox.width / 2,
++        detailBox.y + detailBox.height / 2,
++      );
++      const detailBefore = await geometry();
++      for (const delta of [-40, 40]) {
++        await page.mouse.wheel(0, delta);
++        await settle();
++        samples.push(await geometry());
++      }
++      const declarationWrites = await page.evaluate(() =>
++        (window as any).__declarationWrites(),
++      );
++      expect(declarationWrites.labels).toBeGreaterThan(0);
++      expect(declarationWrites.references).toBeGreaterThan(0);
++      expect(samples.at(-2)!.zoom).toBeGreaterThan(detailBefore.zoom);
++      expect(declarationWrites.text_geometry).toBe(0);
++      expect(declarationWrites.reference_widths).toBe(0);
++      expect(declarationWrites.transforms).toBeGreaterThan(0);
+       const total = Object.values(mutations).reduce((sum, n) => sum + n, 0);
+       await info.attach("retained-area-geometry.json", {
+         contentType: "application/json",
+@@ -5198,8 +5224,9 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
+           dom_canvas_work: domWork,
+           maximum_dom_font_text_and_image_copies: 0,
+           maximum_retained_area_writes: 0,
++          retained_declaration_writes: declarationWrites,
+           scope:
+-            "Actual native map and file workers; eight wheel gestures. Screen-pixel geometry, endpoints, opacity, roles, retained area DOM writes and camera. Not physical paint, INP, live inference or cold installation.",
++            "Actual native map and file workers; eight wheel gestures for retained areas plus two for retained declarations. Screen-pixel geometry, endpoints, opacity, roles, retained primitive DOM writes and camera. Not physical paint, INP, live inference or cold installation.",
+         }),
+       });
+       expect(total).toBe(0);
+diff --git a/apps/web/src/app/styles.css b/apps/web/src/app/styles.css
+index 5738608..baa76a9 100644
+--- a/apps/web/src/app/styles.css
++++ b/apps/web/src/app/styles.css
+@@ -3071,8 +3071,12 @@ pre {
+   cursor: pointer;
+   outline: none;
+ }
+-.continuous-map-scene [role="button"]:focus-visible > rect,
+-.continuous-map-scene [role="button"]:focus-visible > circle {
++.continuous-map-scene
++  [role="button"]:focus-visible
++  > rect:not(.map-symbol-marker),
++.continuous-map-scene
++  [role="button"]:focus-visible
++  > circle:not(.map-symbol-marker) {
+   stroke: #ffe59c;
+ }
+ .project-minimap {
+diff --git a/apps/web/src/features/native/MapSceneElements.tsx b/apps/web/src/features/native/MapSceneElements.tsx
+index 4a6c129..85ac10a 100644
+--- a/apps/web/src/features/native/MapSceneElements.tsx
++++ b/apps/web/src/features/native/MapSceneElements.tsx
+@@ -23,45 +23,37 @@ export const mapAreaColor = (a: MapArea) =>
+ function SymbolMarker({
+   symbol,
+   selected,
+-  zoom,
+ }: {
+   symbol: Symbol;
+   selected: boolean;
+-  zoom: number;
+ }) {
+   const r = selected ? 8 : 6,
+     shape = symbol.role.shape;
+   const style = {
++    className: "map-symbol-marker",
+     fill: symbol.role.color,
+     stroke: selected ? "#fff2ad" : "#263a46",
+     strokeWidth: selected ? 2 : 1,
+   };
+-  return (
+-    <g
+-      className="map-symbol-marker"
+-      transform={`translate(${symbol.x}, ${symbol.y}) scale(${1 / zoom})`}
+-    >
+-      {shape === "circle" ? (
+-        <circle r={r} {...style} />
+-      ) : shape === "square" ? (
+-        <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={1} {...style} />
+-      ) : (
+-        <path
+-          d={
+-            shape === "diamond"
+-              ? `M 0 ${-r - 2} L ${r + 1} 0 L 0 ${r + 2} L ${-r - 1} 0 Z`
+-              : shape === "triangle"
+-                ? `M 0 ${-r - 2} L ${r + 2} ${r} L ${-r - 2} ${r} Z`
+-                : Array.from({ length: 10 }, (_, i) => {
+-                    const angle = (i * Math.PI) / 5 - Math.PI / 2,
+-                      radius = i % 2 ? r * 0.45 : r + 2;
+-                    return `${i ? "L" : "M"} ${Math.cos(angle) * radius} ${Math.sin(angle) * radius}`;
+-                  }).join(" ") + " Z"
+-          }
+-          {...style}
+-        />
+-      )}
+-    </g>
++  return shape === "circle" ? (
++    <circle r={r} {...style} />
++  ) : shape === "square" ? (
++    <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={1} {...style} />
++  ) : (
++    <path
++      d={
++        shape === "diamond"
++          ? `M 0 ${-r - 2} L ${r + 1} 0 L 0 ${r + 2} L ${-r - 1} 0 Z`
++          : shape === "triangle"
++            ? `M 0 ${-r - 2} L ${r + 2} ${r} L ${-r - 2} ${r} Z`
++            : Array.from({ length: 10 }, (_, i) => {
++                const angle = (i * Math.PI) / 5 - Math.PI / 2,
++                  radius = i % 2 ? r * 0.45 : r + 2;
++                return `${i ? "L" : "M"} ${Math.cos(angle) * radius} ${Math.sin(angle) * radius}`;
++              }).join(" ") + " Z"
++      }
++      {...style}
++    />
+   );
+ }
+ 
+@@ -91,6 +83,7 @@ export const MapDeclaration = memo(function MapDeclaration({
+       data-declaration-role={symbol.role.id}
+       opacity={alpha}
+       data-symbol-id={symbol.id}
++      transform={`translate(${symbol.x}, ${symbol.y}) scale(${1 / zoom})`}
+       onClick={(e) => {
+         e.stopPropagation();
+         select(symbol);
+@@ -98,13 +91,8 @@ export const MapDeclaration = memo(function MapDeclaration({
+       onKeyDown={(e) => keyboard(e, () => select(symbol))}
+     >
+       <title>{symbol.role.label + " · " + symbol.name}</title>
+-      <SymbolMarker symbol={symbol} selected={selected} zoom={zoom} />
+-      <text
+-        x={symbol.x + 9 / zoom}
+-        y={symbol.y + 4 / zoom}
+-        fontSize={11 / zoom}
+-        fill="#fff"
+-      >
++      <SymbolMarker symbol={symbol} selected={selected} />
++      <text x={9} y={4} fontSize={11} fill="#fff">
+         {label}
+       </text>
+     </g>
+@@ -115,9 +103,7 @@ export const MapReference = memo(function MapReference({
+   from,
+   to,
+   opacity,
+-  zoom,
+ }: {
+-  zoom: number;
+   from: Symbol;
+   to: Symbol;
+   opacity: number;
+@@ -129,7 +115,8 @@ export const MapReference = memo(function MapReference({
+       y1={from.y}
+       x2={to.x}
+       y2={to.y}
+-      strokeWidth={1 / zoom}
++      strokeWidth={1}
++      vectorEffect="non-scaling-stroke"
+       stroke="#bbd4de"
+       strokeOpacity={opacity * 0.65}
+       pointerEvents="none"
+diff --git a/apps/web/src/features/native/NativeWorkspaceGraph.tsx b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+index c6a96bc..b9a7420 100644
+--- a/apps/web/src/features/native/NativeWorkspaceGraph.tsx
++++ b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+@@ -114,7 +114,6 @@ function Scene({ data }: NodeProps<SceneNode>) {
+                 from={a}
+                 to={b}
+                 opacity={alpha}
+-                zoom={v.zoom}
+               />
+             );
+           })}

@@ -14,11 +14,17 @@ not evidence that a new remote run is green.
 | 4. Generic immutable read models                   | Application-owned `view` DTOs generate native schemas/validators. Inventory, availability, source/graphs, progress, candidates and evidence have separate publications. Native graph rendering consumes declaration/edge fields without inventing a recorded workspace.           | Bounded/binary/unsupported/cyclic inputs and freshness/restart have named journeys. Warm tabs and saved maps are fast paths; measured first-detail stalls and complete new-file validation remain performance work.                                                                           |
 | 5. Retire replacements; choose one measured engine | The browser has one dependency renderer shared by native/recorded contexts and a project-map area painter with SVG interaction layers. The rejected Worker/paint-cache/placement trials are outside production.                                                                   | `npm run dev`'s recorded demo remains a documented live route (`main.tsx`, README and `docs/gui.md`), with its own repository port and captures. Its data context is distinct from native publications. It cannot be called unused or deleted without the planned replacement/coverage audit. |
 
-The current substantive remaining performance evidence is the
-[deployed event audit](../performance/event-latency-latest-20261126.md): repeated
-91–92 ms first-detail wheel work, 136–137 ms overlapping long tasks, EthLib style
-invalidation and separate cached native preparation waits. Those are not fixed
-by moving metadata code, by a missing CPU sample, or by a fast retained-tab test.
+The [consolidated SVG trial](../performance/svg-local-transforms.md) measures the
+current executable on both actual projects and rejects fewer SVG groups/writes
+as a fix: Riemann's worst pause is not consistently shorter, while EthLib's
+style intervals grow. The production renderer stays unchanged. Canvas border/path
+work, style invalidation and complete native preparation remain separate targets.
+
+Current captures retain 94–95 ms first-detail wheel work, 138–140 ms overlapping
+long tasks, EthLib style invalidation and separate cached native preparation
+waits. The earlier [deployed event audit](../performance/event-latency-latest-20261126.md)
+also separates these rendering and native stages. Those are not fixed by moving
+metadata code, by a missing CPU sample, or by a fast retained-tab test.
 
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while

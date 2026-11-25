@@ -1,6 +1,13 @@
 # Local profiling and regression workloads
 
-The [latest deployed event timings](../../docs/performance/event-latency-latest-20261126.md)
+The [consolidated SVG comparison](../../docs/performance/svg-local-transforms.md)
+measures all thirteen operation windows on the deployed `5771462` executable.
+Each actual project runs current/prototype/prototype/current with matching hidden
+source maps. Fewer declaration/reference attributes do not consistently shorten
+Riemann's pause and EthLib style intervals grow to about 111 ms. The prototype
+is rejected; only its archived patch and measurements are retained.
+
+The [earlier deployed event timings](../../docs/performance/event-latency-latest-20261126.md)
 measure all thirteen operation windows twice per actual project on `d09eb9e`.
 Riemann's first-detail wheel takes 91–92 ms, with 136–137 ms long tasks;
 cached file preparation takes 11–12 s. Ordinary graph wheel handlers take about
@@ -24,7 +31,7 @@ records all 13 interaction windows twice per actual project on `e41a847`, with
 event dispatch, later rendering, input/frame proxies and native preparation
 separated. Its numeric record retains exact executable, asset and capture hashes.
 
-The [current deployed event audit](../../docs/performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
+The [ce0c88f event audit](../../docs/performance/event-latency-current.md) measures two captures per actual project on `ce0c88f`. It separates repeatable 117–119 ms Riemann deep-wheel dispatch, 50–164 ms detail-rendering stalls, occasional node-selection work and cached native input validation. This is measurement of the unchanged implementation, with exact source maps and native sampling.
 
 The [ordered sibling index](../../docs/performance/map-sibling-bounds.md) keeps
 closed intersections and original order while pruning dense off-screen branches.
@@ -39,7 +46,7 @@ time falls, but worst stalls do not improve, so the prototype is not promoted.
 The profiler now records each window's document process/thread and excludes
 simultaneous Worker callbacks; ambiguous/missing marks fail capture.
 
-The [current snapshot-boundary event audit](../../docs/performance/snapshot-events.md)
+The [snapshot-boundary event audit](../../docs/performance/snapshot-events.md)
 records all 13 operation windows on both deployed projects, with matching hidden
 source maps and exact native executable attribution. It separates the first-detail
 DOM/Canvas stall from cache-hit full-input validation and initial bounded search.
