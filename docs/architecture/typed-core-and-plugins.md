@@ -1120,3 +1120,10 @@ rectangles, literal paths, focus, ordered activation and camera remain unchanged
 a fragment-parser trial is rejected on measured worst pauses. This advances the
 measured browser wait in step 5. Background paint, native freshness, generic
 layout/collection and navigation annotations, and the retirement audit remain open.
+
+The [background repaint trial](../performance/map-repaint-cache.md) rejects a
+scalar paint cache after alternating actual-project captures fail to establish
+lower worst pauses. The product retains its current painter; the opt-in profiler
+can now count identical ordered paint commands separately from timing captures.
+This is step-2/5 diagnostic evidence, not completion of the remaining generic
+read models, native freshness waits, first-exposure drawing or retirement audit.

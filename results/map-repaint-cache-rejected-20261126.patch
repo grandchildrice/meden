@@ -1,0 +1,457 @@
+# Rejected repaint-cache experiment against b77598c.
+# Apply with git apply --unidiff-zero.
+diff --git a/apps/web/e2e/map-geometry.ts b/apps/web/e2e/map-geometry.ts
+index d0cadf5..aa1ba45 100644
+--- a/apps/web/e2e/map-geometry.ts
++++ b/apps/web/e2e/map-geometry.ts
+@@ -5,0 +6,2 @@ export function installMapPaintObserver() {
++  const clears = new WeakMap<HTMLCanvasElement, number>();
++  (window as any).__areaClears = clears;
+@@ -59,0 +62,5 @@ export function installMapPaintObserver() {
++          const canvas =
++            this.canvas instanceof OffscreenCanvas
++              ? owners.get(this.canvas)
++              : this.canvas;
++          if (canvas) clears.set(canvas, (clears.get(canvas) || 0) + 1);
+diff --git a/apps/web/e2e/native.spec.ts b/apps/web/e2e/native.spec.ts
+index b0681a3..8d87fbd 100644
+--- a/apps/web/e2e/native.spec.ts
++++ b/apps/web/e2e/native.spec.ts
+@@ -4440,0 +4441,128 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
++  test("navigation details update references without duplicate background paint, while focus and surface reset remain visible", async ({
++    page,
++  }, info) => {
++    await writeFile(resolve(project, "A.lean"), "def alpha : Nat := 1\n");
++    await writeFile(
++      resolve(project, "B.lean"),
++      "import A\ndef beta : Nat := alpha\n",
++    );
++    let held = false,
++      release!: () => void;
++    const pending = new Promise<void>((done) => {
++      release = done;
++    });
++    await page.route("**/api/map?*", async (route) => {
++      if (new URL(route.request().url()).searchParams.get("path") !== "B.lean")
++        return route.continue();
++      const response = await route.fetch();
++      held = true;
++      await pending;
++      await route.fulfill({ response });
++    });
++    await page.addInitScript(installMapPaintObserver);
++    await page.goto(await start());
++    const map = page.getByRole("region", { name: "Project map", exact: true });
++    const canvas = map.locator(".map-area-canvas");
++    const frames = async () =>
++      page.evaluate(async () => {
++        for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
++      });
++    const clears = () =>
++      canvas.evaluate((e) => (window as any).__areaClears.get(e) as number);
++    const pixels = () =>
++      canvas.evaluate(async (e) => {
++        const surface = (window as any).__areaSurfaces.get(
++          e,
++        ) as OffscreenCanvas;
++        const data = surface
++          .getContext("2d")!
++          .getImageData(0, 0, surface.width, surface.height).data;
++        return Array.from(
++          new Uint8Array(
++            await crypto.subtle.digest("SHA-256", new Uint8Array(data)),
++          ),
++        )
++          .map((x) => x.toString(16).padStart(2, "0"))
++          .join("");
++      });
++    try {
++      await expect.poll(() => held).toBe(true);
++      await page.evaluate(() => document.fonts.ready);
++      await frames();
++      await expect(
++        map.locator('[data-map-layer="references"] line'),
++      ).toHaveCount(0);
++      const before = await clears(),
++        original = await pixels();
++      expect(before).toBeGreaterThan(0);
++      const camera = await map
++        .locator(".react-flow__viewport")
++        .getAttribute("style");
++      release();
++      await expect(
++        map.locator('[data-map-layer="references"] line'),
++      ).toHaveCount(1);
++      await frames();
++      const after = await clears();
++      expect(await pixels()).toBe(original);
++      expect(
++        await map.locator(".react-flow__viewport").getAttribute("style"),
++      ).toBe(camera);
++      await info.attach("unchanged-area-paint", {
++        body: Buffer.from(
++          JSON.stringify({
++            before,
++            after,
++            background_pixels_unchanged: true,
++            original_camera: true,
++            foreground_reference_added: true,
++            maximum_duplicate_paints: 0,
++          }),
++        ),
++        contentType: "application/json",
++      });
++      expect(after - before).toBe(0);
++      await map
++        .getByRole("button", { name: "Dependencies: A.lean", exact: true })
++        .focus();
++      await page.keyboard.press("Tab");
++      await frames();
++      const focused = await clears(),
++        focusedPixels = await pixels();
++      expect(focused).toBeGreaterThan(after);
++      expect(focusedPixels).not.toBe(original);
++      await page.keyboard.press("Shift");
++      await frames();
++      expect(await clears()).toBe(focused);
++      expect(await pixels()).toBe(focusedPixels);
++      await canvas.evaluate((e) => {
++        const s = (window as any).__areaSurfaces.get(e);
++        s.width = s.width;
++      });
++      expect(await pixels()).not.toBe(focusedPixels);
++      await page.evaluate(() => window.dispatchEvent(new Event("resize")));
++      await frames();
++      expect(await clears()).toBeGreaterThan(focused);
++      expect(await pixels()).toBe(focusedPixels);
++      const restored = await clears();
++      await page.evaluate(() =>
++        document.fonts.dispatchEvent(new Event("loadingdone")),
++      );
++      await frames();
++      expect(await clears()).toBeGreaterThan(restored);
++      expect(await pixels()).toBe(focusedPixels);
++      await page.screenshot({
++        path: info.outputPath("retained-background-reference.png"),
++      });
++      expect(requests).toHaveLength(0);
++      await stop();
++      await page.goto(await start());
++      await expect(
++        map.getByRole("button", { name: "Dependencies: A.lean", exact: true }),
++      ).toBeVisible();
++      expect((await nativeState(page)).authorized).toBe(false);
++    } finally {
++      release();
++    }
++  });
++
+diff --git a/apps/web/src/features/native/MapAreaCanvas.tsx b/apps/web/src/features/native/MapAreaCanvas.tsx
+index 6e307ca..8047d1f 100644
+--- a/apps/web/src/features/native/MapAreaCanvas.tsx
++++ b/apps/web/src/features/native/MapAreaCanvas.tsx
+@@ -7,0 +8 @@ import {
++import { AreaFrame } from "./map-area-frame";
+@@ -35,0 +37 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
++    frame = useRef<AreaFrame>(undefined),
+@@ -46,0 +49,15 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
++      const resized = surface.width !== w || surface.height !== h;
++      const visible = visibleMapAreas(scene, viewport, { width, height });
++      const view = {
++        ...viewport,
++        width,
++        height,
++        ratio,
++        font:
++          "14px " + (family.current ??= getComputedStyle(canvas).fontFamily),
++        focused: focused.current,
++        policy: appearance,
++      };
++      const completed = (frame.current ??= new AreaFrame());
++      if (!resized && completed.matches(view, visible)) return;
++      completed.invalidate();
+@@ -51,2 +68 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+-      context.font =
+-        "14px " + (family.current ??= getComputedStyle(canvas).fontFamily);
++      context.font = view.font;
+@@ -54,4 +70 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+-      for (const { area, opacity } of visibleMapAreas(scene, viewport, {
+-        width,
+-        height,
+-      })) {
++      for (const { area, opacity } of visible) {
+@@ -79,0 +93 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
++      completed.retain(view, visible);
+@@ -108 +122,8 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+-    window.addEventListener("resize", redraw);
++    const invalidate = () => {
++      frame.current?.invalidate();
++      redraw();
++    };
++    window.addEventListener("resize", invalidate);
++    document.fonts.addEventListener("loadingdone", invalidate);
++    const surface = buffer.current!;
++    surface.addEventListener("contextrestored", invalidate);
+@@ -110 +131 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+-      if (alive) redraw();
++      if (alive) invalidate();
+@@ -115 +136,3 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+-      window.removeEventListener("resize", redraw);
++      window.removeEventListener("resize", invalidate);
++      document.fonts.removeEventListener("loadingdone", invalidate);
++      surface.removeEventListener("contextrestored", invalidate);
+diff --git a/apps/web/src/features/native/MapSceneElements.tsx b/apps/web/src/features/native/MapSceneElements.tsx
+index 4a6c129..2381a8e 100644
+--- a/apps/web/src/features/native/MapSceneElements.tsx
++++ b/apps/web/src/features/native/MapSceneElements.tsx
+@@ -18 +18 @@ const keyboard = (event: KeyboardEvent, action: () => void) => {
+-export const mapAreaColor = (a: MapArea) =>
++export const mapAreaColor = (a: Pick<MapArea, "path" | "depth" | "color">) =>
+diff --git a/apps/web/src/features/native/map-area-frame.ts b/apps/web/src/features/native/map-area-frame.ts
+new file mode 100644
+index 0000000..7b02177
+--- /dev/null
++++ b/apps/web/src/features/native/map-area-frame.ts
+@@ -0,0 +1,82 @@
++/** Disposable record of the last completed background paint. It retains only
++ * scalar geometry/style inputs, never a scene, source or semantic observation.
++ */
++export type PaintBox = {
++  path: string;
++  x: number;
++  y: number;
++  width: number;
++  height: number;
++  depth: number;
++  color: number;
++};
++type Areas = ReadonlyArray<{ area: PaintBox; opacity: number }>;
++export type PaintView = {
++  x: number;
++  y: number;
++  zoom: number;
++  width: number;
++  height: number;
++  ratio: number;
++  font: string;
++  focused?: string;
++  policy: object;
++};
++export class AreaFrame {
++  #view?: PaintView;
++  #paths: string[] = [];
++  #values = new Float64Array(0);
++
++  invalidate() {
++    this.#view = undefined;
++  }
++
++  matches(view: PaintView, areas: Areas) {
++    const previous = this.#view;
++    if (
++      !previous ||
++      this.#paths.length !== areas.length ||
++      previous.x !== view.x ||
++      previous.y !== view.y ||
++      previous.zoom !== view.zoom ||
++      previous.width !== view.width ||
++      previous.height !== view.height ||
++      previous.ratio !== view.ratio ||
++      previous.font !== view.font ||
++      previous.focused !== view.focused ||
++      previous.policy !== view.policy
++    )
++      return false;
++    return areas.every(({ area, opacity }, i) => {
++      const p = i * 7;
++      return (
++        this.#paths[i] === area.path &&
++        this.#values[p] === area.x &&
++        this.#values[p + 1] === area.y &&
++        this.#values[p + 2] === area.width &&
++        this.#values[p + 3] === area.height &&
++        this.#values[p + 4] === area.depth &&
++        this.#values[p + 5] === area.color &&
++        this.#values[p + 6] === opacity
++      );
++    });
++  }
++
++  /** Call only after the complete synchronous paint succeeds. */
++  retain(view: PaintView, areas: Areas) {
++    const values = new Float64Array(areas.length * 7);
++    this.#paths = areas.map(({ area, opacity }, i) => {
++      const p = i * 7;
++      values[p] = area.x;
++      values[p + 1] = area.y;
++      values[p + 2] = area.width;
++      values[p + 3] = area.height;
++      values[p + 4] = area.depth;
++      values[p + 5] = area.color;
++      values[p + 6] = opacity;
++      return area.path;
++    });
++    this.#values = values;
++    this.#view = { ...view };
++  }
++}
+diff --git a/apps/web/src/features/native/map-area-frame.test.ts b/apps/web/src/features/native/map-area-frame.test.ts
+new file mode 100644
+index 0000000..ad817ee
+--- /dev/null
++++ b/apps/web/src/features/native/map-area-frame.test.ts
+@@ -0,0 +1,154 @@
++import { expect, test } from "vitest";
++import fc from "fast-check";
++import { AreaFrame, type PaintBox, type PaintView } from "./map-area-frame";
++import { mapAreaColor } from "./MapSceneElements";
++
++const policy = {};
++const view = (): PaintView => ({
++  x: 3,
++  y: 5,
++  zoom: 0.7,
++  width: 800,
++  height: 600,
++  ratio: 2,
++  font: "14px Roboto",
++  policy,
++});
++const box = (): PaintBox => ({
++  path: "Root/α.lean",
++  x: 20,
++  y: 40,
++  width: 300,
++  height: 200,
++  depth: 2,
++  color: 3,
++});
++const rows = () => [{ area: box(), opacity: 0.8 }];
++
++// Independent projection of the original painter's observable command values.
++function commands(v: PaintView, areas: ReturnType<typeof rows>) {
++  return areas.map(({ area: a, opacity }) => {
++    const x = v.x + a.x * v.zoom,
++      y = v.y + a.y * v.zoom,
++      w = a.width * v.zoom,
++      h = a.height * v.zoom;
++    return {
++      rect: [x, y, w, h, Math.min(3, w / 2, h / 2)],
++      fill: [mapAreaColor(a), opacity],
++      stroke: [
++        v.focused === a.path ? "#ffe59c" : "#c7d9ee",
++        0.75 * opacity,
++        0.6,
++      ],
++      text:
++        opacity > 0.65 && w > 65 && h > 28
++          ? [a.path.split("/").at(-1), x + 10, y + Math.min(h / 2, 25), v.font]
++          : null,
++      size: [v.width, v.height, v.ratio],
++    };
++  });
++}
++
++test("paint reuse checks every represented pixel input, ordered areas and explicit invalidation", () => {
++  const original = rows(),
++    v = view(),
++    frame = new AreaFrame();
++  expect(frame.matches(v, original)).toBe(false);
++  frame.retain(v, original);
++  expect(
++    frame.matches(
++      { ...v },
++      original.map((r) => ({
++        ...r,
++        area: { ...r.area, references: ["new semantic data"] },
++      })),
++    ),
++  ).toBe(true);
++  for (const key of ["x", "y", "zoom", "width", "height", "ratio"] as const)
++    expect(frame.matches({ ...v, [key]: v[key] + 1 }, original), key).toBe(
++      false,
++    );
++  for (const changed of [
++    { font: "14px Different" },
++    { focused: original[0]!.area.path },
++    { policy: {} },
++  ])
++    expect(frame.matches({ ...v, ...changed }, original)).toBe(false);
++  for (const key of ["x", "y", "width", "height", "depth", "color"] as const) {
++    const next = rows();
++    next[0]!.area[key]++;
++    expect(frame.matches(v, next), key).toBe(false);
++  }
++  for (const changed of [
++    [{ area: { ...box(), path: "Other" }, opacity: 0.8 }],
++    [{ area: box(), opacity: 0.7 }],
++    [],
++    [...original, ...original],
++  ])
++    expect(frame.matches(v, changed)).toBe(false);
++  original[0]!.area.x++;
++  expect(frame.matches(v, original)).toBe(false); // Retention is not a mutable alias.
++  frame.retain(v, []);
++  expect(frame.matches(v, [])).toBe(true);
++  frame.invalidate();
++  expect(frame.matches(v, [])).toBe(false);
++});
++
++test("generated redraw/reuse traces preserve complete original commands and do not mutate inputs", () => {
++  const area = fc.record({
++    path: fc.constantFrom("A.lean", 'Quoted & ".lean', "Ω/B.lean"),
++    x: fc.integer({ min: 0, max: 10000 }),
++    y: fc.integer({ min: 0, max: 6600 }),
++    width: fc.integer({ min: 1, max: 5000 }),
++    height: fc.integer({ min: 1, max: 3300 }),
++    depth: fc.integer({ min: 1, max: 8 }),
++    color: fc.integer({ min: 0, max: 4 }),
++  });
++  fc.assert(
++    fc.property(
++      fc.array(
++        fc.record({
++          areas: fc.array(
++            fc.record({
++              area,
++              opacity: fc.constantFrom(0.01, 0.5, 0.65, 0.8, 1),
++            }),
++            { maxLength: 30 },
++          ),
++          pan: fc.integer({ min: -50, max: 50 }),
++          clear: fc.boolean(),
++        }),
++        { minLength: 1, maxLength: 30 },
++      ),
++      (trace) => {
++        const before = JSON.stringify(trace),
++          frame = new AreaFrame();
++        let painted: unknown;
++        for (const step of trace) {
++          const v = { ...view(), x: step.pan };
++          if (step.clear) frame.invalidate();
++          const expected = commands(v, step.areas);
++          if (frame.matches(v, step.areas)) expect(expected).toEqual(painted);
++          else {
++            frame.retain(v, step.areas);
++            painted = expected;
++          }
++          // Fresh nonpaint descriptions with the same original geometry are no-op updates.
++          const copied = step.areas.map((r) => ({
++            ...r,
++            area: { ...r.area, source: { unrelated: true } },
++          }));
++          expect(frame.matches({ ...v }, copied)).toBe(true);
++          expect(commands(v, copied)).toEqual(painted);
++          if (copied.length > 1) {
++            const reversed = [...copied].reverse();
++            if (frame.matches(v, reversed))
++              expect(commands(v, reversed)).toEqual(painted);
++          }
++        }
++        expect(JSON.stringify(trace)).toBe(before);
++      },
++    ),
++    { seed: 20261126, numRuns: 500 },
++  );
++});

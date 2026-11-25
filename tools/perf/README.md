@@ -451,3 +451,10 @@ warm-byte reads from cold installation/startup. The
 [recorded-history comparison](../../docs/performance/recorded-history.md) records
 the original numeric-array reader against the existing encoded snapshot mode;
 the production loader retains only the latter.
+
+For separate duplicate-background diagnostics, set
+`MEDEN_GUI_PAINT_OBSERVATIONS=1` when running either profiler. The optional
+`area-paints.json` records bounded ordered-command agreement and is included in
+the native wrapper manifest. Hooks perturb timing; leave the flag unset for
+comparisons. This is scoped to the current area painter, not arbitrary Canvas
+pixel equivalence. See [the rejected cache trial](../../docs/performance/map-repaint-cache.md).

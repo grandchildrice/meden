@@ -1,0 +1,2861 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "b77598c",
+  "decision": "Reject the scalar paint cache. Retain one current application painter; add opt-in command-stream diagnostics only.",
+  "scope": "No application/runtime, native executable, backend, geometry, source, job/evidence authority or dependency change is deployed. Rejected prototype remains solely an archived experiment.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/diagnostics.spec.ts",
+      "bytes": 2152,
+      "sha256": "12a2f91b5c48bfdfebfbbf3a1a004c92ba165b134f50cac1bb1ffceb3d86823d"
+    },
+    {
+      "path": "tools/gui/area-paint-observer.d.mts",
+      "bytes": 50,
+      "sha256": "2869cbd86000edde906b733ad077476dd4a404cb0f355c0f5ed35aac6c367023"
+    },
+    {
+      "path": "tools/gui/area-paint-observer.mjs",
+      "bytes": 3055,
+      "sha256": "207cde1ef150257625cb5fbad8a442de597e65d55e36afa416acbf689224f8bf"
+    },
+    {
+      "path": "tools/gui/profile-interactions.mjs",
+      "bytes": 28404,
+      "sha256": "35ba351e4a923497bb7bf4c45797293ccfa3b76b4ab6a753861673098639d9c8"
+    },
+    {
+      "path": "tools/perf/README.md",
+      "bytes": 30212,
+      "sha256": "e2cc869a1b637211462f823b13bc6f64763b24c8ecb7cb91786ba8b95624acd3"
+    },
+    {
+      "path": "tools/perf/profile-native.mjs",
+      "bytes": 6114,
+      "sha256": "d9e12b883ced661da9dd19d86fffff89c97d1d00b7b1eb11e9c2e6c8f14d69cb"
+    }
+  ],
+  "prototype": {
+    "diagnostic": {
+      "draws": 107,
+      "identical_draws": 13,
+      "area_draws": 149221,
+      "identical_area_draws": 11543
+    },
+    "initial_focused_browser": 3,
+    "unit": 87,
+    "typecheck": true,
+    "architecture": 55,
+    "schema": true,
+    "format": true,
+    "original_assets_negative_control": {
+      "stats": {
+        "total": 1,
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "tests": [
+        {
+          "title": "navigation details update references without duplicate background paint, while focus and surface reset remain visible",
+          "ok": false,
+          "outcome": "unexpected",
+          "attachments": [
+            {
+              "name": "unchanged-area-paint",
+              "data": {
+                "before": 4,
+                "after": 5,
+                "background_pixels_unchanged": true,
+                "original_camera": true,
+                "foreground_reference_added": true,
+                "maximum_duplicate_paints": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "full_browser_suite": "Interrupted after rejection; partial successes excluded from completed coverage. Detached test processes were explicitly cleaned up; production services protected.",
+    "stop": {
+      "reason": "Prototype rejected after controlled comparison; stop unused browser-suite startup. Required TUI completed successfully first.",
+      "tui": 37,
+      "group": 2859832,
+      "interrupted_phase": "gui"
+    },
+    "cleanup": {
+      "reason": "Full rejected-prototype browser suite was interrupted. Detached Playwright children continued after the orchestrator group stopped; their exact environment-tagged process trees were cleaned up. Partial cases are not claimed as completed coverage.",
+      "processes": [
+        {
+          "pid": 2887134,
+          "ppid": 2100,
+          "comm": "npm run preview"
+        },
+        {
+          "pid": 2887329,
+          "ppid": 2887134,
+          "comm": "node"
+        },
+        {
+          "pid": 2887338,
+          "ppid": 2887329,
+          "comm": "esbuild"
+        }
+      ],
+      "forced": [],
+      "production_pids_protected": [
+        2823083,
+        2823272
+      ]
+    },
+    "patch": "results/map-repaint-cache-rejected-20261126.patch"
+  },
+  "comparison": {
+    "methodology": "Current/cache/cache/current, fresh Chrome 149 contexts per actual project, normal motion, 1440x960, no throttling. Same native executable and projects, static asset substitution retains native headers. No simultaneous build/test/inference/sampler during these eight captures. Document-thread browser spans; inclusive stages overlap. Two runs per strategy are diagnostic, not field percentiles. Native rings may evict and are excluded from native CPU/full-worker attribution.",
+    "projects": [
+      {
+        "project": "riemann",
+        "runs": [
+          {
+            "stage": "control-1",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:54:34.715Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "declarations": 15,
+              "project_files": 175187,
+              "setup_preparation_ms": 11202.299023,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+              "source_maps_sha256": {
+                "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 97.92,
+                "p95_ms": 97.92,
+                "max_ms": 97.92,
+                "total_ms": 124.66
+              },
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 142,
+                "p95_ms": 142,
+                "max_ms": 142,
+                "total_ms": 202
+              },
+              "frames": {
+                "count": 331,
+                "p50_ms": 16.69999999999709,
+                "p95_ms": 16.80000000000291,
+                "max_ms": 133.3000000000029,
+                "total_ms": 6066.4000000000015
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 13,
+                "map_declarations": 26
+              },
+              "visible_declarations": 26,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+              },
+              "steps": [
+                {
+                  "path": "src/Development",
+                  "category": true,
+                  "x": 581.7184143066406,
+                  "y": 276.739990234375,
+                  "area": 318672.5851306021
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                  "category": true,
+                  "x": 541.1026916503906,
+                  "y": 301.0216522216797,
+                  "area": 107902.61881094612
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                  "category": false,
+                  "x": 461.1611328125,
+                  "y": 206.093994140625,
+                  "area": 332.91505086421967
+                }
+              ],
+              "detail_requests": 10
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 1.886,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 241,
+                "maximum_dispatch_ms": 0.422,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.788,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 8,
+                "maximum_dispatch_ms": 0.938,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 17.141,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.30000000000291
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.486,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 111,
+                "maximum_dispatch_ms": 31.92,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.20000000000073
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 277,
+                "maximum_dispatch_ms": 21.432,
+                "long_tasks": {
+                  "count": 1,
+                  "p50_ms": 65,
+                  "p95_ms": 65,
+                  "max_ms": 65,
+                  "total_ms": 65
+                },
+                "frame_p95_ms": 33.30000000000291,
+                "maximum_frame_ms": 66.59999999999854
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 42,
+                "maximum_dispatch_ms": 3.892,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 120,
+                "maximum_dispatch_ms": 97.92,
+                "long_tasks": {
+                  "count": 2,
+                  "p50_ms": 142,
+                  "p95_ms": 142,
+                  "max_ms": 142,
+                  "total_ms": 202
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 133.3000000000029
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999995634,
+                "maximum_frame_ms": 16.80000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/summary.json",
+                "bytes": 722707,
+                "sha256": "4331ef1737b94531377fd40d21051fadf70c10539aaf38f94a3b2897b26798b5"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/trace.json",
+                "bytes": 16896565,
+                "sha256": "052391f994b1671e9bf1e0d20b9dea9be6a3eed63e90591e62a636330f93c6e6"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/native-metrics.json",
+                "bytes": 363409,
+                "sha256": "53f9bd0dd0a2972ceb90efa2ad279725595c5d85502091a08b65a91684737a23"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/project-map.png",
+                "bytes": 99883,
+                "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/project-map-drill.cpuprofile",
+                "bytes": 282945,
+                "sha256": "ce5c105db34e1431f46a8f048e881ee389962d70922ea2f7321eea47f12123f7"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-1/preparation.json",
+                "bytes": 470,
+                "sha256": "483d9116ba94dc171379b3aaf9304a60a34ea4099addf2d9439ad3e2d7aaf231"
+              }
+            ]
+          },
+          {
+            "stage": "candidate-1",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:55:23.834Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "declarations": 15,
+              "project_files": 175187,
+              "setup_preparation_ms": 11269.27489,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/repaint-assets",
+              "source_maps_sha256": {
+                "index-USKN_inv.js": "d5b49027534194b82d79e3ddc584ff15da6464eb9ed6cf02bcaa5fd059347013"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 98.085,
+                "p95_ms": 98.085,
+                "max_ms": 98.085,
+                "total_ms": 125.47099999999999
+              },
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 143,
+                "p95_ms": 143,
+                "max_ms": 143,
+                "total_ms": 202
+              },
+              "frames": {
+                "count": 330,
+                "p50_ms": 16.69999999999709,
+                "p95_ms": 33.299999999995634,
+                "max_ms": 133.40000000000146,
+                "total_ms": 6049.799999999996
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 13,
+                "map_declarations": 26
+              },
+              "visible_declarations": 26,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+              },
+              "steps": [
+                {
+                  "path": "src/Development",
+                  "category": true,
+                  "x": 581.7184143066406,
+                  "y": 276.739990234375,
+                  "area": 318672.5851306021
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                  "category": true,
+                  "x": 541.1026916503906,
+                  "y": 301.0216522216797,
+                  "area": 107902.61881094612
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                  "category": false,
+                  "x": 461.1611328125,
+                  "y": 206.093994140625,
+                  "area": 332.91505086421967
+                }
+              ],
+              "detail_requests": 10
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 1.926,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 242,
+                "maximum_dispatch_ms": 0.387,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.497,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 6,
+                "maximum_dispatch_ms": 1.522,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 16.469,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.425,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 111,
+                "maximum_dispatch_ms": 28.673,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 269,
+                "maximum_dispatch_ms": 13.813,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 33.30000000000291
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 42,
+                "maximum_dispatch_ms": 4.358,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 124,
+                "maximum_dispatch_ms": 98.085,
+                "long_tasks": {
+                  "count": 2,
+                  "p50_ms": 143,
+                  "p95_ms": 143,
+                  "max_ms": 143,
+                  "total_ms": 202
+                },
+                "frame_p95_ms": 33.299999999995634,
+                "maximum_frame_ms": 133.40000000000146
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999995634,
+                "maximum_frame_ms": 50
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/summary.json",
+                "bytes": 728272,
+                "sha256": "3e19729c0a3d29be23da7baec8c086564db99e56bc7dd9a5368c809cd0c8dec1"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/trace.json",
+                "bytes": 16442288,
+                "sha256": "55fc576e89ffb0fe13bd831c9bae36feac3e2d3852c8a0691eba54072daeb3d0"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/native-metrics.json",
+                "bytes": 486409,
+                "sha256": "d0f3ceeaf2a3a006759ea61478b2ae6e3f1ef8cd308d0edfa1fa538fc856f41c"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/project-map.png",
+                "bytes": 99883,
+                "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/project-map-drill.cpuprofile",
+                "bytes": 276211,
+                "sha256": "7070e433cbedd918db689580953cc375b7d5636d9041e07064ed49babd19a1ff"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-1/preparation.json",
+                "bytes": 470,
+                "sha256": "be5d39d932f5cfd1551a74efe3340d4ec97264d98ad8be968cacc9a082a3784a"
+              }
+            ]
+          },
+          {
+            "stage": "candidate-2",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:56:12.882Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "declarations": 15,
+              "project_files": 175187,
+              "setup_preparation_ms": 11303.526957,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/repaint-assets",
+              "source_maps_sha256": {
+                "index-USKN_inv.js": "d5b49027534194b82d79e3ddc584ff15da6464eb9ed6cf02bcaa5fd059347013"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 93.793,
+                "p95_ms": 93.793,
+                "max_ms": 93.793,
+                "total_ms": 122.98400000000001
+              },
+              "long_tasks": {
+                "count": 3,
+                "p50_ms": 60,
+                "p95_ms": 139,
+                "max_ms": 139,
+                "total_ms": 253
+              },
+              "frames": {
+                "count": 329,
+                "p50_ms": 16.69999999999709,
+                "p95_ms": 33.299999999995634,
+                "max_ms": 133.29999999999563,
+                "total_ms": 6033.0999999999985
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 13,
+                "map_declarations": 26
+              },
+              "visible_declarations": 26,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+              },
+              "steps": [
+                {
+                  "path": "src/Development",
+                  "category": true,
+                  "x": 581.7184143066406,
+                  "y": 276.739990234375,
+                  "area": 318672.5851306021
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                  "category": true,
+                  "x": 541.1026916503906,
+                  "y": 301.0216522216797,
+                  "area": 107902.61881094612
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                  "category": false,
+                  "x": 461.1611328125,
+                  "y": 206.093994140625,
+                  "area": 332.91505086421967
+                }
+              ],
+              "detail_requests": 10
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 0.975,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 242,
+                "maximum_dispatch_ms": 0.4,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.566,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 10,
+                "maximum_dispatch_ms": 0.994,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 20.668,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.266,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 111,
+                "maximum_dispatch_ms": 30.857,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 272,
+                "maximum_dispatch_ms": 15.527,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 33.299999999995634,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 43,
+                "maximum_dispatch_ms": 5.07,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.799999999995634
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 120,
+                "maximum_dispatch_ms": 93.793,
+                "long_tasks": {
+                  "count": 3,
+                  "p50_ms": 60,
+                  "p95_ms": 139,
+                  "max_ms": 139,
+                  "total_ms": 253
+                },
+                "frame_p95_ms": 33.299999999995634,
+                "maximum_frame_ms": 133.29999999999563
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999995634,
+                "maximum_frame_ms": 33.30000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/summary.json",
+                "bytes": 730016,
+                "sha256": "561b11bd39d1014894b0987fed00b554bd5de47f3cd8faddec85e068e5841f02"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/trace.json",
+                "bytes": 15906835,
+                "sha256": "db876a4eb2a317de97d02b7819209bc361ce60bd681a0bbae04125865ac87a72"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/native-metrics.json",
+                "bytes": 610303,
+                "sha256": "ccbf28e674a9495b09e48a30dafe41827b11a76a83aad246bc3d0ebeb728c37b"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/project-map.png",
+                "bytes": 99883,
+                "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/project-map-drill.cpuprofile",
+                "bytes": 293353,
+                "sha256": "92bb4d080d82801a55644274a1266fc9038e875d35833208481d2781bcdf1f09"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-candidate-2/preparation.json",
+                "bytes": 470,
+                "sha256": "779eb2955ee2f5aea5b7c8325319eb43b3a0649a099e26b2216fb1db03f48e28"
+              }
+            ]
+          },
+          {
+            "stage": "control-2",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:57:03.199Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+              "declarations": 15,
+              "project_files": 175187,
+              "setup_preparation_ms": 12364.702130999998,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+              "source_maps_sha256": {
+                "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 98.1,
+                "p95_ms": 98.1,
+                "max_ms": 98.1,
+                "total_ms": 128.76
+              },
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 143,
+                "p95_ms": 143,
+                "max_ms": 143,
+                "total_ms": 203
+              },
+              "frames": {
+                "count": 331,
+                "p50_ms": 16.69999999999709,
+                "p95_ms": 33.30000000000291,
+                "max_ms": 133.3000000000029,
+                "total_ms": 6083.0999999999985
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 13,
+                "map_declarations": 26
+              },
+              "visible_declarations": 26,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+              },
+              "steps": [
+                {
+                  "path": "src/Development",
+                  "category": true,
+                  "x": 581.7184143066406,
+                  "y": 276.739990234375,
+                  "area": 318672.5851306021
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                  "category": true,
+                  "x": 541.1026916503906,
+                  "y": 301.0216522216797,
+                  "area": 107902.61881094612
+                },
+                {
+                  "wheel": -650,
+                  "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+                },
+                {
+                  "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                  "category": false,
+                  "x": 461.1611328125,
+                  "y": 206.093994140625,
+                  "area": 332.91505086421967
+                }
+              ],
+              "detail_requests": 10
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 2.052,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 242,
+                "maximum_dispatch_ms": 0.332,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.674,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 12,
+                "maximum_dispatch_ms": 0.993,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 17.14,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.30000000000291
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.828,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 111,
+                "maximum_dispatch_ms": 29.907,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999995634,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 280,
+                "maximum_dispatch_ms": 13.969,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 33.30000000000291,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 43,
+                "maximum_dispatch_ms": 4.272,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 130,
+                "maximum_dispatch_ms": 98.1,
+                "long_tasks": {
+                  "count": 2,
+                  "p50_ms": 143,
+                  "p95_ms": 143,
+                  "max_ms": 143,
+                  "total_ms": 203
+                },
+                "frame_p95_ms": 33.30000000000291,
+                "maximum_frame_ms": 133.3000000000029
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 33.19999999999709
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/summary.json",
+                "bytes": 745229,
+                "sha256": "7f686cdcf9dba3515ca3ea4082ac78d62f37994a8c69ca10b2baff48c526cdb2"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/trace.json",
+                "bytes": 16111797,
+                "sha256": "902c361023e8ff75237bcf2968eb29b91131e31e612ca5a2a5004484dccdd31e"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/native-metrics.json",
+                "bytes": 734871,
+                "sha256": "af32536793a33d40690ca799137a31501bf45ae727d2d0c1d1f0ef479634a3e4"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/project-map.png",
+                "bytes": 99883,
+                "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/project-map-drill.cpuprofile",
+                "bytes": 288840,
+                "sha256": "7470899e68724fcc124a44030e7d6e349bcc6d3a5e6e3d02b22cf2e77e841738"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/riemann-control-2/preparation.json",
+                "bytes": 470,
+                "sha256": "1b39a05155dcbf50f854f6112b9c6ffb9ec3c90a53be77a2141b6174c29ffaeb"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "runs": [
+          {
+            "stage": "control-1",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:57:50.432Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "EthLib/Networking/Gossip/Parameters.lean",
+              "declarations": 42,
+              "project_files": 2517,
+              "setup_preparation_ms": 3014.7504900000004,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+              "source_maps_sha256": {
+                "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 21.47,
+                "p95_ms": 21.47,
+                "max_ms": 21.47,
+                "total_ms": 26.281
+              },
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frames": {
+                "count": 323,
+                "p50_ms": 16.700000000000728,
+                "p95_ms": 16.80000000000291,
+                "max_ms": 150,
+                "total_ms": 5816.5
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 15,
+                "map_declarations": 383
+              },
+              "visible_declarations": 358,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+              },
+              "steps": [
+                {
+                  "path": "EthLib/Cryptography",
+                  "category": true,
+                  "x": 418.0854187011719,
+                  "y": 238.74000549316406,
+                  "area": 151924.01089689136
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls",
+                  "category": true,
+                  "x": 796.2194213867188,
+                  "y": 540.9219360351562,
+                  "area": 196442.38151367754
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography/Proofs/Bls"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                  "category": false,
+                  "x": 467.0340576171875,
+                  "y": 272.91455078125,
+                  "area": 92145.98274445534
+                }
+              ],
+              "detail_requests": 8
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.800000000000182
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 1.489,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 241,
+                "maximum_dispatch_ms": 0.958,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.749,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 6,
+                "maximum_dispatch_ms": 4.783,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 11.746,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.26,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 118,
+                "maximum_dispatch_ms": 21.657,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 33.29999999999927
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 187,
+                "maximum_dispatch_ms": 17.336,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 33.400000000001455
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 32,
+                "maximum_dispatch_ms": 5.508,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 88,
+                "maximum_dispatch_ms": 21.47,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 150
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/summary.json",
+                "bytes": 662011,
+                "sha256": "21fcfe7ed6647ab0214d9b90d354e034a2f5ca902dfb8c4763374ac2a0f8476e"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/trace.json",
+                "bytes": 14174102,
+                "sha256": "a1e48441282d1d39c2152e5e50f3f51083be8a6cdf2ac0a1c71cbe7293653e0a"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/native-metrics.json",
+                "bytes": 540321,
+                "sha256": "ed333612e5f6de83cddb5fcf0cd65a76bf47b509908fd0d3f3d4e6ed9cefa9ef"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/project-map.png",
+                "bytes": 253324,
+                "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/project-map-drill.cpuprofile",
+                "bytes": 314740,
+                "sha256": "2394a2765122ebe17c4375ddc54b8b751cf1d11a072c5e374387188777da8fb3"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-1/preparation.json",
+                "bytes": 421,
+                "sha256": "bf722841c6cd33c9ea9a9e3ff596cf012f735025dd32a4f3052078ab6312ee86"
+              }
+            ]
+          },
+          {
+            "stage": "candidate-1",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:58:28.494Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "EthLib/Networking/Gossip/Parameters.lean",
+              "declarations": 42,
+              "project_files": 2517,
+              "setup_preparation_ms": 3032.308699,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/repaint-assets",
+              "source_maps_sha256": {
+                "index-USKN_inv.js": "d5b49027534194b82d79e3ddc584ff15da6464eb9ed6cf02bcaa5fd059347013"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 11.197,
+                "p95_ms": 11.197,
+                "max_ms": 11.197,
+                "total_ms": 17.808999999999997
+              },
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frames": {
+                "count": 323,
+                "p50_ms": 16.700000000000728,
+                "p95_ms": 16.80000000000291,
+                "max_ms": 116.79999999999927,
+                "total_ms": 5799.800000000003
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 15,
+                "map_declarations": 383
+              },
+              "visible_declarations": 358,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+              },
+              "steps": [
+                {
+                  "path": "EthLib/Cryptography",
+                  "category": true,
+                  "x": 418.0854187011719,
+                  "y": 238.74000549316406,
+                  "area": 151924.01089689136
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls",
+                  "category": true,
+                  "x": 796.2194213867188,
+                  "y": 540.9219360351562,
+                  "area": 196442.38151367754
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography/Proofs/Bls"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                  "category": false,
+                  "x": 467.0340576171875,
+                  "y": 272.91455078125,
+                  "area": 92145.98274445534
+                }
+              ],
+              "detail_requests": 8
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.800000000000182
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 2.299,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 241,
+                "maximum_dispatch_ms": 0.828,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.714,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 4,
+                "maximum_dispatch_ms": 1.032,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 16.666,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.264,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 119,
+                "maximum_dispatch_ms": 21.583,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 187,
+                "maximum_dispatch_ms": 13.642,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 32,
+                "maximum_dispatch_ms": 5.479,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 84,
+                "maximum_dispatch_ms": 11.197,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 116.79999999999927
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999995634,
+                "maximum_frame_ms": 16.80000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/summary.json",
+                "bytes": 652097,
+                "sha256": "3c5c4b6e76bd891ca222c9c82c72f6718d21b42db4f281119f9d665040130025"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/trace.json",
+                "bytes": 14045736,
+                "sha256": "176888915fee5c04d32583e3873519c7c4f4b332459801cd70d0bb9e54ba84a6"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/native-metrics.json",
+                "bytes": 629536,
+                "sha256": "3a2220c21a786ef2bc7a7df9e766f0527a31a064533e52704d262da2a2deb348"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/project-map.png",
+                "bytes": 253324,
+                "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/project-map-drill.cpuprofile",
+                "bytes": 289485,
+                "sha256": "2105195b7763600488d6d2de9617e3843967d20d9d0f7ba94ed3ec81c921f68b"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-1/preparation.json",
+                "bytes": 421,
+                "sha256": "a3c47f9e7aa24a274cf0ef9d5c8da933f0b9868cc6b70d1ee58442e2ee81ca52"
+              }
+            ]
+          },
+          {
+            "stage": "candidate-2",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:59:06.742Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "EthLib/Networking/Gossip/Parameters.lean",
+              "declarations": 42,
+              "project_files": 2517,
+              "setup_preparation_ms": 3065.686976,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/repaint-assets",
+              "source_maps_sha256": {
+                "index-USKN_inv.js": "d5b49027534194b82d79e3ddc584ff15da6464eb9ed6cf02bcaa5fd059347013",
+                "GraphView-CY6ty_jU.js": "5f82100d52360c85217df9c578e4d4184501aae34b3ec8c6d7a3d49053e3bd10"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 17.449,
+                "p95_ms": 17.449,
+                "max_ms": 17.449,
+                "total_ms": 22.437
+              },
+              "long_tasks": {
+                "count": 4,
+                "p50_ms": 62,
+                "p95_ms": 64,
+                "max_ms": 64,
+                "total_ms": 244
+              },
+              "frames": {
+                "count": 321,
+                "p50_ms": 16.700000000000728,
+                "p95_ms": 16.799999999999272,
+                "max_ms": 133.29999999999927,
+                "total_ms": 5816.5
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 15,
+                "map_declarations": 383
+              },
+              "visible_declarations": 358,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+              },
+              "steps": [
+                {
+                  "path": "EthLib/Cryptography",
+                  "category": true,
+                  "x": 418.0854187011719,
+                  "y": 238.74000549316406,
+                  "area": 151924.01089689136
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls",
+                  "category": true,
+                  "x": 796.2194213867188,
+                  "y": 540.9219360351562,
+                  "area": 196442.38151367754
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography/Proofs/Bls"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                  "category": false,
+                  "x": 467.0340576171875,
+                  "y": 272.91455078125,
+                  "area": 92145.98274445534
+                }
+              ],
+              "detail_requests": 7
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.800000000000182
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 2.134,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 242,
+                "maximum_dispatch_ms": 0.732,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 0.954,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 6,
+                "maximum_dispatch_ms": 0.793,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 16.098,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.249,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.80000000000291,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 119,
+                "maximum_dispatch_ms": 18.003,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 187,
+                "maximum_dispatch_ms": 15.353,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 33.29999999999927
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 32,
+                "maximum_dispatch_ms": 6.012,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 84,
+                "maximum_dispatch_ms": 17.449,
+                "long_tasks": {
+                  "count": 4,
+                  "p50_ms": 62,
+                  "p95_ms": 64,
+                  "max_ms": 64,
+                  "total_ms": 244
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 133.29999999999927
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/summary.json",
+                "bytes": 658944,
+                "sha256": "157ebf0d92ffe7b8dffed37575a047e7b8eaf852e7da6cd7525d3a1259bb3d80"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/trace.json",
+                "bytes": 13582538,
+                "sha256": "84492779dfdc7c54cf3df139a5fcad75a057cded07338b0d307e7f59b91b6479"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/native-metrics.json",
+                "bytes": 718515,
+                "sha256": "bc1a9ed95c0cc9b664fbcf4538eada0a259285cda6a62349c2e96d2c58938e25"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/project-map.png",
+                "bytes": 253324,
+                "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/project-map-drill.cpuprofile",
+                "bytes": 291564,
+                "sha256": "2a475e6204c525cab191e9f52100f768f5d1fa325c1bd871e776c45204dd82ac"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-candidate-2/preparation.json",
+                "bytes": 421,
+                "sha256": "1d2a52dcca597f4c5fcc5e5869af1899f01e1dbbedd0f569b472ecf9b5e2f667"
+              }
+            ]
+          },
+          {
+            "stage": "control-2",
+            "environment": {
+              "captured_at_utc": "2026-11-25T15:59:45.057Z",
+              "browser": "149.0.7827.53",
+              "viewport": "1440x960",
+              "throttling": "none",
+              "reduced_motion": "no-preference",
+              "gesture_tail_ms": 600,
+              "file": "EthLib/Networking/Gossip/Parameters.lean",
+              "declarations": 42,
+              "project_files": 2517,
+              "setup_preparation_ms": 3040.6343050000005,
+              "setup_cache_hit": true,
+              "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+              "source_maps_sha256": {
+                "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+              }
+            },
+            "deep_zoom": {
+              "dispatch": {
+                "count": 2,
+                "p50_ms": 16.814,
+                "p95_ms": 16.814,
+                "max_ms": 16.814,
+                "total_ms": 21.733
+              },
+              "long_tasks": {
+                "count": 5,
+                "p50_ms": 59,
+                "p95_ms": 61,
+                "max_ms": 61,
+                "total_ms": 292
+              },
+              "frames": {
+                "count": 321,
+                "p50_ms": 16.700000000000728,
+                "p95_ms": 16.799999999999272,
+                "max_ms": 116.70000000000073,
+                "total_ms": 5816.4000000000015
+              },
+              "retained_dom": {
+                "graph_nodes": 0,
+                "map_boxes": 15,
+                "map_declarations": 383
+              },
+              "visible_declarations": 358,
+              "camera": {
+                "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+                "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+              },
+              "steps": [
+                {
+                  "path": "EthLib/Cryptography",
+                  "category": true,
+                  "x": 418.0854187011719,
+                  "y": 238.74000549316406,
+                  "area": 151924.01089689136
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls",
+                  "category": true,
+                  "x": 796.2194213867188,
+                  "y": 540.9219360351562,
+                  "area": 196442.38151367754
+                },
+                {
+                  "wheel": -650,
+                  "parent": "EthLib/Cryptography/Proofs/Bls"
+                },
+                {
+                  "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                  "category": false,
+                  "x": 467.0340576171875,
+                  "y": 272.91455078125,
+                  "area": 92145.98274445534
+                }
+              ],
+              "detail_requests": 7
+            },
+            "windows": [
+              {
+                "name": "graph-idle-poll",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.800000000000182
+              },
+              {
+                "name": "graph-idle-settled",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-wheel",
+                "dispatch_count": 30,
+                "maximum_dispatch_ms": 2.218,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-hover",
+                "dispatch_count": 242,
+                "maximum_dispatch_ms": 1.106,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000109
+              },
+              {
+                "name": "graph-pan",
+                "dispatch_count": 71,
+                "maximum_dispatch_ms": 1.254,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-resize",
+                "dispatch_count": 4,
+                "maximum_dispatch_ms": 0.984,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "tab-switch",
+                "dispatch_count": 477,
+                "maximum_dispatch_ms": 14.958,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-fit-view",
+                "dispatch_count": 20,
+                "maximum_dispatch_ms": 1.15,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "graph-node-select",
+                "dispatch_count": 119,
+                "maximum_dispatch_ms": 17.608,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "graph-node-select-distinct",
+                "dispatch_count": 187,
+                "maximum_dispatch_ms": 14.783,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000000728,
+                "maximum_frame_ms": 16.799999999999272
+              },
+              {
+                "name": "project-map-wheel",
+                "dispatch_count": 32,
+                "maximum_dispatch_ms": 4.968,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 16.80000000000291
+              },
+              {
+                "name": "project-map-drill",
+                "dispatch_count": 84,
+                "maximum_dispatch_ms": 16.814,
+                "long_tasks": {
+                  "count": 5,
+                  "p50_ms": 59,
+                  "p95_ms": 61,
+                  "max_ms": 61,
+                  "total_ms": 292
+                },
+                "frame_p95_ms": 16.799999999999272,
+                "maximum_frame_ms": 116.70000000000073
+              },
+              {
+                "name": "project-map-idle",
+                "dispatch_count": 0,
+                "maximum_dispatch_ms": null,
+                "long_tasks": {
+                  "count": 0,
+                  "p50_ms": 0,
+                  "p95_ms": 0,
+                  "max_ms": 0,
+                  "total_ms": 0
+                },
+                "frame_p95_ms": 16.700000000004366,
+                "maximum_frame_ms": 16.80000000000291
+              }
+            ],
+            "native_ring_evicted": 0,
+            "artifacts": [
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/summary.json",
+                "bytes": 633625,
+                "sha256": "59d47cbcaf6aa3023b1c1b216509e7a10d5a9357ab60a37e6c29f892496f6738"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/trace.json",
+                "bytes": 14239284,
+                "sha256": "9d3d02b6fa0f53f1811148033f67290409595fa9ea4255482b1f06091ea441fe"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/native-metrics.json",
+                "bytes": 806870,
+                "sha256": "54581e2e59645e0ded933a613e0ee6151369068a1787adbafa71d726727cf3f2"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/project-map.png",
+                "bytes": 253324,
+                "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/project-map-drill.cpuprofile",
+                "bytes": 342377,
+                "sha256": "0c2de571cad36df3e7b42e065cb143a4cc9503a583249a41e5a81a5850e7a037"
+              },
+              {
+                "path": "target/native-profile/repaint-20261126/ethlib-control-2/preparation.json",
+                "bytes": 421,
+                "sha256": "64f22360edf3ce8c719774a86b01c72753dd475f9438c6919c39a7a0a0a917a2"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "pixels": [
+      {
+        "project": "riemann",
+        "stage": "control-1",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "riemann",
+        "stage": "candidate-1",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "riemann",
+        "stage": "candidate-2",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "riemann",
+        "stage": "control-2",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "ethlib",
+        "stage": "control-1",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "ethlib",
+        "stage": "candidate-1",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "ethlib",
+        "stage": "candidate-2",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      },
+      {
+        "project": "ethlib",
+        "stage": "control-2",
+        "width": 1440,
+        "height": 960,
+        "different_pixels": 0
+      }
+    ]
+  },
+  "diagnostic": {
+    "enabled_only_by": "MEDEN_GUI_PAINT_OBSERVATIONS=1",
+    "clean_real_project_probe": {
+      "draws": 107,
+      "identical_draws": 13,
+      "area_draws": 152654,
+      "identical_area_draws": 11543
+    },
+    "recorded_frames": 138,
+    "truncated": false,
+    "frame_limit": 10000,
+    "published_command_strings": false,
+    "scope": "Opt-in hooks observe this painter's ordered rectangle/fill/stroke/text calls, dimensions, transform and font notifications. Identical commands do not prove physical-pixel equivalence. Hooks perturb timings; use uninstrumented captures for comparisons. No source strings or command streams are published."
+  },
+  "validation": {
+    "unit": 85,
+    "architecture": 55,
+    "typecheck": true,
+    "schema": true,
+    "format": true,
+    "required_tui": 37,
+    "tui_binary": {
+      "path": "/home/gohan/workspace/meden/target/validation-bin/cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176/meden",
+      "sha256": "cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176"
+    },
+    "decoded_tui_journeys": 9,
+    "focused_browser": {
+      "total": 4,
+      "expected": 4,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "updated_queued_frame_cap": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "default_off_native_probe": {
+      "area_paint_hooks": false,
+      "optional_output_absent": true,
+      "real_native_interaction_windows": 13,
+      "scope": "Real EthLib native GUI, unchanged deployed assets and executable; opt-in hooks disabled."
+    },
+    "scope": "Required installed-tool/scripted-provider public TUI, actual native graph/retained-tab/fading/geometry journeys and a real browser Canvas diagnostic-cap check. Not live-model, cold-install, local-inference, confidentiality or new proof evidence."
+  },
+  "unchanged_deployment": {
+    "binary_sha256": "cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176",
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "projects": [
+      {
+        "project": "riemann",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "history_candidates_unchanged": true,
+        "running": false,
+        "authorized": false
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/meden-repaint-comparison.json",
+      "bytes": 397937,
+      "sha256": "49ce749e0e8bcd1975e1674149346b55c5268a3230c4dbc07d62589c38f2a700"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-state.json",
+      "bytes": 285,
+      "sha256": "e5b93b2b7929802d3c7dc5588bd163c045ebbae0974b69e0e36e252b1fe40362"
+    },
+    {
+      "path": "/tmp/meden-repaint-gates-state.json",
+      "bytes": 559,
+      "sha256": "a31b5c254db69e95e415dc6df2e6a597e6f9cc2e02997e0cc72080388a4caa52"
+    },
+    {
+      "path": "/tmp/meden-repaint-gates-stopped.json",
+      "bytes": 206,
+      "sha256": "66b7729c50087b0d159288f691b9c323bcbd0640b6b13236bde26823cb848dac"
+    },
+    {
+      "path": "/tmp/meden-repaint-cleanup.json",
+      "bytes": 612,
+      "sha256": "1d5128b567b6ea10552ddbcbbfd96447af0ec9093c251149316f08b0c3e9f341"
+    },
+    {
+      "path": "/tmp/meden-repaint-control-report.json",
+      "bytes": 692,
+      "sha256": "7fe02303576e9fab414cf392eddc4a763cb654bfc98b452629a0b810d785489b"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-browser.json",
+      "bytes": 4289,
+      "sha256": "33771166d0c4336e0cecc199ebf56d535bdd96566ac6fff4fb2567933b640691"
+    },
+    {
+      "path": "/tmp/meden-repaint-cap-browser.json",
+      "bytes": 324,
+      "sha256": "dab2915a510010fc93f9a855595ac71a93adcc3515ed488ab3a15795d85f9a71"
+    },
+    {
+      "path": "/tmp/meden-repaint-fidelity.json",
+      "bytes": 1879,
+      "sha256": "f156d31e1e36f81546e48fe36a92ef18ea61f437e4476db26fac84af3824d9f6"
+    },
+    {
+      "path": "/tmp/meden-repaint-decoded-screens.json",
+      "bytes": 5418,
+      "sha256": "e3bd80be6b24326485a6b599891b73fdb5c677484caced7f0a6df279e98f9283"
+    },
+    {
+      "path": "target/native-profile/repaint-observer-clean-20261126/area-paints.json",
+      "bytes": 17992,
+      "sha256": "25875d893b09c6532766e71dabcda46480d1b068315e78ff4a7efe8d57fd69d7"
+    },
+    {
+      "path": "target/native-profile/repaint-observer-clean-20261126/summary.json",
+      "bytes": 743895,
+      "sha256": "999255a458db8b753404dbf5ab60359008fb556449ef6410d31eacc4ffa93374"
+    },
+    {
+      "path": "target/native-profile/repaint-diagnostic-20261126/area-repaints.json",
+      "bytes": 15980,
+      "sha256": "9a2a9fbacebf94b13a8c917016e6ba2a4777e9dd46a8c06c9eb8f512b759876c"
+    },
+    {
+      "path": "/tmp/meden-repaint-prototype.log",
+      "bytes": 2873,
+      "sha256": "dd0af178d14b96e76bff8f50ee4cfd455ae1700b172d3f301a8743ec4c27a1ed"
+    },
+    {
+      "path": "/tmp/meden-repaint-gate-tui.log",
+      "bytes": 183,
+      "sha256": "2041a1ea165489f0cc3b46ffc45515f01a689ebce0b07dd6052c5b1445cc32a3"
+    },
+    {
+      "path": "/tmp/meden-repaint-gate-control.log",
+      "bytes": 4846,
+      "sha256": "edf6e2104af1f52f8dede02174507bd4a08919708d0dc9e5a91dd9092ca4922f"
+    },
+    {
+      "path": "/tmp/meden-repaint-gate-gui.log",
+      "bytes": 4362,
+      "sha256": "02baedd1dafb07641fc60616498749216361a4c4e20f63414a27f636495000ed"
+    },
+    {
+      "path": "/tmp/meden-repaint-cap.log",
+      "bytes": 2331,
+      "sha256": "dfc68865c6b755295ebefed5bcae4450dbd649b53b34b31d118ff8b6802b4ad0"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-format2.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-repaint-default-verified.json",
+      "bytes": 209,
+      "sha256": "cfeb173a8ca26b4a9171dd784818437802d58f99661d7c5ae03dec4c1e6f94ec"
+    },
+    {
+      "path": "target/native-profile/repaint-default-20261126/summary.json",
+      "bytes": 649185,
+      "sha256": "1f93bc4c4c2583959e1017fbab8940f88bb12619d61606fb8760a1e2e6b1bc57"
+    },
+    {
+      "path": "results/map-repaint-cache-rejected-20261126.patch",
+      "bytes": 16442,
+      "sha256": "906cb0aa47a3f7b7dc1ce7d5405df066383db3d9d0d0d13251f4db2a2bfd8895"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-unit.log",
+      "bytes": 1699,
+      "sha256": "1153ef7f3dd037956c0707e4298b948ec632f103657f94c8656d7ba4c3a0492c"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-architecture.log",
+      "bytes": 11471,
+      "sha256": "f25a588e6f887420280d8dd689da0fba0ff2c89f226972031eac0cc892f100cd"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-repaint-final-gui.log",
+      "bytes": 2993,
+      "sha256": "8a713d8ad2ee12cb483ef62cbc97305e832cbd2f781be9505bfba94631f2983d"
+    }
+  ],
+  "remaining": "First-exposure geometry/paint and native query/full-input validation still dominate observed waits. Generic layout/collection, navigation annotation ownership and final retirement remain open in the full migration plan."
+}

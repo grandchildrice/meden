@@ -154,6 +154,9 @@ try {
     "events.csv",
     "events.md",
     "summary.json",
+    ...(process.env.MEDEN_GUI_PAINT_OBSERVATIONS === "1"
+      ? ["area-paints.json"]
+      : []),
     ...(await readdir(destination))
       .filter(
         (name) =>

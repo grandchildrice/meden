@@ -1,3 +1,4 @@
+import { installAreaPaintObserver } from "./area-paint-observer.mjs";
 // Opt-in local browser measurements; no application telemetry or model requests.
 import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -149,6 +150,8 @@ try {
         });
     }).observe({ type: "layout-shift", buffered: true });
   });
+  const observePaint = process.env.MEDEN_GUI_PAINT_OBSERVATIONS === "1";
+  if (observePaint) await page.addInitScript(installAreaPaintObserver);
   let phase = "setup";
   const requests = [];
   const requestPhases = new WeakMap();
@@ -697,6 +700,7 @@ try {
       viewport: "1440x960",
       throttling: "none",
       reduced_motion: motion,
+      area_paint_hooks: observePaint,
       gesture_tail_ms: 600,
       file,
       declarations: preparedSource.graph.declarations.length,
@@ -742,6 +746,26 @@ try {
     resolve(destination, "summary.json"),
     JSON.stringify(report, null, 2),
   );
+  if (observePaint) {
+    const observations = await page.evaluate(() => window.__medenAreaPaints);
+    await writeFile(
+      resolve(destination, "area-paints.json"),
+      JSON.stringify(
+        {
+          ...observations,
+          scope:
+            "Opt-in hooks observe this painter's ordered rectangle/fill/stroke/text calls, dimensions, transform and font notifications. Identical commands do not prove physical-pixel equivalence. Hooks perturb timings; use uninstrumented captures for comparisons. No source strings or command streams are published.",
+        },
+        null,
+        2,
+      ),
+      { flag: "wx" },
+    );
+    if (observations.truncated)
+      throw Error(
+        "Area-paint observation budget exceeded; capture is incomplete",
+      );
+  }
   const rows = interactionRows(samples);
   await writeFile(resolve(destination, "events.csv"), interactionCsv(rows));
   await writeFile(
