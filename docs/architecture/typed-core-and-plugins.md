@@ -338,6 +338,14 @@ Generated finite update traces compare complete projections with fresh rebuilds,
 including empty observations, target changes and rebasing. See the
 [sparse-update measurements](../performance/map-updates.md).
 
+Visibility consumers share at most two exact viewport/size results per immutable
+scene. Other scenes or uncached view values compute the original projection;
+this disposable WeakMap is not an artifact identity or source of truth.
+SVG omits faded rectangles that cannot receive input, while Canvas retains
+their complete paint. A keyboard-focused rectangle remains mounted and
+accessible during fading, until focus leaves. Geometry, source selection,
+ordered reference links and camera remain owned by their existing contexts.
+
 Area pixels use a retained OffscreenCanvas background, while SVG retains rectangular interaction
 targets, references, declarations and main pins. The original area sequence and
 foreground painter order remain fixed; zoom does not rewrite retained area

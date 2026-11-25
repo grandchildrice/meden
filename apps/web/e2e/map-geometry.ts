@@ -118,12 +118,28 @@ export function measureMapGeometry(element: Element) {
       Math.round(origin.height * devicePixelRatio),
       "canvas backing height",
     );
-    if (frame.length !== boxes.length)
-      throw Error("Paint and interaction area counts differ");
-    for (const [i, box] of boxes.entries()) {
-      const paint = frame[i],
-        p = point(root, box.x.baseVal.value, box.y.baseVal.value),
-        width = box.width.baseVal.value * unit,
+    let matched = 0;
+    for (const paint of frame) {
+      const box = boxes[matched];
+      const p = box && point(root, box.x.baseVal.value, box.y.baseVal.value);
+      if (
+        !box ||
+        !p ||
+        Math.abs(paint.rect[0] - (p.x - origin.x)) > 0.003 ||
+        Math.abs(paint.rect[1] - (p.y - origin.y)) > 0.003
+      ) {
+        if (paint.fill.alpha >= 0.5 || paint.label)
+          throw Error("Interactive painted area has no ordered hit target");
+        close(paint.stroke.width, 0.6, "inert painted stroke");
+        close(
+          paint.stroke.alpha,
+          paint.fill.alpha * 0.75,
+          "inert painted opacity",
+        );
+        continue;
+      }
+      matched++;
+      const width = box.width.baseVal.value * unit,
         height = box.height.baseVal.value * unit;
       close(paint.rect[0], p.x - origin.x, "painted area x");
       close(paint.rect[1], p.y - origin.y, "painted area y");
@@ -159,6 +175,8 @@ export function measureMapGeometry(element: Element) {
         close(paint.label.alpha, 1, "painted label opacity");
       }
     }
+    if (matched !== boxes.length)
+      throw Error("Hit target has no original ordered painted area");
     const reader = new OffscreenCanvas(
       surface.width,
       surface.height,
@@ -279,7 +297,17 @@ export function expectMapKeyboardFocus(element: Element) {
   if (index < 0 || !active.matches(":focus-visible"))
     throw Error("Missing map keyboard focus");
   const paints = (window as any).__areaPaints.get(canvas);
-  if (paints[index].stroke.color !== "#ffe59c")
+  const origin = canvas.getBoundingClientRect(),
+    box = active.getBoundingClientRect();
+  const paint = paints.find(
+    (p: any) =>
+      Math.abs(p.rect[0] - (box.x - origin.x)) < 0.003 &&
+      Math.abs(p.rect[1] - (box.y - origin.y)) < 0.003,
+  );
+  if (
+    active.getAttribute("aria-hidden") !== "false" ||
+    paint?.stroke.color !== "#ffe59c"
+  )
     throw Error("Keyboard focus not painted");
 }
 

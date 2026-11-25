@@ -3841,6 +3841,116 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
 
   test.describe("retained area rendering", () => {
     test.use({ deviceScaleFactor: 2 });
+    test("fading map areas keep their paint and focused keyboard target without inert SVG hit targets", async ({
+      page,
+    }, info) => {
+      test.setTimeout(90000);
+      await mkdir(resolve(project, "Group/Inner"), { recursive: true });
+      await Promise.all(
+        Array.from({ length: 128 }, (_, i) =>
+          writeFile(
+            resolve(project, `Group/Inner/F${String(i).padStart(3, "0")}.lean`),
+            `def value${i} : Nat := ${i}\n`,
+          ),
+        ),
+      );
+      await page.addInitScript(installMapPaintObserver);
+      await page.goto(await start());
+      const map = page.getByRole("region", {
+        name: "Project map",
+        exact: true,
+      });
+      await expect
+        .poll(async () => (await nativeState(page)).overview.state)
+        .toBe("ready");
+      await expect(map.locator(".map-area-canvas")).toBeVisible();
+      await expect(map.locator('[data-map-path="Group/Inner"]')).toBeVisible();
+      const box = (await map
+        .locator(".workspace-overview-canvas")
+        .boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      const children = map.locator(
+        '[data-map-path^="Group/Inner/"][tabindex="0"]',
+      );
+      for (let i = 0; i < 8 && !(await children.count()); i++) {
+        await page.mouse.wheel(0, -100);
+        await page.evaluate(async () => {
+          for (let n = 0; n < 4; n++) await new Promise(requestAnimationFrame);
+        });
+      }
+      await expect(children.first()).toBeVisible();
+      await children.first().focus();
+      await page.keyboard.press("Tab");
+      const path = (await page.evaluate(() =>
+        document.activeElement?.getAttribute("data-map-path"),
+      ))!;
+      expect(path.startsWith("Group/Inner/")).toBe(true);
+      const focused = map.locator(`[data-map-path="${path}"]`);
+      const opacity = () =>
+        focused.evaluate((target) => {
+          const canvas = target
+            .closest(".continuous-map")!
+            .querySelector(".map-area-canvas")!;
+          const origin = canvas.getBoundingClientRect(),
+            rect = target.getBoundingClientRect();
+          return (window as any).__areaPaints
+            .get(canvas)
+            .find(
+              (p: any) =>
+                Math.abs(p.rect[0] - (rect.x - origin.x)) < 0.003 &&
+                Math.abs(p.rect[1] - (rect.y - origin.y)) < 0.003,
+            ).fill.alpha as number;
+        });
+      for (let i = 0; i < 12 && (await opacity()) >= 0.5; i++) {
+        await page.mouse.wheel(0, 70);
+        await page.evaluate(async () => {
+          for (let n = 0; n < 4; n++) await new Promise(requestAnimationFrame);
+        });
+      }
+      expect(await opacity()).toBeLessThan(0.5);
+      await expect(focused).toBeFocused();
+      await expect(
+        map.locator('[data-map-path][aria-hidden="true"]'),
+      ).toHaveCount(0);
+      await expect(focused).toHaveAttribute("aria-hidden", "false");
+      await map.evaluate(expectMapKeyboardFocus);
+      const geometry = await map.evaluate(measureMapGeometry);
+      const paint = await map.locator(".map-area-canvas").evaluate((canvas) => {
+        const frame = (window as any).__areaPaints.get(canvas);
+        return {
+          painted: frame.length,
+          fading: frame.filter((p: any) => p.fill.alpha < 0.5).length,
+        };
+      });
+      expect(paint.fading).toBeGreaterThan(10);
+      expect(paint.painted).toBeGreaterThan(
+        await map.locator("[data-map-path]").count(),
+      );
+      await page.screenshot({
+        path: info.outputPath("fading-areas-retain-focused-target.png"),
+      });
+      await page.keyboard.press("Enter");
+      await expect(
+        map.getByRole("navigation", { name: "Map location" }),
+      ).toContainText(path.split("/").at(-1)!);
+      await info.attach("fading-paint-and-focus", {
+        contentType: "application/json",
+        body: JSON.stringify({
+          path,
+          paint,
+          geometry,
+          focused_target_retained: true,
+          keyboard_activation: true,
+        }),
+      });
+      await stop();
+      await page.goto(await start());
+      await expect
+        .poll(async () => (await nativeState(page)).overview.state)
+        .toBe("ready");
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+    });
     test("project map retains screen-space geometry and avoids rewriting retained areas during zoom", async ({
       page,
     }, info) => {
@@ -4160,6 +4270,21 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
         .getByRole("button", { name: "Category: Many/Group0", exact: true })
         .click();
       const file = map.locator(`[data-map-path="Many/Group0/${name}.lean"]`);
+      // Faded file paint precedes input eligibility. Reveal actual hit targets
+      // with ordinary wheel input before using one as a file-level anchor.
+      const canvas = (await map
+        .locator(".workspace-overview-canvas")
+        .boundingBox())!;
+      await page.mouse.move(
+        canvas.x + canvas.width / 2,
+        canvas.y + canvas.height / 2,
+      );
+      for (let i = 0; i < 8 && !(await file.count()); i++) {
+        await page.mouse.wheel(0, -35);
+        await page.evaluate(async () => {
+          for (let n = 0; n < 4; n++) await new Promise(requestAnimationFrame);
+        });
+      }
       await expect(file).toBeVisible();
       const box = await file.boundingBox();
       await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);

@@ -2035,3 +2035,17 @@ intervals attribute that stall to visibility/appearance work, SVG mutations and
 main-thread Canvas painting; phase-wide reference resolution is recorded
 separately. These observations are a remaining optimization target, not a claim
 that all zoom paths or physical presentation now meet a latency budget.
+
+## Share map visibility and omit inert targets (November 25)
+
+The [interaction follow-up](performance/map-interaction.md) shares exact viewport
+results between SVG, Canvas and prefetch and omits non-interactive faded SVG
+targets, retaining the original Canvas paint and current keyboard focus. One
+sequential actual-Riemann comparison observes first-detail long tasks fall from
+four / 452 ms to two / 219 ms; worst wheel dispatch remains 111.893 ms versus
+113.852 ms. This is not a stable speedup estimate or field percentile. All 13
+phase cameras, drill actions and declaration counts agree. The same native
+binary and exact original source/graph/compiler/search/render objects remain
+after deployment and restart in both projects. Native input validation and
+main-thread DOM/painting remain separate work. See
+[the complete measurements and validation record](../results/map-interaction-20261125.json).

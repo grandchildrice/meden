@@ -173,6 +173,17 @@ or model requests. A failed real query must not dispatch metadata validation.
 The test builder uses its own target and forces fresh workspace-package builds;
 equal executable hashes or missing embedded helper bytes fail the journey.
 
+The fading-area journey uses 128 actual indexed Lean files, native inventory
+workers, observed Canvas drawing and a real keyboard focus/Enter sequence.
+Below the pointer threshold, area paint remains while unused SVG targets are
+absent. The focused target stays mounted, accessible and visibly highlighted
+until focus leaves, including during fading. Painted areas and hit targets
+preserve their original relative geometry/order; their counts may differ.
+The unchanged deployed renderer must fail this target budget. A separate
+visibility-consumer budget rejects repeated traversal for identical cloned
+viewport inputs, while complete scan/corpus checks retain resize and scene
+invalidation. These are presentation checks, not new verification authority.
+
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded

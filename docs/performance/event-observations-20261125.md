@@ -54,8 +54,9 @@ The source agrees with that attribution:
   viewport. Dense newly revealed branches can still enumerate many children.
 - [Canvas painting](../../apps/web/src/features/native/MapAreaCanvas.tsx) runs in
   a main-thread layout effect and repeats visibility traversal. Its OffscreenCanvas
-  is not a dedicated rendering worker. Each visible area receives a fresh
-  appearance object and rectangle fill/stroke.
+  is not a dedicated rendering worker. Appearance objects are already cached
+  per area; newly exposed/changed areas can populate that cache. Rectangle
+  fill/stroke still runs for every visible area on each draw.
 - Revealing new areas also mounts and updates SVG interaction elements through
   React. Those DOM operations occur inside the measured slow wheel/callbacks.
 - [Reference resolution](../../apps/web/src/features/native/project-map-references.ts)

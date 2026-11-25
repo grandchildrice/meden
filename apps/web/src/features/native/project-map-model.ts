@@ -287,13 +287,37 @@ export function declarationDetail(
   return fade(Math.min(area.width, area.height) * zoom, end * 0.64, end);
 }
 
+type VisibleAreas = ReadonlyArray<{ area: MapArea; opacity: number }>;
+type Visibility = {
+  x: number;
+  y: number;
+  zoom: number;
+  width: number;
+  height: number;
+  areas: VisibleAreas;
+};
+// SVG, Canvas and prefetch observe the same view through separate subscriptions.
+// Keep only the latest two exact views per immutable scene, including a transient
+// previous viewport while those subscriptions catch up. This owns no geometry.
+const visibility = new WeakMap<MapScene, readonly Visibility[]>();
+
 /** Rendering and source prefetch share the same semantic-zoom visibility. */
 export function visibleMapAreas(
   scene: MapScene,
   viewport: { x: number; y: number; zoom: number },
   size: { width: number; height: number },
-) {
+): VisibleAreas {
   const { x, y, zoom } = viewport;
+  const cached = visibility.get(scene) || [];
+  const retained = cached.find(
+    (view) =>
+      view.x === x &&
+      view.y === y &&
+      view.zoom === zoom &&
+      view.width === size.width &&
+      view.height === size.height,
+  );
+  if (retained) return retained.areas;
   const left = -x / zoom,
     top = -y / zoom,
     right = left + size.width / zoom,
@@ -327,6 +351,10 @@ export function visibleMapAreas(
       for (const child of scene.index.children.get(area.path) || [])
         queue.push({ area: child, opacity: childAlpha });
   }
+  visibility.set(scene, [
+    { x, y, zoom, ...size, areas: visible },
+    ...cached.slice(0, 1),
+  ]);
   return visible;
 }
 
@@ -338,7 +366,7 @@ export function mapAreaBatches(visible: ReturnType<typeof visibleMapAreas>) {
     key: string;
     parent: string;
     batch: number;
-    visible: typeof visible;
+    visible: Array<VisibleAreas[number]>;
   }> = [];
   for (const item of visible) {
     const { parent, batch } = item.area;

@@ -47,6 +47,7 @@ type SceneNode = Node<SceneData, "scene">;
 
 function Scene({ data }: NodeProps<SceneNode>) {
   const v = useViewport();
+  const [focusedArea, setFocusedArea] = useState<string>();
   const visible = visibleMapAreas(data.scene, v, data);
   const fileGraphs = new Map(
     visible
@@ -67,16 +68,34 @@ function Scene({ data }: NodeProps<SceneNode>) {
       aria-label="Project in stable coordinates"
       data-scene-revision={data.layoutRevision}
       data-layout-source={data.layoutSource}
+      onFocusCapture={(event) => {
+        const path = (event.target as Element).getAttribute("data-map-path");
+        setFocusedArea(path ?? undefined);
+      }}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget;
+        setFocusedArea(
+          next instanceof Element && event.currentTarget.contains(next)
+            ? (next.getAttribute("data-map-path") ?? undefined)
+            : undefined,
+        );
+      }}
     >
       <g data-map-layer="areas">
-        {mapAreaBatches(visible).map((batch) => (
+        {/* Canvas retains every faded area. SVG needs only operable targets,
+            plus the current focus until it leaves, even while fading out. */}
+        {mapAreaBatches(
+          visible.filter(
+            ({ area, opacity }) => opacity >= 0.5 || area.path === focusedArea,
+          ),
+        ).map((batch) => (
           <g key={batch.key}>
             {batch.visible.map(({ area: a, opacity: alpha }) => (
               <MapAreaCard
                 key={a.path}
                 area={a}
                 pointer={alpha >= 0.5}
-                accessible={alpha > 0.5}
+                accessible={alpha > 0.5 || a.path === focusedArea}
                 focus={data.focus}
               />
             ))}

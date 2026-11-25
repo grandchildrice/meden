@@ -1,5 +1,6 @@
 import { prepareMap, mapArea } from "./project-map-model";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
+import { scan } from "./project-map-oracle";
 import type { NavigationInventory } from "./project-map-oracle";
 import {
   declarationDetail,
@@ -10,6 +11,60 @@ import {
   projectMap,
   visibleMapAreas,
 } from "./project-map-model";
+
+test("independent viewport consumers reuse traversal while size and scene changes keep original visibility", () => {
+  const input: NavigationInventory = {
+    generation: "original",
+    excluded: [],
+    inventory_only: false,
+    files: Array.from({ length: 512 }, (_, i) => ({
+      path: `Source/Part${i % 8}/File${i}.lean`,
+      sha256: "original",
+      bytes: "20",
+      declarations: 1,
+      theorems: 1,
+      indexed: true,
+      imports: [],
+      symbols: [
+        {
+          name: `claim${i}`,
+          line: 1,
+          declaration: "theorem",
+          kind: "theorem",
+          private: false,
+          references: [],
+          semantic: null,
+          main_theorem: false,
+        },
+      ],
+    })),
+  };
+  const index = prepareMap(input),
+    scene = projectMap(index);
+  const a = { x: 0, y: 0, zoom: 0.08 },
+    b = { x: -400, y: -300, zoom: 0.12 };
+  const size = { width: 900, height: 700 };
+  const visits = vi.spyOn(scene.descriptions, "get");
+  const first = visibleMapAreas(scene, a, size),
+    firstVisits = visits.mock.calls.length;
+  expect(firstVisits).toBeGreaterThan(0);
+  visibleMapAreas(scene, { ...a }, { ...size });
+  visibleMapAreas(scene, { ...a }, { ...size });
+  expect(visits.mock.calls.length).toBe(firstVisits);
+  visibleMapAreas(scene, b, size);
+  const bothVisits = visits.mock.calls.length;
+  expect(bothVisits).toBeGreaterThan(firstVisits);
+  visibleMapAreas(scene, { ...a }, { ...size });
+  expect(visits.mock.calls.length).toBe(bothVisits);
+  const resized = visibleMapAreas(scene, a, { width: 300, height: 200 });
+  expect(visits.mock.calls.length).toBeGreaterThan(bothVisits);
+  visits.mockRestore();
+  expect(first).toEqual(scan(scene, a, size));
+  expect(resized).toEqual(scan(scene, a, { width: 300, height: 200 }));
+  const updated = projectMap(index, new Set(["claim0"]));
+  expect(visibleMapAreas(updated, a, size)).toEqual(scan(updated, a, size));
+  expect(visibleMapAreas(scene, a, size)).toEqual(scan(scene, a, size));
+});
 
 test("branch pruning preserves the visible areas and opacity of a full scan", () => {
   const files: NavigationInventory["files"] = Array.from(
