@@ -1144,3 +1144,12 @@ binary fails the new one-load native budget after matching the original prepared
 explanation; the candidate preserves source-change/failure/restart outcomes.
 This removes measured repeated work without a retained validation success or a
 new cache, and does not complete the remaining migration exits.
+
+[Navigation collection](../performance/navigation-collection.md) now belongs to
+the application behind typed directory/content readers and an indexer with its
+own symbol type. The GUI retains policy-bound I/O/progress adapters rather than
+a traversal/parallel-index implementation. Original valid cache records, parser
+identities and wire shapes remain unchanged; response-cardinality failures and
+other invalid inputs cannot publish a successful prefix. Worker spans retain the
+coordinator's correlation. This advances collection ownership in steps 3/4;
+generic layout, metadata-cache orchestration and the remaining exits stay open.

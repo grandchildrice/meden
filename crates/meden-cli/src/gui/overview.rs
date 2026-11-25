@@ -9,34 +9,20 @@ use meden_runtime::{
     process::{Control, Limits},
     workspace::Workspace,
 };
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeSet,
     path::Path,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc, Mutex,
-    },
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 mod cache;
 
+use meden_app::navigation::collection;
 use meden_app::view::inventory;
 pub(super) use meden_app::view::inventory::{State, Status};
 use meden_app::view::publication::ArtifactId;
-#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub(super) struct File {
-    path: String,
-    sha256: String,
-    bytes: usize,
-    declarations: usize,
-    theorems: usize,
-    imports: Vec<String>,
-    symbols: Vec<Symbol>,
-    indexed: bool,
-}
+pub(super) type File = collection::File<Symbol>;
 
 #[derive(Clone)]
 pub(super) struct Captured {
@@ -102,12 +88,7 @@ fn project_file(file: &File) -> Result<inventory::File> {
         indexed: file.indexed,
     })
 }
-#[derive(Deserialize)]
-struct Entry {
-    name: String,
-    kind: String,
-}
-const EXCLUDED: &[&str] = &["node_modules", "target", "dist", "__pycache__"];
+use collection::EXCLUDED;
 
 pub(super) fn refresh(
     view: &Arc<Mutex<View>>,
@@ -167,68 +148,14 @@ fn capture(
     fresh: bool,
 ) -> Result<Captured> {
     let started = Instant::now();
-    let mut pending = vec![(String::new(), 0usize)];
-    let mut paths = Vec::new();
-    let mut directories = 0usize;
-    let mut entry_count = 0usize;
-    while !pending.is_empty() {
-        let batch = pending
-            .drain(pending.len().saturating_sub(128)..)
-            .collect::<Vec<_>>();
-        directories = directories.saturating_add(batch.len());
-        anyhow::ensure!(
-            directories <= 65_536 && batch.iter().all(|(_, depth)| *depth <= 32),
-            "Workspace index exceeds directory/depth limits"
-        );
-        let values = observe_batch(
+    let paths = collection::paths(
+        &Reader {
             workspace,
             control,
-            Operation::List,
-            &batch
-                .iter()
-                .map(|(path, _)| path.clone())
-                .collect::<Vec<_>>(),
-            &json!({"entries":true,"max_entries":100_000}),
             started,
-        )?;
-        for ((directory, depth), value) in batch.into_iter().zip(values) {
-            let entries: Vec<Entry> = serde_json::from_value(value)?;
-            entry_count = entry_count.saturating_add(entries.len());
-            anyhow::ensure!(
-                entry_count <= 1_000_000,
-                "Workspace index exceeds one million directory entries"
-            );
-            for entry in entries {
-                anyhow::ensure!(
-                    !entry.name.is_empty()
-                        && Path::new(&entry.name).components().count() == 1
-                        && Path::new(&entry.name)
-                            .components()
-                            .all(|c| matches!(c, std::path::Component::Normal(_))),
-                    "Invalid workspace inventory entry"
-                );
-                if entry.name.starts_with('.') || EXCLUDED.contains(&entry.name.as_str()) {
-                    continue;
-                }
-                let path = if directory.is_empty() {
-                    entry.name
-                } else {
-                    format!("{directory}/{}", entry.name)
-                };
-                if entry.kind == "directory" {
-                    pending.push((path, depth.saturating_add(1)));
-                } else if entry.kind == "file" && crate::adapters::navigation::supports(&path) {
-                    paths.push(path);
-                    anyhow::ensure!(
-                        paths.len() <= 250_000,
-                        "Workspace inventory exceeds 250000 source files"
-                    );
-                }
-                // Inventory symlinks and special files are never followed.
-            }
-        }
-    }
-    paths.sort();
+        },
+        &crate::adapters::navigation::Syntax,
+    )?;
     lock(view).overview.total = paths.len();
     let inventory_only = paths.len() > 10_000;
     let files = if inventory_only {
@@ -262,16 +189,7 @@ fn inventory_files(
     // Individual files are indexed through the same policy-bound read on open.
     let mut inventory: Vec<File> = paths
         .iter()
-        .map(|path| File {
-            path: path.clone(),
-            sha256: String::new(),
-            bytes: 0,
-            declarations: 0,
-            theorems: 0,
-            imports: Vec::new(),
-            symbols: Vec::new(),
-            indexed: false,
-        })
+        .map(|path| File::unindexed(path.clone(), 0))
         .collect();
     // Keep entry-module theorem locations available even in a distant map.
     let entries = paths
@@ -407,41 +325,39 @@ fn apply_annotations(workspace: &Workspace, control: &Control, files: &mut [File
     );
 }
 
-fn source_file(path: &str, value: Value) -> Result<(File, usize)> {
-    use meden_app::view::file::Content;
-    let content: Content = serde_json::from_value(value)?;
-    content.validate()?;
-    let (size, observed) = match &content {
-        Content::Text { bytes, .. }
-        | Content::Binary { bytes }
-        | Content::UnsupportedEncoding { bytes } => {
-            (usize::try_from(*bytes)?, usize::try_from(*bytes)?)
-        }
-        Content::SizeLimit { bytes } => (bytes.parse::<usize>()?, 0),
-    };
-    let mut file = File {
-        path: path.into(),
-        sha256: String::new(),
-        bytes: size,
-        declarations: 0,
-        theorems: 0,
-        imports: Vec::new(),
-        symbols: Vec::new(),
-        indexed: false,
-    };
-    if let Content::Text { text, .. } = content {
-        let (declarations, theorems, imports, symbols) =
-            crate::adapters::navigation::index(path, &text);
-        file.sha256 = format!("{:x}", Sha256::digest(text.as_bytes()));
-        file.declarations = declarations;
-        file.theorems = theorems;
-        file.imports = imports;
-        file.symbols = symbols;
-        file.indexed = true;
-    }
-    Ok((file, observed))
+struct Reader<'a> {
+    workspace: &'a Workspace,
+    control: &'a Control,
+    started: Instant,
 }
-
+impl collection::Reader for Reader<'_> {
+    fn list(&self, paths: &[String]) -> Result<Vec<Vec<meden_app::view::directory::Entry>>> {
+        observe_batch(
+            self.workspace,
+            self.control,
+            Operation::List,
+            paths,
+            &json!({"entries":true,"max_entries":100_000}),
+            self.started,
+        )?
+        .into_iter()
+        .map(|v| serde_json::from_value(v).map_err(Into::into))
+        .collect()
+    }
+    fn read(&self, paths: &[String]) -> Result<Vec<meden_app::view::file::Content>> {
+        observe_batch(
+            self.workspace,
+            self.control,
+            Operation::Snapshot,
+            paths,
+            &json!({"observation":true}),
+            self.started,
+        )?
+        .into_iter()
+        .map(|v| serde_json::from_value(v).map_err(Into::into))
+        .collect()
+    }
+}
 fn source_files(
     view: &Mutex<View>,
     workspace: &Workspace,
@@ -449,73 +365,27 @@ fn source_files(
     paths: &[String],
     started: Instant,
 ) -> Result<Vec<File>> {
-    let cursor = AtomicUsize::new(0);
-    let bytes = AtomicUsize::new(0);
-    let files = Mutex::new(BTreeMap::new());
-    std::thread::scope(|scope| -> Result<()> {
-        let handles = (0..4)
-            .map(|_| {
-                scope.spawn(|| -> Result<()> {
-                    loop {
-                        let index = cursor.fetch_add(32, Ordering::SeqCst);
-                        if index >= paths.len() {
-                            break;
-                        }
-                        let batch = paths
-                            .get(index..index.saturating_add(32).min(paths.len()))
-                            .context("Invalid source batch")?;
-                        let values = observe_batch(
-                            workspace,
-                            control,
-                            Operation::Snapshot,
-                            batch,
-                            &json!({"observation":true}),
-                            started,
-                        )?;
-                        for (path, value) in batch.iter().zip(values) {
-                            let (file, observed_bytes) = source_file(path, value)?;
-                            anyhow::ensure!(
-                                bytes
-                                    .fetch_add(observed_bytes, Ordering::SeqCst)
-                                    .saturating_add(observed_bytes)
-                                    <= 134_217_728,
-                                "Workspace sources exceed 128 MiB"
-                            );
-                            lock(&files).insert(path.clone(), file);
-                            let mut view = lock(view);
-                            if view.overview.state == State::Loading
-                                && view.activity != "Preparing cached project map"
-                            {
-                                view.overview.scanned = view
-                                    .overview
-                                    .scanned
-                                    .saturating_add(1)
-                                    .min(view.overview.total);
-                            }
-                        }
-                    }
-                    Ok(())
-                })
-            })
-            .collect::<Vec<_>>();
-        let mut failure = None;
-        for handle in handles {
-            let result = handle
-                .join()
-                .map_err(|_| anyhow::anyhow!("Workspace index worker stopped"))?;
-            if let Err(error) = result {
-                failure.get_or_insert(error);
+    collection::sources(
+        &Reader {
+            workspace,
+            control,
+            started,
+        },
+        &crate::adapters::navigation::Syntax,
+        paths,
+        || {
+            let mut view = lock(view);
+            if view.overview.state == State::Loading
+                && view.activity != "Preparing cached project map"
+            {
+                view.overview.scanned = view
+                    .overview
+                    .scanned
+                    .saturating_add(1)
+                    .min(view.overview.total);
             }
-        }
-        failure.map_or(Ok(()), Err)
-    })?;
-    let files = files
-        .into_inner()
-        .map_err(|_| anyhow::anyhow!("Workspace index unavailable"))?
-        .into_values()
-        .collect::<Vec<_>>();
-    anyhow::ensure!(files.len() == paths.len(), "Incomplete workspace index");
-    Ok(files)
+        },
+    )
 }
 
 fn observe_batch(

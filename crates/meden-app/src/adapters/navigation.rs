@@ -90,3 +90,25 @@ fn overlay<'a>(
 }
 #[cfg(test)]
 mod tests;
+
+/// Host lexical composition behind the common collection interface.
+pub struct Syntax;
+impl crate::navigation::collection::Indexer for Syntax {
+    type Symbol = Symbol;
+    fn supports(&self, path: &str) -> bool {
+        supports(path)
+    }
+    fn index(
+        &self,
+        path: &str,
+        text: &str,
+    ) -> anyhow::Result<crate::navigation::collection::Indexed<Symbol>> {
+        let (declarations, theorems, imports, symbols) = index(path, text);
+        Ok(crate::navigation::collection::Indexed {
+            declarations,
+            theorems,
+            imports,
+            symbols,
+        })
+    }
+}

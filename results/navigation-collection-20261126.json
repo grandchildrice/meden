@@ -1,0 +1,609 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "6b612a7",
+  "change": "Move navigation discovery, typed complete-content validation, bounded four-reader indexing, canonical ordering and generic host file records from the GUI into application collection. Keep original policy-bound worker/progress adapters. Delete the former collector; add no fallback implementation, schema, core change or dependency.",
+  "sources": [
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 353196,
+      "sha256": "2524c2e29598830daf6f32f7a0d1fbfabb4e0b09a5d6174da5d804492a8c2390"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation.rs",
+      "bytes": 4315,
+      "sha256": "c71112d708ed5c8c70051cae6244822c5f881efa455d75b35a11c69717306282"
+    },
+    {
+      "path": "crates/meden-app/src/navigation.rs",
+      "bytes": 3801,
+      "sha256": "6434fabcc347c9567dbadacf17abe2cc99414867230b8e27dda91cbe06ac2df1"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/collection.rs",
+      "bytes": 11735,
+      "sha256": "b2bb45c669f32096b061c3685b9deec597631dd24a8f3616bc9bb29f4da8c717"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/collection/tests.rs",
+      "bytes": 12857,
+      "sha256": "59d43b40bf9c445257aefe987b8afbaafa8c4ca29fd8c9f8c2bf79297e3fce13"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "bytes": 16826,
+      "sha256": "9bfd90d7214ef6410440fd9ac8bd2bf2268755da1e0a1c739dc5a2f29b825f18"
+    },
+    {
+      "path": "tools/architecture/check.mjs",
+      "bytes": 12444,
+      "sha256": "b8e5616d4762dcb5be904ade0cf470007860d60b094f527f3877bdfa972274d6"
+    }
+  ],
+  "ports": {
+    "reader": [
+      "list: complete typed directory entries in original request order",
+      "read: complete typed file availability in original request order"
+    ],
+    "indexer": "Pure supports/index role with its own Send symbol type. The default native composition keeps original Lean/Rust/finite JSON parsers and identities. Mock SMT/RTL indexing tests are not new real-tool support.",
+    "limits": {
+      "reader_threads": 4,
+      "source_batch": 32,
+      "directory_batch": 128,
+      "observed_content_bytes": 134217728,
+      "directory_depth": 32,
+      "directories": 65536,
+      "entries": 1000000,
+      "entries_per_directory": 100000,
+      "files": 250000,
+      "path_bytes": 4096,
+      "component_bytes": 255
+    },
+    "failure_scope": "Missing/excess observations, invalid components or complete content, duplicates, explicit reader/indexer errors and limits return no successful complete prefix. A completed-item observer does not publish a partial graph. No arbitrary-native-code sandbox or atomic-filesystem theorem."
+  },
+  "validation": {
+    "phase": "complete",
+    "candidate": {
+      "binary": "/home/gohan/workspace/meden/target/validation-bin/877613f73da73d419146011ca093e8a6ad1b26048dd05f1815936f6e1fee4d74/meden",
+      "sha256": "877613f73da73d419146011ca093e8a6ad1b26048dd05f1815936f6e1fee4d74"
+    },
+    "gates": [
+      {
+        "phase": "gui-availability",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "app",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustfmt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-existing",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "app_unit": 176,
+    "app_doc": 37,
+    "new_collection_cases": 11,
+    "cli_unit": 50,
+    "cli_integration": 27,
+    "clippy": "App and CLI all-targets/all-features -D warnings passed",
+    "tui": 37,
+    "decoded_tui_journeys": 9,
+    "browser": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "existing_browser": {
+      "total": 5,
+      "expected": 5,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "frontend_runtime_changed": false,
+    "scope": "Scripted-provider and actual installed-tool public journeys, not live-model/cold-install validation."
+  },
+  "deployed": {
+    "binary_sha256": "877613f73da73d419146011ca093e8a6ad1b26048dd05f1815936f6e1fee4d74",
+    "assets_sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "assets": 88,
+    "projects": [
+      {
+        "project": "riemann",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "16ba817c2d6e92a85d61bb700f23a2e8b03fd783f4cdc2afd347ca5be1690c29"
+          },
+          {
+            "name": "reader",
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+          },
+          {
+            "name": "inventory",
+            "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+          },
+          {
+            "name": "nav",
+            "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 72579,
+            "thread_cpu_us": 71675
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 4,
+            "thread_cpu_us": 4
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 73763,
+            "thread_cpu_us": 72851
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 63818,
+            "thread_cpu_us": 63505
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 3,
+            "thread_cpu_us": 3
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 63836,
+            "thread_cpu_us": 63521
+          }
+        ],
+        "collection_spans": [
+          {
+            "name": "navigation.collect.paths",
+            "wall_us": 4704649,
+            "thread_cpu_us": 1388464,
+            "context": {
+              "trace": 11,
+              "span": 14
+            },
+            "parent": 13
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3,
+            "thread_cpu_us": 2,
+            "context": {
+              "trace": 11,
+              "span": 83
+            },
+            "parent": 81
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3,
+            "thread_cpu_us": 2,
+            "context": {
+              "trace": 11,
+              "span": 84
+            },
+            "parent": 81
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 11,
+              "span": 85
+            },
+            "parent": 81
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 41714,
+            "thread_cpu_us": 1191,
+            "context": {
+              "trace": 11,
+              "span": 82
+            },
+            "parent": 81
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 41955,
+            "thread_cpu_us": 151,
+            "context": {
+              "trace": 11,
+              "span": 81
+            },
+            "parent": 13
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      },
+      {
+        "project": "ethlib",
+        "views": [
+          {
+            "name": "source",
+            "sha256": "3d000ca7aea3f5d6e06d1ecd08b06177150fe61e42733d442426de15b94ca3a0"
+          },
+          {
+            "name": "reader",
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+          },
+          {
+            "name": "inventory",
+            "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+          },
+          {
+            "name": "nav",
+            "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+          },
+          {
+            "name": "evidence",
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+          }
+        ],
+        "cache_hit": true,
+        "authorized": false,
+        "running": false,
+        "history_candidates_unchanged": true,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "annotation_spans": [
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 642344,
+            "thread_cpu_us": 275821
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 406,
+            "thread_cpu_us": 405
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 643153,
+            "thread_cpu_us": 276627
+          },
+          {
+            "name": "navigation.annotations.load",
+            "wall_us": 705007,
+            "thread_cpu_us": 258331
+          },
+          {
+            "name": "navigation.annotations.overlay",
+            "wall_us": 27,
+            "thread_cpu_us": 27
+          },
+          {
+            "name": "navigation.annotations",
+            "wall_us": 705061,
+            "thread_cpu_us": 258383
+          }
+        ],
+        "collection_spans": [
+          {
+            "name": "navigation.collect.paths",
+            "wall_us": 11711525,
+            "thread_cpu_us": 924306,
+            "context": {
+              "trace": 13,
+              "span": 16
+            },
+            "parent": 15
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3196872,
+            "thread_cpu_us": 1969359,
+            "context": {
+              "trace": 13,
+              "span": 189
+            },
+            "parent": 186
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3217997,
+            "thread_cpu_us": 1929152,
+            "context": {
+              "trace": 13,
+              "span": 187
+            },
+            "parent": 186
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3258453,
+            "thread_cpu_us": 1979931,
+            "context": {
+              "trace": 13,
+              "span": 190
+            },
+            "parent": 186
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3269744,
+            "thread_cpu_us": 2132815,
+            "context": {
+              "trace": 13,
+              "span": 188
+            },
+            "parent": 186
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 3273424,
+            "thread_cpu_us": 3555,
+            "context": {
+              "trace": 13,
+              "span": 186
+            },
+            "parent": 15
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 3,
+            "thread_cpu_us": 2,
+            "context": {
+              "trace": 404,
+              "span": 502
+            },
+            "parent": 500
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 404,
+              "span": 503
+            },
+            "parent": 500
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 2,
+            "thread_cpu_us": 1,
+            "context": {
+              "trace": 404,
+              "span": 504
+            },
+            "parent": 500
+          },
+          {
+            "name": "navigation.collect.worker",
+            "wall_us": 42527,
+            "thread_cpu_us": 2072,
+            "context": {
+              "trace": 404,
+              "span": 501
+            },
+            "parent": 500
+          },
+          {
+            "name": "navigation.collect.sources",
+            "wall_us": 42739,
+            "thread_cpu_us": 151,
+            "context": {
+              "trace": 404,
+              "span": 500
+            },
+            "parent": 407
+          }
+        ],
+        "native_ring_evicted": 0,
+        "observed_semantic_worker_spans": []
+      }
+    ]
+  },
+  "methodology": "Actual-workspace startup plus original selected-file inspection after deployment. Complete original source, reader, inventory, navigation and evidence JSON payloads compared; record retains only hashes. Both source selections reuse compilation and preserve history/candidates without restored approval. Bounded native rings have zero eviction. Collection workers retain their coordinator trace/parent. Wall intervals overlap; current-thread worker CPU does not include child-process CPU. Single workload observations, not a controlled speedup or field percentiles. Checked execution-span names: atlas.compile, atlas.project.extract, atlas.search and analysis.render.",
+  "scope": "Shared application collection and native I/O adapters. No compiler-captured implementation, lexical source parser, generated wire, browser runtime or dependency change. Positive actual-tool/negative/failure/restart journeys are not new refinement, whole-app proof, live-model/cold-install, local inference or confidentiality evidence.",
+  "remaining": "Generic layout, metadata-cache orchestration, observation-revision correspondence, native freshness waits, first-exposure rendering and retirement remain under the original five-step plan.",
+  "artifacts": [
+    {
+      "path": "/tmp/meden-collection-state.json",
+      "bytes": 688,
+      "sha256": "16d6433f0616b2f6b8123cad8328ec6fb567cce6ea80adc9ad07f47635715be4"
+    },
+    {
+      "path": "/tmp/meden-collection-reviewed-validation.json",
+      "bytes": 1780,
+      "sha256": "edf9e1c6d1f16d93be09edaec4bc67eb4fc084fa5fb0f285561fd91672bc78f6"
+    },
+    {
+      "path": "/tmp/meden-collection-clippy3.log",
+      "bytes": 303,
+      "sha256": "a50bd6c048f45944780bf0f3e6a2402cd5d04f45239f4e794c108cc5b2f5ed86"
+    },
+    {
+      "path": "/tmp/meden-collection-availability-browser.json",
+      "bytes": 358,
+      "sha256": "c6928e2ba07e862a7725f2f76ce34545f3339345ef5a414333c5b0f0bbd86075"
+    },
+    {
+      "path": "/tmp/meden-collection-existing-browser.json",
+      "bytes": 43218,
+      "sha256": "4b7502a130321c78b0e33733cb9d6396fae22fb98db8f113afbdb76e66854234"
+    },
+    {
+      "path": "/tmp/meden-collection-decoded-screens.json",
+      "bytes": 5417,
+      "sha256": "1c0295be1f5726e6635cc53ccd71468864f63bdac68f07a7994b13796ad67a38"
+    },
+    {
+      "path": "/tmp/meden-collection-decoded-screens.txt",
+      "bytes": 42809,
+      "sha256": "2280abdd25f5a2c0c86ee9d3ce57158f11feb2411282544aebc0c3dcb1d6627e"
+    },
+    {
+      "path": "/tmp/meden-collection-deployed-fidelity.json",
+      "bytes": 7892,
+      "sha256": "d79e7fcf3b79d2aa0e0e828fbafc7d9427b466bcf9e9464d60fdb0caee411d93"
+    },
+    {
+      "path": "/tmp/meden-ux-collection-20261126/summary.json",
+      "bytes": 10732,
+      "sha256": "9a2113abe08d3eb9bb6fe1c54046d5ef708d5acda412cb51131c2d28a8c916d9"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-gui-availability.log",
+      "bytes": 2414,
+      "sha256": "f3f3044bef40c5d5c03a94e9aee2074424af5f1e6e0c23baccfd60452e9df1b4"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-app.log",
+      "bytes": 21987,
+      "sha256": "0eb93e7a74a86598c5b4c577b6dd52b7b08f66d6bf1aade5c6f2fd4da5cd75d6"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-cli.log",
+      "bytes": 8278,
+      "sha256": "bae282cf6158edc3696141496e84e1f178358644ba86d1506e1fb6767976493d"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-architecture.log",
+      "bytes": 11466,
+      "sha256": "fcb481697d3b63239f2c523b16419618263bc9257af73bc092e15df4a0e9eea8"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-tui.log",
+      "bytes": 186,
+      "sha256": "8ef8b1118d8312aaa04cedcd04dee970a0b661ad06d598abf7a1277a58bccef2"
+    },
+    {
+      "path": "/tmp/meden-collection-gate-gui-existing.log",
+      "bytes": 3338,
+      "sha256": "40ce640976dee9164ae652a0e74fe589109a5fe3ee9927182a2db148240b9e1d"
+    }
+  ]
+}

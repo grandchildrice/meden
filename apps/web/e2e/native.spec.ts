@@ -2906,6 +2906,12 @@ test.describe("native GUI with real offline workers", () => {
       ["Huge.lean", Buffer.alloc(1_048_577, 65)],
     ] as const)
       await writeFile(resolve(project, file), content);
+    await writeFile(
+      resolve(root, "outside.rs"),
+      "fn must_stay_outside () {}\n",
+    );
+    await symlink(resolve(root, "outside.rs"), resolve(project, "Escape.rs"));
+    await symlink(project, resolve(project, "cycle"));
     const commands: string[] = [];
     page.on("request", (request) => {
       if (request.url().endsWith("/api/command"))
@@ -2916,6 +2922,70 @@ test.describe("native GUI with real offline workers", () => {
       .poll(async () => (await nativeState(page)).overview.state)
       .toBe("ready");
     expect((await nativeState(page)).overview.total).toBe(4);
+    const inventory = await page.evaluate(
+      async (revision) => {
+        const response = await fetch(
+          "/api/inventory?revision=" + encodeURIComponent(revision),
+          {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          },
+        );
+        if (!response.ok) throw Error(await response.text());
+        return (await response.json()).data;
+      },
+      (await nativeState(page)).overview.revision,
+    );
+    expect(inventory.files.map((f: any) => f.path)).toEqual([
+      "Binary.lean",
+      "Encoding.rs",
+      "Huge.lean",
+      "Valid.rs",
+    ]);
+    expect(
+      inventory.files
+        .filter((f: any) => f.state === "unindexed")
+        .map((f: any) => ({ path: f.path, bytes: f.bytes })),
+    ).toEqual([
+      { path: "Binary.lean", bytes: "3" },
+      { path: "Encoding.rs", bytes: "1" },
+      { path: "Huge.lean", bytes: "1048577" },
+    ]);
+
+    const collectionSpans = await page.evaluate(async () => {
+      const r = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      return (await r.json()).records.filter((s: any) =>
+        s.name.startsWith("navigation.collect."),
+      );
+    });
+    expect(collectionSpans.map((s: any) => s.name)).toEqual(
+      expect.arrayContaining([
+        "navigation.collect.paths",
+        "navigation.collect.sources",
+        "navigation.collect.worker",
+      ]),
+    );
+    const sourceSpans = collectionSpans.filter(
+      (s: any) => s.name === "navigation.collect.sources",
+    );
+    for (const worker of collectionSpans.filter(
+      (s: any) => s.name === "navigation.collect.worker",
+    )) {
+      expect(
+        sourceSpans.some(
+          (s: any) =>
+            s.context.span === worker.parent &&
+            s.context.trace === worker.context.trace,
+        ),
+      ).toBe(true);
+    }
     const map = page.getByRole("region", { name: "Project map", exact: true });
     await expect(map).toBeVisible();
     const chat = page.getByRole("complementary", {

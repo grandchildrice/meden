@@ -1,5 +1,7 @@
 //! Read-only annotation port. Implementations supply already prepared descriptions;
 //! this port cannot compile, search, admit evidence or restore model approval.
+/// Bounded language-independent navigation collection and typed observation ports.
+pub mod collection;
 use crate::explanation::Explanation;
 use anyhow::Result;
 use std::collections::BTreeSet;
