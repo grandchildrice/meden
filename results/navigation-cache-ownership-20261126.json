@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "parent_commit": "b9885d8",
+  "change": "Application-owned generic syntax-cache preparation and persistence; CLI observation/progress adapter only. Explicit refresh repairs malformed/failed same-hint entries.",
+  "native_binary_sha256": "83cd6b42bd0a73689aabbd71f8de6ebaf55dff499afecfbd44c370ab08ae481f",
+  "assets_sha256": "f3e6d705d396850395f7505f33f89da9aae6f35f89e89019f688b05dce059420",
+  "unchanged_served_assets": 88,
+  "unchanged_native_wire_schema": true,
+  "validation": {
+    "rust_app": 221,
+    "rust_cli": 78,
+    "required_tui": 37,
+    "tui_inference": "scripted fixtures; no live-model validation",
+    "decoded_screens": [
+      {
+        "label": "review",
+        "journey": "test_tui_edits_files_retains_context_and_restores_terminal-7d102555ba",
+        "frames": 165,
+        "observations": [
+          {
+            "label": "Allow Configured server",
+            "seconds": 0.29,
+            "screen_sha256": "edbe1e37f817319e111132c4e78caeb58494ee4677c5da8290cf33f756a2af0b"
+          }
+        ]
+      },
+      {
+        "label": "judge",
+        "journey": "test_separate_judge_review_failure_recovery_and_restart[http]-52e31ccc57",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Candidate Mismatch",
+            "seconds": 1.24,
+            "screen_sha256": "972bd8f88a674457eca755dfd4396e95e07162f5d2579c292a48af12d561cf3c"
+          }
+        ]
+      },
+      {
+        "label": "resume",
+        "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+        "frames": 45,
+        "observations": [
+          {
+            "label": "TUI-CONTINUED",
+            "seconds": 1.096,
+            "screen_sha256": "7dc317cc187e2797df3315457e599f194b510123777b770121ae201d4531c500"
+          }
+        ]
+      },
+      {
+        "label": "lake",
+        "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+        "frames": 804,
+        "observations": [
+          {
+            "label": "Workspace source inventory changed",
+            "seconds": 74.728,
+            "screen_sha256": "cf1ca248b8857f7e894e37a70b61e4d1974f8c25c29218377d06582bfc413917"
+          }
+        ]
+      },
+      {
+        "label": "repair",
+        "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+        "frames": 84,
+        "observations": [
+          {
+            "label": "LEAN-MODEL-REPAIRED",
+            "seconds": 5.342,
+            "screen_sha256": "142140e49b88d104aa9504fc2608c971f8e499e31cb2621aa64baacf0313ae34"
+          }
+        ]
+      },
+      {
+        "label": "cancel",
+        "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+        "frames": 156,
+        "observations": [
+          {
+            "label": "Portable work stopped:",
+            "seconds": 14.485,
+            "screen_sha256": "04044b5f6f2bfd681e6575caa734fcdc7ccc43505c789f8b719aae5a8279bab7"
+          }
+        ]
+      },
+      {
+        "label": "plain-source",
+        "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+        "frames": 38,
+        "observations": [
+          {
+            "label": "Sources ready: 1 file",
+            "seconds": 0.417,
+            "screen_sha256": "35efb4295f12538e24ff7a861a3e14f0c15350bfc9f5b0d2e979e3a52fcb5b84"
+          },
+          {
+            "label": "Source observation failed for missing.smt2",
+            "seconds": 0.417,
+            "screen_sha256": "35efb4295f12538e24ff7a861a3e14f0c15350bfc9f5b0d2e979e3a52fcb5b84"
+          },
+          {
+            "label": "source must be UTF-8",
+            "seconds": 0.417,
+            "screen_sha256": "35efb4295f12538e24ff7a861a3e14f0c15350bfc9f5b0d2e979e3a52fcb5b84"
+          },
+          {
+            "label": "Sources ready: 2 files",
+            "seconds": 0.417,
+            "screen_sha256": "35efb4295f12538e24ff7a861a3e14f0c15350bfc9f5b0d2e979e3a52fcb5b84"
+          },
+          {
+            "label": "Read the source graph first",
+            "seconds": 0.786,
+            "screen_sha256": "b38bd8ea2bc64afaf9b91aafbbb2ccc6d7b37fcdbf5a1aa88a3d0dec96a51112"
+          },
+          {
+            "label": "Sources ready: 3 files",
+            "seconds": 0.786,
+            "screen_sha256": "b38bd8ea2bc64afaf9b91aafbbb2ccc6d7b37fcdbf5a1aa88a3d0dec96a51112"
+          }
+        ]
+      },
+      {
+        "label": "reviewed-repair",
+        "journey": "test_finding_repair_reject_stale_clipped_review_apply_and_restart-26871992ae",
+        "frames": 74,
+        "observations": [
+          {
+            "label": "Apply this repair and reanalyze?",
+            "seconds": 1.016,
+            "screen_sha256": "135b351a4bf2044b6e21ff0bb3360a566e0e99a4eeb913a6676c15f637f0b6db"
+          },
+          {
+            "label": "Approval unavailable",
+            "seconds": 0.893,
+            "screen_sha256": "30a613ef35e4dde872c875afdb0e2a4fdf0b9dad8ae41e2d922c3a5617353ccf"
+          },
+          {
+            "label": "Sources changed since the Finding",
+            "seconds": 1.188,
+            "screen_sha256": "ba5221daf08cb0a897791073afa43a7f31148b8e79280df447c6531638d355cd"
+          },
+          {
+            "label": "Repair applied and reanalyzed",
+            "seconds": 1.26,
+            "screen_sha256": "eb76cb1d60be3ad1ed4ed084fa3dc56ed8ce905ee8193a567806667f89f9a5f1"
+          },
+          {
+            "label": "source revision changed",
+            "seconds": 1.568,
+            "screen_sha256": "920dbd8cd631a5729ac4d2d3f0c339157731dea5c639e46735a66093d2ce2072"
+          }
+        ]
+      },
+      {
+        "label": "finite-source",
+        "journey": "test_native_finite_source_graph_recovers_and_reopens_without_lean_or_m-c794041788",
+        "frames": 76,
+        "observations": [
+          {
+            "label": "Source observation failed for absent.model.json",
+            "seconds": 3.937,
+            "screen_sha256": "685a3718b20b249c98cf47bd07c82c492c4f2f3745a4fc6f7d61da689ccc7c18"
+          },
+          {
+            "label": "Source graph ready: 2 files",
+            "seconds": 5.582,
+            "screen_sha256": "d576600e0f094d2f4356a15fc42ad607e845068e4eb452f95df3e75ffa29269e"
+          },
+          {
+            "label": "transition.value · counter.model.json:",
+            "seconds": 5.582,
+            "screen_sha256": "d576600e0f094d2f4356a15fc42ad607e845068e4eb452f95df3e75ffa29269e"
+          },
+          {
+            "label": "Source observation failed for absent.contract.json",
+            "seconds": 5.582,
+            "screen_sha256": "d576600e0f094d2f4356a15fc42ad607e845068e4eb452f95df3e75ffa29269e"
+          }
+        ]
+      }
+    ],
+    "gates": [
+      {
+        "name": "gui-cache",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "app",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "rustfmt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "ruff",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "gui-existing",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "gui-normal",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "gui": [
+      {
+        "kind": "gui-cache",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "raw_report_sha256": "4d869ed43265cb1d4393c4f32380fc8712728cf4f03c0018e29dce81539aab64",
+        "tests": [
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "observations": [
+              {
+                "name": "navigation-cache-repaired-through-refresh",
+                "data_sha256": "f26256681d55d5f55381c664866992eae5cef80ff729527a56fbcc4f79e8870c",
+                "data_bytes": 94,
+                "summary": {
+                  "same_stamp": true,
+                  "changed_inventory": true,
+                  "declaration_visible": true,
+                  "camera_retained": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "gui-existing",
+        "stats": {
+          "total": 4,
+          "expected": 4,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "raw_report_sha256": "50f855771a0539838b434a8b663aaecb81f6a90cd181ce5557054f44e5e5c16d",
+        "tests": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "ok": true,
+            "observations": [
+              {
+                "name": "finite-native-preparation",
+                "data_sha256": "edf56c8ea30123ddaf53c0bb5e458a7f47fe0db5410be4ce0a70c9626ac612df",
+                "data_bytes": 15084
+              }
+            ]
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "observations": [
+              {
+                "name": "interleaved-wheel-and-node-hover",
+                "data_sha256": "c34ab8105fb2037be5b1e8e4adcb215dde1176b68c18c79133a941c4adcf18b0",
+                "data_bytes": 9747,
+                "summary": {
+                  "frames": 349,
+                  "viewport_elements": 1,
+                  "node_entries": 15,
+                  "wheel_events": 32,
+                  "max_anchor_error_px": 0.025468398783519097
+                }
+              },
+              {
+                "name": "hidden-file-layout.json",
+                "data_sha256": "a2808630f94fd1646973df4efa6fa6a1b0058617d03d0a197dfd03fc2aae13fc",
+                "data_bytes": 300
+              },
+              {
+                "name": "navigation-performance",
+                "data_sha256": "8df895777afaf3c2ad61ba72001af5110c9b55951e3bf13898a1583d4d8455f8",
+                "data_bytes": 505,
+                "summary": {
+                  "browser": "149.0.7827.53",
+                  "motion": "reduce",
+                  "cold_analysis_store_preparation_ms": 33059.343827000004,
+                  "warm_tab_two_raf_ms": [
+                    33.80000000447035,
+                    20.30000000447035,
+                    25.5,
+                    17.100000001490116,
+                    23.100000001490116,
+                    25.600000001490116,
+                    25,
+                    24.799999997019768,
+                    27.30000000447035,
+                    36.79999999701977
+                  ],
+                  "p95_ms": 36.79999999701977,
+                  "maximum_p95_ms": 250,
+                  "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+                }
+              }
+            ]
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "ok": true,
+            "observations": [
+              {
+                "name": "actual-discovery-held",
+                "data_sha256": "d0cbfdfea84dcbc2cc328e647bf39450166cdf9b73880715e3e15c3db6bd198c",
+                "data_bytes": 227
+              },
+              {
+                "name": "saved-map-before-discovery",
+                "data_sha256": "24bb4c9f1d0d158dfb8dca3963d308de4198e9828a11d903d043ecbae431ba3d",
+                "data_bytes": 141
+              },
+              {
+                "name": "unchanged-restart-reuse",
+                "data_sha256": "b07a63b43f187cbe0a83474b1377af56a16b43c4ccac73a92b0469b774d5496a",
+                "data_bytes": 63
+              }
+            ]
+          },
+          {
+            "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+            "ok": true,
+            "observations": [
+              {
+                "name": "summary-navigation.json",
+                "data_sha256": "fe1d93497cfe450c5ba55fe0327eb07e01f4fc5c0539b81e1bed71a63850c2a4",
+                "data_bytes": 1128
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "gui-normal",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "raw_report_sha256": "9f4245677a67effcf4166eded36e7930617216ab2799a3fcee0043cd762f8505",
+        "tests": [
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "observations": [
+              {
+                "name": "navigation-cache-repaired-through-refresh",
+                "data_sha256": "f26256681d55d5f55381c664866992eae5cef80ff729527a56fbcc4f79e8870c",
+                "data_bytes": 94,
+                "summary": {
+                  "same_stamp": true,
+                  "changed_inventory": true,
+                  "declaration_visible": true,
+                  "camera_retained": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "original_executable_control": {
+      "stats": {
+        "total": 1,
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "failure": "Final same-stamp cache-corruption refresh failed to advance the inventory after real source/graph/restart prerequisites.",
+      "error_context_sha256": "2538dbee03676fc33d05383b09bdfdc190a83e4e95829836790b18b9562054c8",
+      "screenshot_sha256": "63bbddeb542f2373f0f2c42477eed4f2033d49275498f250539111034565f434"
+    },
+    "initial_corrections": "Corrected test Result/Option handling, documented public port members, explicit io-to-anyhow conversion and Clippy extension checks before final native build/gates."
+  },
+  "projects": [
+    {
+      "project": "riemann",
+      "complete_views": [
+        {
+          "name": "source",
+          "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb"
+        },
+        {
+          "name": "reader",
+          "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9"
+        },
+        {
+          "name": "inventory",
+          "sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24"
+        },
+        {
+          "name": "nav",
+          "sha256": "6342849e5a05845501e7686229c575237f2d3f91cb43fdcdb70ac03680b47d10"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "native_ring_evicted": 0,
+      "semantic_workers": [],
+      "history_candidates_unchanged": true,
+      "approved": false,
+      "idle": true,
+      "original_navigation_cache_records": [
+        {
+          "name": "complete seal",
+          "present": true,
+          "bytes": 95,
+          "sha256": "d62e2ef18b185b9a2a34aa395ea59c67b78eafd80778a49b70605ac56a2f4f87",
+          "unchanged": true
+        },
+        {
+          "name": "selected syntax entry",
+          "present": true,
+          "bytes": 8438,
+          "sha256": "11f316338ce35bd4d3809f41a759bb2664a3606b4a56f6ad0478ca55a41b9eb9",
+          "unchanged": true
+        }
+      ],
+      "screenshot_sha256": "d3eb8fc688933877e564c94228a98407c9c25c0fb07b746fd8ed2fd7e934bdef"
+    },
+    {
+      "project": "ethlib",
+      "complete_views": [
+        {
+          "name": "source",
+          "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390"
+        },
+        {
+          "name": "reader",
+          "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4"
+        },
+        {
+          "name": "inventory",
+          "sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237"
+        },
+        {
+          "name": "nav",
+          "sha256": "e4d80466629118449969c933e353d65406de359f77eeae6e52c059e1f5fd0361"
+        },
+        {
+          "name": "evidence",
+          "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479"
+        }
+      ],
+      "cache_hit": true,
+      "native_ring_evicted": 0,
+      "semantic_workers": [],
+      "history_candidates_unchanged": true,
+      "approved": false,
+      "idle": true,
+      "original_navigation_cache_records": [
+        {
+          "name": "complete seal",
+          "present": false,
+          "unchanged": true
+        },
+        {
+          "name": "selected syntax entry",
+          "present": false,
+          "unchanged": true
+        }
+      ],
+      "screenshot_sha256": "24065ca6948d0c8ddd897b325bfd3adb5a4a7892fbac1d601910fd82f792d98d"
+    }
+  ],
+  "scope": "Navigation cache ownership and actual same-hint corruption recovery. Not compiler freshness, proof evidence, a filesystem/transactional snapshot proof, live-model/cold-install validation or an achieved rendering speedup. Import-resolution/entry-point presentation policy, observation correspondence, measured waits and remaining retirement remain open."
+}

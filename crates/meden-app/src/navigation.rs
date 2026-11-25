@@ -1,5 +1,7 @@
 //! Read-only annotation port. Implementations supply already prepared descriptions;
 //! this port cannot compile, search, admit evidence or restore model approval.
+/// Disposable syntax cache and bounded preparation, independent of presentation.
+pub mod cache;
 /// Bounded language-independent navigation collection and typed observation ports.
 pub mod collection;
 /// Saved navigation metadata, independent of live input inspection.

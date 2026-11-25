@@ -221,15 +221,7 @@ pub fn sources<I: Indexer>(
 ) -> Result<Vec<File<I::Symbol>>> {
     read_all(reader, indexer, paths, &observed, 134_217_728)
 }
-fn read_all<I: Indexer>(
-    reader: &impl Reader,
-    indexer: &I,
-    paths: &[String],
-    observed: &(impl Fn() + Sync),
-    limit: usize,
-) -> Result<Vec<File<I::Symbol>>> {
-    let timing = meden_runtime::metrics::Span::start("navigation.collect.sources");
-    let parent = timing.context();
+pub(super) fn check_paths(paths: &[String]) -> Result<()> {
     anyhow::ensure!(
         paths.len() <= BOUNDS.files,
         "Workspace inventory exceeds 250000 source files"
@@ -247,6 +239,18 @@ fn read_all<I: Indexer>(
             "Invalid or duplicate workspace source path"
         );
     }
+    Ok(())
+}
+fn read_all<I: Indexer>(
+    reader: &impl Reader,
+    indexer: &I,
+    paths: &[String],
+    observed: &(impl Fn() + Sync),
+    limit: usize,
+) -> Result<Vec<File<I::Symbol>>> {
+    let timing = meden_runtime::metrics::Span::start("navigation.collect.sources");
+    let parent = timing.context();
+    check_paths(paths)?;
     if paths.is_empty() {
         return Ok(Vec::new());
     }

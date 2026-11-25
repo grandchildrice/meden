@@ -46,6 +46,15 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 ## Experience contract
 
+Navigation-cache changes must preserve complete provider keys, valid original
+entry/seal bytes, quiet map navigation and independent compiler freshness.
+The 10,001-file map journey corrupts a real selected cache entry while retaining
+its metadata hint; public refresh must restore the declaration, advance the
+inventory and preserve the camera. The original executable must fail that final
+recovery condition after its source/restart prerequisites, without deleting the
+bad cache record to rescue the journey. Incomplete provider output and reported
+stops must not seal a successful inventory prefix.
+
 Backend layout/collection changes must preserve the complete independent Lake
 selection oracle and its frozen evaluator namespace. The shared workspace reader
 must honor the selected format: an actual SMT2 inventory accepts unrelated Lean

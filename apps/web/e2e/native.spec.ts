@@ -12,6 +12,7 @@ import {
   mkdtemp,
   mkdir,
   readFile,
+  realpath,
   readdir,
   rm,
   stat,
@@ -5176,7 +5177,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
 
   test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
-  }) => {
+  }, info) => {
     test.setTimeout(180000);
     for (let group = 0; group <= 10; group++)
       await mkdir(resolve(project, "Many/Group" + group), { recursive: true });
@@ -5482,6 +5483,69 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       "style",
       failedCamera!,
     );
+    // A syntactically valid but empty cache record keeps the original stamp.
+    // Recovery must happen through Refresh, without deleting host cache files.
+    const cacheRoot = resolve(
+      root,
+      "data/meden/projects",
+      createHash("sha256")
+        .update(await realpath(project))
+        .digest("hex"),
+      "map",
+    );
+    const parsers = (await readdir(cacheRoot, { withFileTypes: true })).filter(
+      (entry) => entry.isDirectory(),
+    );
+    expect(parsers).toHaveLength(1);
+    const cachedPath = "Many/Group0/File3.lean";
+    const key = createHash("sha256").update(cachedPath).digest("hex");
+    const cacheFile = resolve(
+      cacheRoot,
+      parsers[0]!.name,
+      key.slice(0, 2),
+      key + ".json",
+    );
+    const cached = JSON.parse(await readFile(cacheFile, "utf8"));
+    expect(cached.file.path).toBe(cachedPath);
+    const previousRevision = (await nativeState(page)).overview.revision;
+    await writeFile(
+      cacheFile,
+      JSON.stringify({ ...cached, file: null, error: null }),
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () => {
+          const state = await nativeState(page);
+          return (
+            state.overview.state === "ready" &&
+            state.overview.revision !== previousRevision
+          );
+        },
+        { timeout: 30000 },
+      )
+      .toBe(true);
+    await expect(
+      map.getByRole("button", { name: /Declaration: identity3 ·/ }),
+    ).toBeVisible();
+    const repaired = JSON.parse(await readFile(cacheFile, "utf8"));
+    expect(repaired.stamp).toEqual(cached.stamp);
+    expect(repaired.file.path).toBe(cachedPath);
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      failedCamera!,
+    );
+    await info.attach("navigation-cache-repaired-through-refresh", {
+      body: JSON.stringify({
+        same_stamp: true,
+        changed_inventory: true,
+        declaration_visible: true,
+        camera_retained: true,
+      }),
+      contentType: "application/json",
+    });
     expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(0);
   });

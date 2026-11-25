@@ -1171,3 +1171,12 @@ SMT2 inventory, complete Lake-selection oracle and rejected hardcoded-filter and
 retired-layout controls cover the separation. This advances steps 3/4; metadata
 cache orchestration, observation correspondence, remaining rendering/native waits
 and the complete retirement audit still require completion evidence.
+
+[Navigation cache ownership](../performance/navigation-cache-ownership.md) now
+moves bounded parallel preparation, provider-specific keys, path-bound records
+and completion generations behind a common application reader. The CLI keeps
+policy-bound observation and progress adapters. Valid cache bytes/identities
+remain unchanged; malformed and failed same-hint entries recover through the
+public refresh control. Remaining import-resolution/entry-point presentation
+policy, observation correspondence, measured waits and retirement still require
+their own completion audit.
