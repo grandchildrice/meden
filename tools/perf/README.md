@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [current snapshot-boundary event audit](../../docs/performance/snapshot-events.md)
+records all 13 operation windows on both deployed projects, with matching hidden
+source maps and exact native executable attribution. It separates the first-detail
+DOM/Canvas stall from cache-hit full-input validation and initial bounded search.
+It adds measurements and documents without changing product code.
+
 The [November 25 event audit](../../docs/performance/event-audit-20261125.md)
 records two actual-project captures per project, all 13 interaction windows,
 five complete navigations and native sampling. It distinguishes fast overview

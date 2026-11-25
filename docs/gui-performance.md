@@ -1,5 +1,12 @@
 # Graph interaction measurements
 
+The [current deployed event measurements](performance/snapshot-events.md) cover
+all 13 interaction windows after snapshot typing. Ordinary graph wheel/hover/drag
+handlers remain small, while first-detail Riemann zoom still has a 109.610 ms
+wheel dispatch and 156 ms maximum long task. A new cached file inspection still
+takes 12.286 s due to separate native preparation. The record separates those
+costs and retains source-mapped CPU attribution; it claims no new optimization.
+
 The [retained-reference comparison](performance/map-reference-updates.md) reduces
 actual EthLib detail-update projection median from 316.544 ms to 42.480 ms over
 the same seven responses, preserving complete scenes and ordered edges. Riemann
