@@ -17,7 +17,6 @@ pub(crate) fn compiler(
         include_bytes!("../../explanation.rs"),
         include_bytes!("../../explanation/cache.rs"),
         include_bytes!("../../adapters/lean/cache.rs"),
-        include_bytes!("../../adapters/lean/pipeline.rs"),
         include_bytes!("definition.rs"),
         include_bytes!("../../atlas/mod.rs"),
         include_bytes!("../../atlas/resources.rs"),

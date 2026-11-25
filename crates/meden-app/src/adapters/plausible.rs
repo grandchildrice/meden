@@ -85,15 +85,13 @@ impl Searcher for Plausible {
         invocation: Invocation<Snapshot, Report>,
     ) -> Result<Completed<Snapshot, Report>> {
         let original = invocation.request().snapshot();
-        let collection = original
-            .collection()
-            .context("Missing original module bindings")?;
+        let collection = original.collection();
         let modules = collection
             .modules
             .iter()
             .map(|m| m.name.replace('.', "/"))
             .collect::<Vec<_>>();
-        let graph = original.graph().context("Missing compiled search input")?;
+        let graph = original.graph();
         let targets = graph
             .graph
             .nodes

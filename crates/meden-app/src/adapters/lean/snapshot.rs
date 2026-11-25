@@ -4,7 +4,7 @@ use crate::{
     atlas::Extraction,
     identity::snapshots::{PreparedRevision, SourceRevision},
 };
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 /// Compiled file resources belong to Lean's observation, never the display graph.
@@ -22,8 +22,8 @@ struct Compilation {
     inputs: Inputs,
 }
 
-/// Source-only data has no compilation context. Compiled data always owns one
-/// graph, its original collection and exactly one original input mode.
+/// A Lean observation always owns one complete compilation: its graph,
+/// original collection and exactly one input mode. Plain sources have their own type.
 /// ```compile_fail,E0616
 /// fn replace(s: &mut meden_app::adapters::lean::Snapshot) { s.compilation = None; }
 /// ```
@@ -33,8 +33,7 @@ struct Compilation {
 pub struct Snapshot {
     #[serde(flatten)]
     pub source: sources::Snapshot,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    compilation: Option<Compilation>,
+    compilation: Compilation,
 }
 impl<'de> Deserialize<'de> for Snapshot {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Self, D::Error> {
@@ -43,7 +42,7 @@ impl<'de> Deserialize<'de> for Snapshot {
         struct Wire {
             revision: SourceRevision,
             files: std::collections::BTreeMap<String, String>,
-            compilation: Option<Compilation>,
+            compilation: Compilation,
         }
         let wire = Wire::deserialize(d)?;
         Ok(Self {
@@ -56,12 +55,6 @@ impl<'de> Deserialize<'de> for Snapshot {
     }
 }
 impl Snapshot {
-    pub fn source_only(source: sources::Snapshot) -> Self {
-        Self {
-            source,
-            compilation: None,
-        }
-    }
     pub(crate) fn compiled(
         source: sources::Snapshot,
         graph: Extraction,
@@ -70,36 +63,36 @@ impl Snapshot {
     ) -> Self {
         Self {
             source,
-            compilation: Some(Compilation {
+            compilation: Compilation {
                 graph,
                 collection,
                 inputs,
-            }),
+            },
         }
     }
-    pub fn graph(&self) -> Option<&Extraction> {
-        self.compilation.as_ref().map(|c| &c.graph)
+    pub fn graph(&self) -> &Extraction {
+        &self.compilation.graph
     }
-    pub(crate) fn graph_mut(&mut self) -> Option<&mut Extraction> {
-        self.compilation.as_mut().map(|c| &mut c.graph)
+    pub(crate) fn graph_mut(&mut self) -> &mut Extraction {
+        &mut self.compilation.graph
     }
-    pub fn collection(&self) -> Option<&Collection> {
-        self.compilation.as_ref().map(|c| &c.collection)
+    pub fn collection(&self) -> &Collection {
+        &self.compilation.collection
     }
     pub fn prepared(&self) -> Option<&PreparedRevision> {
-        match self.compilation.as_ref().map(|c| &c.inputs) {
-            Some(Inputs::Lake { fingerprint }) => Some(fingerprint),
-            _ => None,
+        match &self.compilation.inputs {
+            Inputs::Lake { fingerprint } => Some(fingerprint),
+            Inputs::Frozen { .. } => None,
         }
     }
     pub(crate) fn modules(&self) -> Option<&crate::atlas::Modules> {
-        match self.compilation.as_ref().map(|c| &c.inputs) {
-            Some(Inputs::Frozen { modules }) => Some(modules),
-            _ => None,
+        match &self.compilation.inputs {
+            Inputs::Frozen { modules } => Some(modules),
+            Inputs::Lake { .. } => None,
         }
     }
-    pub(crate) fn into_graph(self) -> Option<Extraction> {
-        self.compilation.map(|c| c.graph)
+    pub(crate) fn into_graph(self) -> Extraction {
+        self.compilation.graph
     }
 }
 impl sources::Source for Snapshot {
@@ -109,10 +102,7 @@ impl sources::Source for Snapshot {
 }
 impl crate::compiler::Observation for Snapshot {
     fn validate(&self) -> Result<()> {
-        let compiled = self
-            .compilation
-            .as_ref()
-            .context("Compiler did not produce a compiled observation")?;
+        let compiled = &self.compilation;
         anyhow::ensure!(
             compiled
                 .graph
@@ -158,6 +148,7 @@ pub(crate) fn fixture(source: sources::Snapshot, graph: Extraction) -> Snapshot 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::Context as _;
     use serde_json::json;
     use sha2::{Digest as _, Sha256};
     fn source() -> Result<sources::Snapshot> {
@@ -173,20 +164,16 @@ mod tests {
         )?)
     }
     #[test]
-    fn source_and_compiled_modes_round_trip_without_execution_metadata_in_the_graph() -> Result<()>
-    {
+    fn compiled_modes_round_trip_and_plain_source_is_not_a_compiler_observation() -> Result<()> {
         let source = source()?;
-        let plain = Snapshot::source_only(source.clone());
-        assert_eq!(
-            serde_json::to_value(&plain)?,
-            serde_json::to_value(&source)?
-        );
-        assert!(
-            plain.graph().is_none()
-                && plain.collection().is_none()
-                && plain.prepared().is_none()
-                && plain.modules().is_none()
-        );
+        let plain = serde_json::to_value(&source)?;
+        assert!(serde_json::from_value::<Snapshot>(plain).is_err());
+        let mut absent = serde_json::to_value(&source)?;
+        absent
+            .as_object_mut()
+            .context("source object")?
+            .insert("compilation".into(), serde_json::Value::Null);
+        assert!(serde_json::from_value::<Snapshot>(absent).is_err());
         let lake = fixture(source.clone(), graph()?);
         let value = serde_json::to_value(&lake)?;
         let decoded: Snapshot = serde_json::from_value(value.clone())?;
@@ -244,7 +231,7 @@ mod tests {
             .insert("prepared".into(), json!("1".repeat(64)));
         assert!(serde_json::from_value::<Snapshot>(retired).is_err());
         for key in ["atlas", "collection", "compiled_modules"] {
-            let mut v = serde_json::to_value(Snapshot::source_only(source()?))?;
+            let mut v = valid.clone();
             v.as_object_mut()
                 .context("source")?
                 .insert(key.into(), json!({}));

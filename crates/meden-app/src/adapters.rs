@@ -5,6 +5,7 @@ pub mod informath;
 pub mod lake;
 pub mod lean;
 pub mod plausible;
+pub mod preparation;
 pub mod source;
 #[path = "adapters/source/repair.rs"]
 mod source_repair;

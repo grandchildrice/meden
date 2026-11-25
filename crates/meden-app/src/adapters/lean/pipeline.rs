@@ -1,30 +1,6 @@
 //! Native Lean source/compilation/search/reading composition; no approval or evidence admission.
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
-
-/// Explicit local source observation. Inference approval is unrelated to this
-/// policy-bound read/compilation service; host adapters choose preparation.
-pub fn read_sources(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-    compiled: bool,
-) -> Result<crate::adapters::lean::Snapshot> {
-    if compiled {
-        extract(workspace, control, paths)
-    } else {
-        crate::analysis::sources::capture(workspace, control, paths)
-            .map(crate::adapters::lean::Snapshot::source_only)
-    }
-}
-
-pub fn extract(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-) -> Result<crate::adapters::lean::Snapshot> {
-    Ok(extract_cached(workspace, control, paths, None)?.0)
-}
 
 pub fn extract_cached(
     workspace: &Workspace,
@@ -65,10 +41,7 @@ pub fn extract_cached(
         return Ok((control.with_active(|| Ok(snapshot))?, original.reused()));
     }
     let mut snapshot = original.snapshot().clone();
-    renderer.enrich(
-        snapshot.graph_mut().context("Missing compiled graph")?,
-        control,
-    )?;
+    renderer.enrich(snapshot.graph_mut(), control)?;
     control.with_active(|| {
         crate::adapters::lean::cache::retain_rendering(
             workspace,

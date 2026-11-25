@@ -68,8 +68,8 @@ HTTP 202 rather than a startup/prerequisite error. Backend definition changes
 require fresh bound artifacts once; subsequent restart must reuse them without
 compilation/search/rendering. Old artifacts must not be relabeled.
 
-Lean compiler observations distinguish source-only data from complete compiled
-input ownership. A complete observation owns either frozen module content or a
+Plain source and complete Lean compiler observations have separate types. Every
+Lean observation owns either frozen module content or a
 prepared-Lake fingerprint; display graphs carry neither execution reference.
 Codecs refuse mixed modes and old field placements. The native search-settings
 journey checks frozen ownership and real corruption/recompilation recovery; both
@@ -77,6 +77,18 @@ actual executable-update journeys check prepared ownership and exact artifact
 reuse after restart. Neutral source retention/projection tests use their own
 source types, independently of Lean. These are adapter/type checks, not new
 verification evidence or a filesystem refinement proof.
+
+Native source retention keeps the original typed backend and preparation together;
+GUI/TUI/JSONL state must not contain a concrete Lean AST or repair context. Plain
+source uses its neutral type. Lean codecs require complete compilation rather
+than accepting a source-only/null observation. Public source/meaning/repair and
+failure/restart journeys must retain original messages, source, targets and
+current-input checks. A real finite AST/Z3 conformance exercises the same native
+owner, original preparation after repair, policy/refusal/cancellation and context
+drift before the first model call. The orchestration-only native update must
+reuse every original compiler/search/rendering artifact byte while still querying
+and fingerprinting current inputs. See the
+[native ownership record](performance/native-backend-ownership.md).
 
 Saved-only source publications contain complete frozen view bytes and original
 plain source, never an assessment backend input. Native file opening must show

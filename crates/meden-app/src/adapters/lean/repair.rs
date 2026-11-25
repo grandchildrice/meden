@@ -10,9 +10,9 @@ use sha2::{Digest, Sha256};
 #[serde(deny_unknown_fields)]
 pub struct Context {
     method: String,
-    resources: Option<String>,
+    resources: String,
     prepared: Option<crate::identity::snapshots::PreparedRevision>,
-    collection: Option<analysis::collect::Collection>,
+    collection: analysis::collect::Collection,
 }
 fn method() -> String {
     format!(
@@ -36,25 +36,26 @@ impl repair::Context for Context {
         );
         match super::semantic::check_binding(
             context,
-            self.collection.as_ref(),
+            &self.collection,
             self.prepared.as_ref(),
-            self.resources.as_deref(),
+            &self.resources,
         )? {
             analysis::Freshness::Current => Ok(()),
             analysis::Freshness::Stale(error) => Err(error),
         }
     }
     fn paths(&self) -> Option<&[String]> {
-        self.collection.as_ref().map(|c| c.roots.as_slice())
+        Some(&self.collection.roots)
     }
     fn relocatable(&self) -> bool {
-        self.resources.is_some()
+        true
     }
 }
 impl repair::Observation for Snapshot {
     type Repair = Context;
     fn repair_context(&self) -> Result<Context> {
-        if let Some(collection) = self.collection() {
+        {
+            let collection = self.collection();
             anyhow::ensure!(
                 !collection.roots.is_empty()
                     && collection
@@ -66,16 +67,17 @@ impl repair::Observation for Snapshot {
         }
         Ok(Context {
             method: method(),
-            resources: self.graph().map(|graph| graph.resources_sha256.clone()),
-            collection: self.collection().cloned(),
+            resources: self.graph().resources_sha256.clone(),
+            collection: self.collection().clone(),
             prepared: self.prepared().cloned(),
         })
     }
     fn refreshed_input(&self, original: &Input) -> Result<Input> {
         let mut input = original.clone();
         input.source_revision.clone_from(&self.source.revision);
-        input.graph_revision = self.graph().map(|graph| graph.revision.clone());
-        if let Some(graph) = self.graph() {
+        input.graph_revision = Some(self.graph().revision.clone());
+        {
+            let graph = self.graph();
             let mut nodes =
                 graph.graph.nodes.iter().filter(|node| {
                     node.id == input.target.name && node.file_path == input.target.file

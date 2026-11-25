@@ -176,7 +176,7 @@ mod tests {
             let revision = SourceRevision::from_digest(Sha256::digest(serde_json::to_vec(&files).unwrap()));
             let snapshot = Snapshot {revision: revision.clone(), files: files.clone()};
             prop_assert_eq!(serde_json::to_value(&snapshot).unwrap(), json!({"revision":old,"files":files}));
-            let mut page = SourcePage::from_snapshot(&crate::adapters::lean::Snapshot::source_only(snapshot.clone())).unwrap();
+            let mut page = SourcePage::from_snapshot(&snapshot).unwrap();
             prop_assert_eq!(page.revision.as_str(), &old);
             prop_assert_eq!(page.graph.as_ref().unwrap().revision.as_str(), &old);
             page.revision = SourceRevision::from_digest(Sha256::digest(b"another complete input"));

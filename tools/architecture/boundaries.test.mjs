@@ -6,6 +6,7 @@ import {
   compilerEntryViolations,
   compilerCaptureViolations,
   neutralObservationViolations,
+  nativeObservationViolations,
   programFor,
   sourceViolations,
 } from "./check.mjs";
@@ -23,6 +24,9 @@ for (const path of [
   "../lean.rs",
   "../../adapters.rs",
   "../../adapters/lean.rs",
+  "pipeline.rs",
+  "lean/pipeline.rs",
+  "../../adapters/lean/pipeline.rs",
 ])
   test(`compiler attribution refuses peer facade ${path}`, () =>
     assert.match(
@@ -212,3 +216,23 @@ test("shared application ports reject model implementations and presentation dep
   assert.match(violations, /outward dependency/);
   assert.match(violations, /presentation implementation/);
 });
+
+test("native retention accepts backend-neutral owners alongside host status setup", () => {
+  assert.deepEqual(
+    nativeObservationViolations(
+      "Sources<analysis::prepared::Snapshot>; atlas::Configuration::host(root);",
+    ),
+    [],
+  );
+});
+for (const source of [
+  "Sources<crate::adapters::lean::Snapshot>",
+  "Queue<lean::repair::Context>",
+  "struct State { graph: atlas::Extraction }",
+])
+  test("native retention refuses " + source, () =>
+    assert.match(
+      nativeObservationViolations(source).join(),
+      /must not own a concrete backend/,
+    ),
+  );

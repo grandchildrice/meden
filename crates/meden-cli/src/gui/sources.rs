@@ -1,7 +1,6 @@
 //! GUI presentation for shared policy-bound source observations.
-use crate::analysis::sources::capture;
 use anyhow::Result;
-pub(super) type Snapshot = meden_app::view::PreparedSource<crate::adapters::lean::Snapshot>;
+pub(super) type Snapshot = meden_app::view::PreparedSource<crate::analysis::prepared::Snapshot>;
 use meden_runtime::{process::Control, workspace::Workspace};
 
 mod preparation;
@@ -41,24 +40,24 @@ pub(super) fn prepare(
     path: &str,
     publish: bool,
 ) -> Result<()> {
-    if std::path::Path::new(path)
-        .extension()
-        .is_none_or(|ext| ext != "lean")
-    {
-        return Ok(());
-    }
-    // A Lake project can span hundreds of thousands of modules. Its host
-    // preparation is explicit; do not start a whole-project build on map startup.
-    if !publish && crate::adapters::lake::enabled().unwrap_or(false) {
+    let selected = match crate::adapters::preparation::for_path(path) {
+        Ok(Some(selected)) => selected,
+        Ok(None) => return Ok(()),
+        Err(error) => {
+            unavailable(view, path, format!("{error:#}"))?;
+            return Ok(());
+        }
+    };
+    if !publish && !selected.background() {
         return Ok(());
     }
     let started = Instant::now();
     let original = super::lock(view)
         .source_preparation
-        .begin(path, "Resolving modules")?;
+        .begin(path, "Preparing analysis")?;
     super::lock(view).sources.forget_file(path);
     if publish {
-        if let Ok(Some(saved)) = crate::adapters::lean::saved::load(
+        if let Ok(Some(saved)) = selected.saved(
             &crate::adapters::Context {
                 workspace,
                 control,
@@ -82,17 +81,20 @@ pub(super) fn prepare(
             });
         }
     }
-    let result = crate::adapters::lean::pipeline::extract_cached(
-        workspace,
-        control,
-        &[path.into()],
-        Some(preparation::observer(
-            view,
-            std::slice::from_ref(&original),
-            started,
-        )),
-    )
-    .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)));
+    let result = selected
+        .read(
+            &crate::adapters::Context {
+                workspace,
+                control,
+                observer: Some(preparation::observer(
+                    view,
+                    std::slice::from_ref(&original),
+                    started,
+                )),
+            },
+            &[path.into()],
+        )
+        .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)));
     match result {
         Ok((snapshot, cache_hit)) => {
             let completion = control.with_active(|| {
@@ -143,9 +145,15 @@ pub(super) fn refresh(
     paths: &[String],
 ) -> Result<()> {
     super::lock(view).sources.clear_current();
-    let snapshot = match capture(workspace, control, paths)
-        .map(crate::adapters::lean::Snapshot::source_only)
-        .and_then(Snapshot::new)
+    let snapshot = match crate::adapters::preparation::plain(
+        &crate::adapters::Context {
+            workspace,
+            control,
+            observer: None,
+        },
+        paths,
+    )
+    .and_then(Snapshot::new)
     {
         Ok(snapshot) => snapshot,
         Err(error) => {
@@ -157,7 +165,7 @@ pub(super) fn refresh(
     };
     let mut view = super::lock(view);
     if view.analyses.data().current.as_ref().is_some_and(|record| {
-        record.input.source_revision != snapshot.source.revision
+        record.input.source_revision != snapshot.sources().revision
             || record.input.graph_revision.is_some()
     }) {
         view.analyses.invalidate();
@@ -181,16 +189,21 @@ pub(super) fn extract_atlas(
         view.activity = "Compiling Lean and extracting Atlas dependencies".into();
         paths
             .iter()
-            .map(|path| view.source_preparation.begin(path, "Resolving modules"))
+            .map(|path| view.source_preparation.begin(path, "Preparing analysis"))
             .collect::<Result<Vec<_>>>()?
     };
-    let extraction = crate::adapters::lean::pipeline::extract_cached(
-        workspace,
-        control,
-        paths,
-        Some(preparation::observer(view, &originals, started)),
-    )
-    .and_then(|(snapshot, _)| Snapshot::new(snapshot));
+    let extraction = crate::adapters::preparation::lean()
+        .and_then(|selected| {
+            selected.read(
+                &crate::adapters::Context {
+                    workspace,
+                    control,
+                    observer: Some(preparation::observer(view, &originals, started)),
+                },
+                paths,
+            )
+        })
+        .and_then(|(snapshot, _)| Snapshot::new(snapshot));
     super::lock(view).atlas = atlas.status();
     let snapshot = match extraction {
         Ok(snapshot) => snapshot,

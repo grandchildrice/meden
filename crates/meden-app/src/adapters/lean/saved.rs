@@ -4,7 +4,7 @@ use crate::{
     explanation::cache::{Artifact, Identity, Observation, Store},
     view::sources::SavedSource,
 };
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use std::sync::Arc;
 
 /// Read a complete original cache chain for viewing only. The ordinary pipeline
@@ -26,10 +26,7 @@ pub fn load(
     let artifact = store.read::<Artifact<Snapshot>>(&id)?;
     artifact.check()?;
     artifact.check_compiler(compiler.definition())?;
-    let collection = artifact
-        .snapshot
-        .collection()
-        .context("Missing saved input collection")?;
+    let collection = artifact.snapshot.collection();
     anyhow::ensure!(
         cache::scope(
             &collection.roots,

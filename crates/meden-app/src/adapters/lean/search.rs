@@ -12,9 +12,7 @@ pub struct Report {
 }
 impl crate::search::Observation<Snapshot> for Report {
     fn validate(&self, original: &Snapshot) -> Result<()> {
-        let graph = original
-            .graph()
-            .context("Search requires a compiled graph")?;
+        let graph = original.graph();
         let expected = graph
             .graph
             .nodes
@@ -37,12 +35,7 @@ impl crate::search::Observation<Snapshot> for Report {
 impl Report {
     pub(crate) fn project(&self, mut snapshot: Snapshot) -> Result<Snapshot> {
         crate::search::Observation::validate(self, &snapshot)?;
-        for node in &mut snapshot
-            .graph_mut()
-            .context("Missing compiled graph")?
-            .graph
-            .nodes
-        {
+        for node in &mut snapshot.graph_mut().graph.nodes {
             if let Some(description) = &mut node.semantic {
                 description.checker = Some(
                     self.checks

@@ -25,7 +25,9 @@ fn observed() -> Result<Snapshot> {
 fn semantic(snapshot: &mut Snapshot) -> Result<&mut crate::explanation::Description> {
     snapshot
         .graph_mut()
-        .and_then(|g| g.graph.nodes.first_mut())
+        .graph
+        .nodes
+        .first_mut()
         .and_then(|n| n.semantic.as_mut())
         .context("semantic")
 }
@@ -35,8 +37,8 @@ fn searched_id(observation: &Observation) -> Result<Id<CounterexampleSearch>> {
         Identity::Compilation(_) => anyhow::bail!("Expected search result"),
     }
 }
-fn revision(snapshot: &Snapshot) -> Result<&GraphRevision> {
-    Ok(&snapshot.graph().context("graph")?.revision)
+fn revision(snapshot: &Snapshot) -> &GraphRevision {
+    &snapshot.graph().revision
 }
 
 #[test]
@@ -60,7 +62,7 @@ fn renderer_change_reuses_raw_observations_and_binds_a_distinct_complete_view() 
         .rendered(&id, &original, &renderer("renderer-one")?)?
         .context("render cache miss")?;
     assert_eq!(serde_json::to_value(&first)?, serde_json::to_value(hit)?);
-    assert_ne!(revision(&first)?, revision(&original)?);
+    assert_ne!(revision(&first), revision(&original));
 
     assert!(store
         .rendered(&id, &original, &renderer("renderer-two")?)?
@@ -76,7 +78,7 @@ fn renderer_change_reuses_raw_observations_and_binds_a_distinct_complete_view() 
     semantic(&mut next)?.renderer = Some("Structural English (new renderer unavailable)".into());
     semantic(&mut next)?.rendering_error = Some("new renderer failed".into());
     store.render(retained, &renderer("renderer-two")?, &mut next)?;
-    assert_ne!(revision(&next)?, revision(&first)?);
+    assert_ne!(revision(&next), revision(&first));
     assert_eq!(semantic(&mut next)?.sentence, "structural sentence");
     assert_eq!(
         semantic(&mut next)?.checker,
@@ -472,12 +474,7 @@ fn a_searched_observation_cannot_be_reused_as_an_unsearched_parent() -> Result<(
     // Empty graphs have no checker field on which the dispatch adapter could
     // infer stage. The original owner must still forbid a second search parent.
     let mut empty = observed()?;
-    empty
-        .graph_mut()
-        .context("empty graph")?
-        .graph
-        .nodes
-        .clear();
+    empty.graph_mut().graph.nodes.clear();
     let compiled = store.observe(empty, &definition()?)?;
     let searched = store.retain_search(
         compiled,

@@ -131,10 +131,7 @@ impl Configuration {
         let retained = snapshot
             .modules()
             .context("Missing retained compiled modules; recompile the file")?;
-        let bindings = &snapshot
-            .collection()
-            .context("Missing module bindings")?
-            .modules;
+        let bindings = &snapshot.collection().modules;
         anyhow::ensure!(
             retained.id == self.modules_id(&retained.files, &snapshot.source.files, bindings)?,
             "Compiled module input binding changed"

@@ -5,7 +5,8 @@ use anyhow::Result;
 
 impl crate::view::Projection for Snapshot {
     fn page(&self) -> Result<SourcePage> {
-        let (graph, description) = if let Some(extraction) = self.graph() {
+        let extraction = self.graph();
+        let (graph, description) = {
             let nodes = extraction
                 .graph
                 .nodes
@@ -62,8 +63,6 @@ impl crate::view::Projection for Snapshot {
                 })
                 .collect();
             (Some(Graph { revision: extraction.revision.clone(), declarations: nodes, edges }), format!("Compiled dependencies from Lean Atlas (Lean {}). Selected observed modules; external libraries remain unexpanded. Contract and proof acceptance are unchanged.", extraction.graph.metadata.lean_version))
-        } else {
-            return crate::view::Projection::page(&self.source);
         };
         let page = SourcePage {
             revision: self.source.revision.clone(),
@@ -73,15 +72,10 @@ impl crate::view::Projection for Snapshot {
                 .iter()
                 .map(|(path, text)| Ok((path.clone(), SourceText::new(text.clone())?)))
                 .collect::<Result<_>>()?,
-            roots: self.collection().map_or_else(
-                || self.source.files.keys().cloned().collect(),
-                |c| c.roots.clone(),
-            ),
-            external: self
-                .collection()
-                .map_or_else(Vec::new, |c| c.external_modules.clone()),
+            roots: self.collection().roots.clone(),
+            external: self.collection().external_modules.clone(),
             inputs_revision: self.prepared().cloned(),
-            compiled: self.graph().is_some(),
+            compiled: true,
             graph,
             description,
         };

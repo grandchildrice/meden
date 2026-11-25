@@ -26,9 +26,16 @@ const changes =
             "\n// Composition-only implementation update.\n",
           ],
         ]
-      : null;
+      : kind === "pipeline"
+        ? [
+            [
+              "crates/meden-app/src/adapters/lean/pipeline.rs",
+              "\n// Orchestration-only implementation update.\n",
+            ],
+          ]
+        : null;
 if (!changes)
-  throw new Error("Choose the fixed metadata or repair test variant");
+  throw new Error("Choose the fixed metadata, repair or pipeline test variant");
 const directory = resolve("target/gui-native-variants/" + kind);
 await mkdir(directory, { recursive: true });
 const source = await mkdtemp(resolve(directory, "source-"));
@@ -70,7 +77,12 @@ for (const name of ["original", "updated"]) {
     for (const change of originals)
       await writeFile(
         resolve(source, change.path),
-        change.text + change.suffix,
+        (kind === "pipeline"
+          ? change.text.replace(
+              "Preparing explanations",
+              "Preparing explanations (composition update)",
+            )
+          : change.text) + change.suffix,
       );
   // Each snapshot has new absolute source paths. Never trust a shared target's
   // prior workspace dep-info to notice those paths or a helper-only edit.
@@ -113,7 +125,17 @@ for (const name of ["original", "updated"]) {
     log.stdout + log.stderr,
   );
   const bytes = await readFile(resolve(target, "profiling/meden"));
-  if (!bytes.includes(await readFile(helper)))
+  if (
+    kind === "pipeline"
+      ? !bytes.includes(
+          Buffer.from(
+            name === "updated"
+              ? "Preparing explanations (composition update)"
+              : "Preparing explanations",
+          ),
+        )
+      : !bytes.includes(await readFile(helper))
+  )
     throw new Error(
       "Built executable does not embed the selected implementation",
     );

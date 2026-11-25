@@ -18,13 +18,11 @@ pub struct Context {
 impl crate::semantic::Observation for Snapshot {
     type Context = Context;
     fn graph_revision(&self) -> Option<&GraphRevision> {
-        self.graph().map(|graph| &graph.revision)
+        Some(&self.graph().revision)
     }
     fn context(&self, target: &Target) -> Result<Option<Context>> {
-        if let Some(graph) = self.graph() {
-            graph.graph.validate(&self.source.files)?;
-        }
-        self.graph().map(|graph| context(graph, target)).transpose()
+        self.graph().graph.validate(&self.source.files)?;
+        Ok(Some(context(self.graph(), target)?))
     }
 }
 fn context(graph: &crate::atlas::Extraction, target: &Target) -> Result<Context> {
@@ -88,19 +86,19 @@ impl crate::analysis::Observation for Snapshot {
             context,
             self.collection(),
             self.prepared(),
-            self.graph().map(|graph| graph.resources_sha256.as_str()),
+            &self.graph().resources_sha256,
         )
     }
 }
 pub(super) fn check_binding(
     context: &crate::adapters::Context<'_>,
-    collection: Option<&crate::analysis::collect::Collection>,
+    collection: &crate::analysis::collect::Collection,
     prepared: Option<&crate::identity::snapshots::PreparedRevision>,
-    resources: Option<&str>,
+    resources: &str,
 ) -> Result<Freshness> {
     let workspace = context.workspace;
     let control = context.control;
-    if let Some(collection) = collection {
+    {
         if let Err(error) =
             crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
         {
@@ -120,7 +118,7 @@ pub(super) fn check_binding(
             }
         }
     }
-    if let Some(resources) = resources {
+    {
         anyhow::ensure!(
             crate::atlas::Configuration::host(workspace.path()).current_resources()? == resources,
             "Atlas resources changed; reread the graph and run again"

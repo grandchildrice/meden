@@ -1,6 +1,6 @@
 //! Public TUI adapter for the shared source/meaning service.
 use super::{App, Screen, Task, Update};
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use ratatui::prelude::*;
 use std::fmt::Write as _;
 use std::sync::atomic::Ordering;
@@ -172,8 +172,14 @@ impl App {
             let result = (|| -> Result<String> {
                 match task {
                     SourceTask::Read { paths, atlas } => {
-                        let source = crate::adapters::lean::pipeline::read_sources(
-                            &workspace, &control, &paths, atlas,
+                        let source = crate::adapters::preparation::read(
+                            &crate::adapters::Context {
+                                workspace: &workspace,
+                                control: &control,
+                                observer: None,
+                            },
+                            &paths,
+                            atlas,
                         )?;
                         control.with_active(|| {
                             let _ = tx.send(Update::Sources(Box::new(source)));
@@ -238,7 +244,6 @@ impl App {
         }
     }
     pub(super) fn meaning_task(&self, arguments: &str) -> anyhow::Result<Task> {
-        use anyhow::Context;
         let (selection, requirement) = arguments.split_once(" -- ").context(
             "Use /analyze NAME -- requirement, or /analyze FILE:LINE NAME -- requirement",
         )?;
@@ -249,20 +254,25 @@ impl App {
         let parts: Vec<_> = selection.split_whitespace().collect();
         let target = match parts.as_slice() {
             [name] => {
-                let atlas = snapshot.graph().context(
-                    "A declaration name needs an Atlas graph; otherwise use FILE:LINE NAME",
-                )?;
-                let mut nodes = atlas.graph.nodes.iter().filter(|node| node.id == *name);
+                anyhow::ensure!(
+                    snapshot.graph_revision().is_some(),
+                    "A declaration name needs a compiled graph; otherwise use FILE:LINE NAME"
+                );
+                let page = meden_app::view::SourcePage::from_snapshot(snapshot)?;
+                let graph = page.graph.context("Compiled graph unavailable")?;
+                let mut nodes = graph.declarations.iter().filter(|node| node.name == *name);
                 let node = nodes
                     .next()
                     .context("Declaration not found in the current graph; use its full name")?;
                 anyhow::ensure!(nodes.next().is_none(), "Declaration name is ambiguous");
                 crate::semantic::Target {
-                    file: node.file_path.clone(),
-                    line: node
-                        .line_start
-                        .context("Declaration has no source location")?,
-                    name: node.id.clone(),
+                    file: node.source.file.clone(),
+                    line: usize::try_from(
+                        node.source
+                            .line
+                            .context("Declaration has no source location")?,
+                    )?,
+                    name: node.name.clone(),
                 }
             }
             [location, name] => {
@@ -278,8 +288,8 @@ impl App {
             ),
         };
         let input = crate::semantic::Input {
-            source_revision: snapshot.source.revision.clone(),
-            graph_revision: snapshot.graph().map(|atlas| atlas.revision.clone()),
+            source_revision: snapshot.sources().revision.clone(),
+            graph_revision: snapshot.graph_revision().cloned(),
             target,
             requirement: requirement.trim().into(),
         };
@@ -290,56 +300,59 @@ impl App {
         })
     }
 
-    pub(super) fn observed_sources(&mut self, snapshot: crate::adapters::lean::Snapshot) {
+    pub(super) fn observed_sources(&mut self, snapshot: crate::analysis::prepared::Snapshot) {
         self.invalidate_analysis();
-        let label = if snapshot.graph().is_some() {
-            "Source graph ready"
-        } else {
-            "Sources ready"
-        };
-        let mut text = format!(
-            "{label}: {} file{}\nRevision: {}",
-            snapshot.source.files.len(),
-            if snapshot.source.files.len() == 1 {
-                ""
+        let result = (|| -> Result<String> {
+            let page = meden_app::view::SourcePage::from_snapshot(&snapshot)?;
+            let label = if snapshot.graph_revision().is_some() {
+                "Source graph ready"
             } else {
-                "s"
-            },
-            snapshot.source.revision
-        );
-        if let Some(collection) = snapshot.collection() {
-            let _ = write!(
-                text,
-                "\nSelected roots: {}\nExternal modules (not expanded): {}",
-                collection.roots.join(", "),
-                collection.external_modules.join(", ")
+                "Sources ready"
+            };
+            let mut text = format!(
+                "{label}: {} file{}\nRevision: {}",
+                snapshot.sources().files.len(),
+                if snapshot.sources().files.len() == 1 {
+                    ""
+                } else {
+                    "s"
+                },
+                snapshot.sources().revision
             );
-            for package in &collection.packages {
-                let _ = write!(
-                    text,
-                    "\nLake package: {} · {}",
-                    package.name,
-                    package.source_roots.join(", ")
-                );
+            for detail in snapshot.details()? {
+                let _ = write!(text, "\n{detail}");
             }
-        }
-        if let Some(atlas) = snapshot.graph() {
-            for node in atlas.graph.nodes.iter().take(80) {
-                let _ = write!(
-                    text,
-                    "\n{} · {}:{}",
-                    node.id,
-                    node.file_path,
-                    node.line_start.unwrap_or(1)
-                );
+            if snapshot.graph_revision().is_some() {
+                let graph = page.graph.context("Compiled graph unavailable")?;
+                for node in graph.declarations.iter().take(80) {
+                    let _ = write!(
+                        text,
+                        "\n{} · {}:{}",
+                        node.name,
+                        node.source.file,
+                        node.source.line.unwrap_or(1)
+                    );
+                }
+                if graph.declarations.len() > 80 {
+                    text.push_str(
+                        "\nMore declarations are present; use their full name with /analyze.",
+                    );
+                }
             }
-            if atlas.graph.nodes.len() > 80 {
-                text.push_str(
-                    "\nMore declarations are present; use their full name with /analyze.",
+            Ok(text)
+        })();
+        let mut text = match result {
+            Ok(text) => text,
+            Err(error) => {
+                self.source_snapshot = None;
+                self.say(
+                    format!("Source observation unavailable: {error:#}"),
+                    Style::new().fg(Color::Red),
                 );
+                return;
             }
-        }
-        text.push_str("\nUse /analyze NAME -- requirement (Atlas), or /analyze FILE:LINE NAME -- requirement.");
+        };
+        text.push_str("\nUse /analyze NAME -- requirement (compiled graph), or /analyze FILE:LINE NAME -- requirement.");
         self.source_snapshot = Some(snapshot);
         self.say(text, Style::new().fg(Color::Gray));
     }

@@ -168,10 +168,10 @@ filesystem or concurrent-snapshot proof.
 
 This is the first application extraction, not the complete multi-backend registry.
 The compiler port now retains a backend-owned decoded observation type; neutral
-source capture and prepared-view retention do not contain Lean records. The
-native compiler composition and repair still select Lean observations. Shared
-meaning assessment now accepts typed backend-owned context/freshness; native
-preparation remains explicitly Lean. The search port and immutable storage bodies now
+source capture and prepared-view retention do not contain Lean records. Production
+native compiler composition still selects Lean; source/assessment/repair
+retention is backend-neutral. Shared meaning assessment accepts typed
+backend-owned context/freshness. The search port and immutable storage bodies now
 retain backend-owned types; Lean owns its graph/cache projection. Complete role-wide plugin/resource/schema bindings
 and the remaining orchestration are still required.
 The verifier role now has two real host registrations:
@@ -1090,3 +1090,14 @@ saved chain and selected source, then runs the unchanged current-input pipeline
 before promotion. Failure retires saved aliases; successful identical promotion
 preserves the actual graph and camera. This advances the visible-wait exit;
 full native freshness work, heterogeneous preparation and retirement remain open.
+
+The [native backend owner](../performance/native-backend-ownership.md) removes
+Lean snapshots and repair contexts from GUI/TUI/JSONL retention. Original typed
+outputs and preparation implementations stay paired through analysis, host review
+and reanalysis. Plain source remains neutral; Lean observations now require a
+complete compilation. The old source-only constructor, nullable compilation and
+missing-input fallbacks are deleted. Compiler definitions exclude orchestration;
+an actual pipeline-only executable update retains original artifacts. Finite
+AST/real-Z3 conformance uses the same native owner, without granting accepted
+project evidence. Production native heterogeneous selection and the remaining
+layout/collection, latency and retirement work remain open.

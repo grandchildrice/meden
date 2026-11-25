@@ -94,10 +94,15 @@ fn raw_descriptions_cannot_be_published_and_checks_must_cover_exact_declarations
     ] {
         assert!(result.project(raw.snapshot().clone()).is_err());
     }
-    assert!(report("x")?
-        .project(raw.snapshot().clone())?
-        .graph()
-        .is_some());
+    assert_eq!(
+        report("x")?
+            .project(raw.snapshot().clone())?
+            .graph()
+            .graph
+            .nodes
+            .len(),
+        1
+    );
     Ok(())
 }
 #[test]

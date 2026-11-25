@@ -3538,6 +3538,11 @@ theorem slow : True := fast
       title:
         "repair and composition updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
     },
+    {
+      kind: "pipeline",
+      title:
+        "orchestration-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+    },
   ]) {
     test(variant.title, async ({ page }, info) => {
       test.setTimeout(300000);
@@ -3707,7 +3712,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
             metrics,
             original_artifacts: stored,
             scope:
-              "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
+              "Two actual native builds with the fixed metadata, repair/composition or orchestration-only update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
           },
           null,
           2,

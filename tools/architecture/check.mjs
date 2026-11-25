@@ -186,6 +186,23 @@ export function neutralObservationViolations(source) {
     : [];
 }
 
+// The native owner keeps typed implementations behind its dispatch boundary.
+// Host setup may name an implementation; native retained state must not own its AST.
+export function nativeObservationViolations(source) {
+  const production = source
+    .split("#[cfg(test)]")[0]
+    .split("\n")
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join("\n");
+  return /\b(?:lean|lake)::(?:Snapshot|repair::Context)\b|\batlas::(?:Extraction|Graph|Node)\b/.test(
+    production,
+  )
+    ? [
+        "native source/assessment/repair retention must not own a concrete backend observation",
+      ]
+    : [];
+}
+
 // Actual role definitions bind their own execution/validation inputs rather
 // than a facade that also changes when peer integrations are added.
 export function compilerCaptureViolations(source) {
@@ -193,7 +210,9 @@ export function compilerCaptureViolations(source) {
     (match) => match[1],
   );
   return captures
-    .filter((path) => /(^|\/)(?:adapters|lean)\.rs$/.test(path))
+    .filter((path) =>
+      /(^|\/)(?:(?:adapters|lean)\.rs|pipeline\.rs)$/.test(path),
+    )
     .map(
       (path) =>
         `compiler/search attribution must not capture composition facade ${path}`,
@@ -265,11 +284,27 @@ export function check() {
     "crates/meden-app/src/analysis/sources.rs",
     "crates/meden-app/src/view.rs",
     "crates/meden-app/src/view/sources.rs",
+    "crates/meden-app/src/analysis/prepared.rs",
   ])
     errors.push(
       ...neutralObservationViolations(
         readFileSync(resolve(root, path), "utf8"),
       ).map((error) => `${path}: ${error}`),
+    );
+  for (const path of [
+    "crates/meden-cli/src/session.rs",
+    "crates/meden-cli/src/protocol.rs",
+    "crates/meden-cli/src/tui.rs",
+    "crates/meden-cli/src/tui/analysis.rs",
+    "crates/meden-cli/src/tui/repair.rs",
+    "crates/meden-cli/src/gui.rs",
+    "crates/meden-cli/src/gui/sources.rs",
+    "crates/meden-cli/src/gui/analysis.rs",
+  ])
+    errors.push(
+      ...nativeObservationViolations(
+        readFileSync(resolve(root, path), "utf8"),
+      ).map((error) => path + ": " + error),
     );
   for (const path of [
     "crates/meden-app/src/adapters/lean/definition.rs",

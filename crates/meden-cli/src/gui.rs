@@ -84,7 +84,7 @@ struct View {
     stopped: Option<String>,
     directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
-    sources: meden_app::view::sources::Sources<crate::adapters::lean::Snapshot>,
+    sources: meden_app::view::sources::Sources<crate::analysis::prepared::Snapshot>,
     source_preparation: meden_app::view::jobs::Jobs,
     analyses: meden_app::view::analyses::Analyses,
     repair_review: Option<meden_app::view::repairs::Review>,

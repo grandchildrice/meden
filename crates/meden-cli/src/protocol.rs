@@ -48,7 +48,7 @@ enum Out<'a> {
         records: Vec<crate::analysis::Record>,
     },
     SourceSnapshot {
-        snapshot: &'a crate::adapters::lean::Snapshot,
+        snapshot: &'a crate::analysis::prepared::Snapshot,
     },
     Analysis {
         record: Option<&'a crate::analysis::Record>,
@@ -232,7 +232,7 @@ fn capture_sources(
     paths: &[String],
     atlas: bool,
     output: &mut impl Write,
-) -> Result<crate::adapters::lean::Snapshot> {
+) -> Result<crate::analysis::prepared::Snapshot> {
     let captured = session.sources(paths, atlas)?;
     send(
         output,
@@ -245,7 +245,7 @@ fn capture_sources(
 
 fn analyze(
     session: &Session,
-    source: &crate::adapters::lean::Snapshot,
+    source: &crate::analysis::prepared::Snapshot,
     input: crate::semantic::Input,
     processes: &Control,
     output: &mut impl Write,

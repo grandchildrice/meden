@@ -45,14 +45,14 @@ use view::draw;
 
 enum Task {
     PrepareRepair {
-        snapshot: Box<crate::adapters::lean::Snapshot>,
+        snapshot: Box<crate::analysis::prepared::Snapshot>,
         record: Box<crate::analysis::Record>,
     },
     ApplyRepair(crate::analysis::repair::Reference),
     RejectRepair(crate::analysis::repair::Reference),
     Instruction(String),
     Analyze {
-        snapshot: Box<crate::adapters::lean::Snapshot>,
+        snapshot: Box<crate::analysis::prepared::Snapshot>,
         input: crate::semantic::Input,
     },
 }
@@ -60,8 +60,8 @@ enum Task {
 enum Update {
     WorkResume(String),
     RepairReview(Box<crate::analysis::repair::Review>),
-    RepairApplied(Box<(crate::adapters::lean::Snapshot, crate::analysis::Record)>),
-    Sources(Box<crate::adapters::lean::Snapshot>),
+    RepairApplied(Box<(crate::analysis::prepared::Snapshot, crate::analysis::Record)>),
+    Sources(Box<crate::analysis::prepared::Snapshot>),
     Analysis(Box<crate::analysis::Record>),
     AnalysisDone {
         text: String,
@@ -171,7 +171,7 @@ struct App {
     reasoning: Option<usize>,
     rx: Option<Receiver<Update>>,
     worker: Option<Sender<Task>>,
-    source_snapshot: Option<crate::adapters::lean::Snapshot>,
+    source_snapshot: Option<crate::analysis::prepared::Snapshot>,
     analysis: Option<crate::analysis::Record>,
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,

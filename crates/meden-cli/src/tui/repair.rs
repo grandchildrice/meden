@@ -11,7 +11,7 @@ use crate::session::Repairs;
 impl App {
     pub(super) fn repair_applied(
         &mut self,
-        (snapshot, record): (crate::adapters::lean::Snapshot, crate::analysis::Record),
+        (snapshot, record): (crate::analysis::prepared::Snapshot, crate::analysis::Record),
     ) {
         self.source_snapshot = Some(snapshot);
         self.analysis = Some(record);
