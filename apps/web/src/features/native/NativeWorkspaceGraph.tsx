@@ -22,11 +22,11 @@ import {
   type Symbol,
 } from "./project-map-model";
 
+import { MapAreaTargets } from "./MapAreaTargets";
 import { MapAreaCanvas } from "./MapAreaCanvas";
 
 import { declarationRoles } from "./declaration-role";
 import {
-  MapAreaCard,
   MapDeclaration,
   MapReference,
   MapMainPin,
@@ -89,17 +89,12 @@ function Scene({ data }: NodeProps<SceneNode>) {
             ({ area, opacity }) => opacity >= 0.5 || area.path === focusedArea,
           ),
         ).map((batch) => (
-          <g key={batch.key}>
-            {batch.visible.map(({ area: a, opacity: alpha }) => (
-              <MapAreaCard
-                key={a.path}
-                area={a}
-                pointer={alpha >= 0.5}
-                accessible={alpha > 0.5 || a.path === focusedArea}
-                focus={data.focus}
-              />
-            ))}
-          </g>
+          <MapAreaTargets
+            key={batch.key}
+            areas={batch.visible}
+            focused={focusedArea}
+            focus={data.focus}
+          />
         ))}
       </g>
       <g data-map-layer="references">

@@ -1113,3 +1113,10 @@ The meaning prompt accepts backend-owned formal domains, with a new assessment
 engine identity; historical assessments retain their original identity. Remaining
 generic layout/collection, navigation annotation ownership, measured browser/native
 waits and the retirement audit still require their own completion evidence.
+
+The [target-construction comparison](../performance/map-target-creation.md) reduces
+first-detail React/property work with one bounded SVG target adapter. Original
+rectangles, literal paths, focus, ordered activation and camera remain unchanged;
+a fragment-parser trial is rejected on measured worst pauses. This advances the
+measured browser wait in step 5. Background paint, native freshness, generic
+layout/collection and navigation annotations, and the retirement audit remain open.

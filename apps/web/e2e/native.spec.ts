@@ -37,6 +37,7 @@ import {
   measureMapGeometry,
   expectMapKeyboardFocus,
   observeRetainedAreaWrites,
+  observeTargetCreation,
 } from "./map-geometry";
 
 test.describe("native GUI with real offline workers", () => {
@@ -4437,6 +4438,90 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     });
   });
 
+  test("map targets preserve literal paths, keyboard focus and restart with bounded target creation writes", async ({
+    page,
+  }, info) => {
+    const names = [
+      'Quotes "\' & <rect data-injected="yes">',
+      "Whitespace\tline\nreturn\r",
+      "Ω «unicode» &#10;",
+    ];
+    for (const name of names) {
+      await mkdir(resolve(project, name), { recursive: true });
+      await writeFile(
+        resolve(project, name, "A.lean"),
+        "def alpha : Nat := 1\n",
+      );
+      await writeFile(
+        resolve(project, name, "B.lean"),
+        "def beta : Nat := 2\n",
+      );
+    }
+    await page.addInitScript(observeTargetCreation);
+    await page.goto(await start());
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    const target = map.getByRole("button", {
+      name: "Category: " + names[0],
+      exact: true,
+    });
+    await expect(target).toBeVisible();
+    const observations = await map.locator("[data-map-path]").evaluateAll(
+      (elements, names) =>
+        names.map((name) => {
+          const element = elements.find(
+            (e) => e.getAttribute("data-map-path") === name,
+          );
+          if (!(element instanceof SVGRectElement))
+            throw Error("Literal SVG path is missing");
+          if (element.getAttribute("aria-label") !== "Category: " + name)
+            throw Error("Literal accessible name changed");
+          return {
+            path: name,
+            javascript_attribute_writes:
+              (window as any).__targetAttributeWrites.get(element) || 0,
+          };
+        }),
+      names,
+    );
+    await expect(map.locator("[data-injected], script, image")).toHaveCount(0);
+    await target.evaluate((e) => {
+      (window as any).__retainedLiteralTarget = e;
+    });
+    await target.focus();
+    await page.keyboard.press("Space");
+    await expect(
+      map.getByRole("navigation", { name: "Map location" }),
+    ).toContainText(names[0]!);
+    await expect(target).toBeFocused();
+    expect(
+      await target.evaluate(
+        (e) => e === (window as any).__retainedLiteralTarget,
+      ),
+    ).toBe(true);
+    await info.attach("target-creation-and-literal-paths", {
+      body: Buffer.from(
+        JSON.stringify({
+          observations,
+          maximum_creation_attribute_writes: 8,
+          keyboard_activation: true,
+          retained_element_and_focus: true,
+        }),
+      ),
+      contentType: "application/json",
+    });
+    expect(observations.every((x) => x.javascript_attribute_writes <= 8)).toBe(
+      true,
+    );
+    await page.screenshot({ path: info.outputPath("literal-map-targets.png") });
+    await stop();
+    await page.goto(await start());
+    await expect(
+      map.getByRole("button", { name: "Category: " + names[0], exact: true }),
+    ).toBeVisible();
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+  });
+
   test.describe("retained area rendering", () => {
     test.use({ deviceScaleFactor: 2 });
     test("fading map areas keep their paint and focused keyboard target without inert SVG hit targets", async ({
@@ -5560,6 +5645,25 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       .toBe(false);
     const first = await nativeState(page);
     const firstSource = await nativeSource(page, first);
+    // Saved explanations can precede the newly queued inspection. Require the
+    // complete changed publication, not an idle gap before that job starts.
+    const changedSource = async (previous: string) => {
+      let current: any;
+      await expect
+        .poll(
+          async () => {
+            const status = await nativeState(page);
+            current = await nativeSource(page, status);
+            return (
+              !status.running &&
+              Boolean(current?.compiled && current.revision !== previous)
+            );
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+      return current;
+    };
     expect(first.stopped).toBeNull();
     const compiled = firstSource.graph.declarations;
     const observations = Object.fromEntries(
@@ -5636,7 +5740,8 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       .getByRole("button", { name: "Explain aa_bad", exact: true })
       .hover({ timeout: 15000 });
     await expect(meaning).toContainText("Compiled expression");
-    expect((await nativeSource(page)).revision).not.toBe(firstSource.revision);
+    const changedDependency = await changedSource(firstSource.revision);
+    expect(changedDependency.revision).not.toBe(firstSource.revision);
     await expect(
       meaning.getByRole("row", { name: "n 0", exact: true }),
     ).toBeVisible();
@@ -5660,6 +5765,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     await source
       .getByRole("button", { name: "Explain aa_bad", exact: true })
       .hover({ timeout: 15000 });
+    await changedSource(changedDependency.revision);
     await expect(meaning).toContainText("Compiled expression");
     await expect(meaning).not.toContainText("n := 0");
     await expect(source.getByLabel("File contents")).toContainText(

@@ -1,0 +1,2972 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "baseline_commit": "69ff033",
+  "decision": "Promote the bounded cloned SVG targets; reject the native fragment parser.",
+  "scope": "Browser interaction-target construction only. Same world layout, Canvas/reference/declaration/main-pin painters and source/job/evidence owners. No native or kernel code, verification rule, dependency or persistent artifact change.",
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176/meden",
+    "sha256": "cdb8a9e0be9fc8a6cca12dea3bfeeceab3e6d1974925ceb16213dc0686e9e176"
+  },
+  "assets": {
+    "count": 88,
+    "sha256": "e95c560ea4c65610ec1fde30f7347133b848e4cc6cf3d8576a1ea177ccd03539",
+    "exact_measured_hidden_map_build": true
+  },
+  "sources": [
+    {
+      "path": "apps/web/e2e/map-geometry.ts",
+      "bytes": 12224,
+      "sha256": "eb77d8449c3f17e2f761fb4981b3ee811f508c20415b0763cfde90c73a199241"
+    },
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "bytes": 345490,
+      "sha256": "71935d0e0e57361d6f16335dc4c26293556fb4ffc61651de8f99e769e4d64306"
+    },
+    {
+      "path": "apps/web/src/features/native/MapAreaTargets.tsx",
+      "bytes": 4650,
+      "sha256": "5fb39ca9d619c26e896dede5b1c721b780b506ee0a4058deb91449d244e05336"
+    },
+    {
+      "path": "apps/web/src/features/native/MapSceneElements.tsx",
+      "bytes": 4415,
+      "sha256": "929062e437ac35ec83ee40b86c287664abfeec9adafcefa4fb6292086624b675"
+    },
+    {
+      "path": "apps/web/src/features/native/NativeWorkspaceGraph.tsx",
+      "bytes": 13662,
+      "sha256": "94539750f4d4cf95cb157123eb2a9c0ea855ec7977f2ecc9640c0050db8367b9"
+    }
+  ],
+  "diagnostic": {
+    "peak_new_target_mounts": 9174,
+    "area_path_calls_in_same_frame": 9208,
+    "scope": "Additional hooks observe SVG mounts and Canvas calls; this diagnostic is excluded from comparative timings. Multiple draws can occur in one frame."
+  },
+  "validation": {
+    "unit": 85,
+    "architecture": 55,
+    "typecheck": true,
+    "schema": true,
+    "format": true,
+    "required_tui": 37,
+    "decoded_tui_journeys": 9,
+    "gui": {
+      "initial": {
+        "total": 82,
+        "expected": 81,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "focused": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "readiness_correction": "Require a complete changed source publication after Refresh, rather than an idle gap while a file inspection is still queued. Initial TypeError/null-source failure retained; no product or performance threshold changed."
+    },
+    "gui_skipped": 0,
+    "gui_flaky": 0,
+    "original_assets_control": {
+      "stats": {
+        "total": 1,
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "original_writes": 16,
+      "clone_writes": 8
+    },
+    "serialized_retained_tab_gates": [
+      {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 33173.320074,
+        "warm_tab_two_raf_ms": [
+          15.700000002980232, 20.899999998509884, 16.19999999552965,
+          21.100000001490116, 20.600000001490116, 22, 22.69999999552965,
+          24.19999999552965, 19.899999998509884, 20.399999998509884
+        ],
+        "p95_ms": 24.19999999552965,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      },
+      {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 34169.988265,
+        "warm_tab_two_raf_ms": [
+          20.5, 17.899999998509884, 32.79999999701977, 15.700000002980232,
+          19.399999998509884, 25.19999999552965, 33.20000000298023, 20,
+          22.69999999552965, 25.100000001490116
+        ],
+        "p95_ms": 33.20000000298023,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    ],
+    "actual_model_inference": "None requested by this rendering change. Scripted/installed-tool gates are not live-model, cold-install, local-inference or confidentiality evidence."
+  },
+  "methodology": "Four fresh-browser captures per project in control/clone/clone/control order; same native executable and project, normal motion, no throttling, no simultaneous build/test/inference/sampler. Document-thread CDP event spans and sampled browser CPU; gesture records contain no command POST. Nested spans overlap. Two desktop repetitions do not establish field percentiles or universal improvement. Incomplete native rings are excluded from native attribution.",
+  "projects": [
+    {
+      "project": "riemann",
+      "runs": [
+        {
+          "stage": "control-1",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:07:12.927Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "declarations": 15,
+            "project_files": 175187,
+            "setup_preparation_ms": 12234.690656,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/event-latency-20261125-assets",
+            "source_maps_sha256": {
+              "index-CWYDNIMu.js": "e4a0a5c69be34409a7db0cf60f22b5f0951f90e926eb6d0162347aff743c1aa5"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 120.596,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 166,
+              "p95_ms": 166,
+              "max_ms": 166,
+              "total_ms": 225
+            },
+            "frames": {
+              "count": 329,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 150,
+              "total_ms": 6099.700000000004
+            },
+            "visible_declarations": 26,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 13,
+              "map_declarations": 26
+            },
+            "steps": [
+              {
+                "path": "src/Development",
+                "category": true,
+                "x": 581.7184143066406,
+                "y": 276.739990234375,
+                "area": 318672.5851306021
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                "category": true,
+                "x": 541.1026916503906,
+                "y": 301.0216522216797,
+                "area": 107902.61881094612
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                "category": false,
+                "x": 461.1611328125,
+                "y": 206.093994140625,
+                "area": 332.91505086421967
+              }
+            ],
+            "detail_requests": 10,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 1.489,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 16.69999999552965
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.318,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 26.600000001490116
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.738,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 22.299999997019768
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 10,
+              "maximum_dispatch_ms": 1.199,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 19.100000001490116
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 17.925,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 45.29999999701977
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.173,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 27.599999994039536
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 111,
+              "maximum_dispatch_ms": 27.297,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 45.69999999552965
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 268,
+              "maximum_dispatch_ms": 15.195,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 33.30000000000291,
+              "maximum_frame_ms": 33.39999999999418,
+              "presentation_proxy_p95_ms": 48
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 44,
+              "maximum_dispatch_ms": 4.41,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.80000000000291,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 23.399999998509884
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 112,
+              "maximum_dispatch_ms": 120.596,
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 166,
+                "p95_ms": 166,
+                "max_ms": 166,
+                "total_ms": 225
+              },
+              "frame_p95_ms": 33.299999999995634,
+              "maximum_frame_ms": 150,
+              "presentation_proxy_p95_ms": 54.20000000298023
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 0,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/summary.json",
+              "bytes": 697823,
+              "sha256": "2cbf28037ab361a5e601ff60f2a8554daddeccdceb15072a6e3254c2be449f7b"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/trace.json",
+              "bytes": 16646544,
+              "sha256": "8ea77d14c52f0637a90ebc3f97660f489305ab63758f18157e43da82dbec1cfa"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/native-metrics.json",
+              "bytes": 874259,
+              "sha256": "5f6a2aa685c771d7063d44915527e9ff12ac004ca61aa0b7ae1a9545701992a6"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/project-map.png",
+              "bytes": 99883,
+              "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/project-map-drill.cpuprofile",
+              "bytes": 319363,
+              "sha256": "5f9d1197fb91eb42b7baefdda455dfe0c8d1725ae8b0a5cee7f17311000d897b"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-1/preparation.json",
+              "bytes": 470,
+              "sha256": "55b1e7d0454d850973908f47b937afe51aaabfe4b35618c5ea30aa3fe178fcb4"
+            }
+          ]
+        },
+        {
+          "stage": "candidate-1",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:08:02.293Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "declarations": 15,
+            "project_files": 175187,
+            "setup_preparation_ms": 11323.529627,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+            "source_maps_sha256": {
+              "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 99.294,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 144,
+              "p95_ms": 144,
+              "max_ms": 144,
+              "total_ms": 206
+            },
+            "frames": {
+              "count": 326,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 133.40000000000146,
+              "total_ms": 6033
+            },
+            "visible_declarations": 26,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 13,
+              "map_declarations": 26
+            },
+            "steps": [
+              {
+                "path": "src/Development",
+                "category": true,
+                "x": 581.7184143066406,
+                "y": 276.739990234375,
+                "area": 318672.5851306021
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                "category": true,
+                "x": 541.1026916503906,
+                "y": 301.0216522216797,
+                "area": 107902.61881094612
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                "category": false,
+                "x": 461.1611328125,
+                "y": 206.093994140625,
+                "area": 332.91505086421967
+              }
+            ],
+            "detail_requests": 10,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 2.2,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 16.700000002980232
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.305,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 21.600000001490116
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.746,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 22.899999998509884
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 8,
+              "maximum_dispatch_ms": 0.987,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 18.600000001490116
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 22.361,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 33.29999999999927,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 51.5
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.255,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 27.200000002980232
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 111,
+              "maximum_dispatch_ms": 30.502,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 51
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 273,
+              "maximum_dispatch_ms": 16.209,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 33.30000000000291,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 48.600000001490116
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 44,
+              "maximum_dispatch_ms": 4.058,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 23.200000002980232
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 116,
+              "maximum_dispatch_ms": 99.294,
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 144,
+                "p95_ms": 144,
+                "max_ms": 144,
+                "total_ms": 206
+              },
+              "frame_p95_ms": 33.299999999995634,
+              "maximum_frame_ms": 133.40000000000146,
+              "presentation_proxy_p95_ms": 47.5
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 396,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/summary.json",
+              "bytes": 731276,
+              "sha256": "05b2d4d9e64413260e08c90e13449eeb2ab5e744f8a3dab8772b7192e0ce0b48"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/trace.json",
+              "bytes": 16040334,
+              "sha256": "1c5af04593b797adb1121c8ba9d830c61945ea974fb59afcf1cfa4d21c71b038"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/native-metrics.json",
+              "bytes": 911613,
+              "sha256": "183de526b15b3d3318382d4097b8d0dda68f162ffb4d470c956e753a427a2904"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/project-map.png",
+              "bytes": 99883,
+              "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/project-map-drill.cpuprofile",
+              "bytes": 320964,
+              "sha256": "2f4089012663594eba55ef1476bc1b299b34f1260dc9e68f1ef90b6e133ea6bd"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-1/preparation.json",
+              "bytes": 470,
+              "sha256": "69399ab3bc8e9fcd8cf5e3d4b06fb46dc5da08be004b738583a5bd07ff2a597b"
+            }
+          ]
+        },
+        {
+          "stage": "candidate-2",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:08:51.321Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "declarations": 15,
+            "project_files": 175187,
+            "setup_preparation_ms": 11237.439639,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+            "source_maps_sha256": {
+              "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 104.387,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 149,
+              "p95_ms": 149,
+              "max_ms": 149,
+              "total_ms": 208
+            },
+            "frames": {
+              "count": 330,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 133.29999999999563,
+              "total_ms": 6049.800000000003
+            },
+            "visible_declarations": 26,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 13,
+              "map_declarations": 26
+            },
+            "steps": [
+              {
+                "path": "src/Development",
+                "category": true,
+                "x": 581.7184143066406,
+                "y": 276.739990234375,
+                "area": 318672.5851306021
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                "category": true,
+                "x": 541.1026916503906,
+                "y": 301.0216522216797,
+                "area": 107902.61881094612
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                "category": false,
+                "x": 461.1611328125,
+                "y": 206.093994140625,
+                "area": 332.91505086421967
+              }
+            ],
+            "detail_requests": 10,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 2.07,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 17.200000002980232
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.561,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 34.20000000298023
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.666,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 25.600000001490116
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 4,
+              "maximum_dispatch_ms": 0.818,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 18.69999999552965
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 16.506,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 33.29999999999927,
+              "presentation_proxy_p95_ms": 41.80000000447035
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.493,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 29.200000002980232
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 111,
+              "maximum_dispatch_ms": 28.871,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.80000000000291,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 48.29999999701977
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 277,
+              "maximum_dispatch_ms": 14.851,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 33.299999999995634,
+              "maximum_frame_ms": 50.099999999998545,
+              "presentation_proxy_p95_ms": 49.70000000298023
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 45,
+              "maximum_dispatch_ms": 3.773,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.799999999995634,
+              "presentation_proxy_p95_ms": 22.19999999552965
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 124,
+              "maximum_dispatch_ms": 104.387,
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 149,
+                "p95_ms": 149,
+                "max_ms": 149,
+                "total_ms": 208
+              },
+              "frame_p95_ms": 33.299999999995634,
+              "maximum_frame_ms": 133.29999999999563,
+              "presentation_proxy_p95_ms": 47.30000000447035
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 533,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/summary.json",
+              "bytes": 755879,
+              "sha256": "c340a3b3a6ee957088ad90a2b14aeb100e464f55d9fa2bceb2c58e8b6fa774ae"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/trace.json",
+              "bytes": 16307691,
+              "sha256": "fa320d9ea9ac4651abff4f346e90ce4f6d647e218f070a1d025221e84f1bafd0"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/native-metrics.json",
+              "bytes": 913130,
+              "sha256": "fc6c89bee07ad1cf9a237d4250a82164316a743f5097c09ead5ef890e05cc6f5"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/project-map.png",
+              "bytes": 99883,
+              "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/project-map-drill.cpuprofile",
+              "bytes": 283926,
+              "sha256": "7db15e338f6e589ccc8d537a394c0c202a2df03a71f85c80064499848eeeaf62"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-candidate-2/preparation.json",
+              "bytes": 470,
+              "sha256": "6bad9d93fddfc05e844a2bda92f8426fe8a94931175ebcb3d7cb8b88cc58fe3d"
+            }
+          ]
+        },
+        {
+          "stage": "control-2",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:09:40.323Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "declarations": 15,
+            "project_files": 175187,
+            "setup_preparation_ms": 11221.845775,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/event-latency-20261125-assets",
+            "source_maps_sha256": {
+              "index-CWYDNIMu.js": "e4a0a5c69be34409a7db0cf60f22b5f0951f90e926eb6d0162347aff743c1aa5"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 108.953,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 154,
+              "p95_ms": 154,
+              "max_ms": 154,
+              "total_ms": 216
+            },
+            "frames": {
+              "count": 321,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.19999999999709,
+              "max_ms": 150,
+              "total_ms": 5983.0999999999985
+            },
+            "visible_declarations": 26,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 13,
+              "map_declarations": 26
+            },
+            "steps": [
+              {
+                "path": "src/Development",
+                "category": true,
+                "x": 581.7184143066406,
+                "y": 276.739990234375,
+                "area": 318672.5851306021
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+                "category": true,
+                "x": 541.1026916503906,
+                "y": 301.0216522216797,
+                "area": 107902.61881094612
+              },
+              {
+                "wheel": -650,
+                "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+              },
+              {
+                "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+                "category": false,
+                "x": 461.1611328125,
+                "y": 206.093994140625,
+                "area": 332.91505086421967
+              }
+            ],
+            "detail_requests": 10,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 1.911,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 16.69999999552965
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.603,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 26.19999999552965
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 1.617,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 23.200000002980232
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 8,
+              "maximum_dispatch_ms": 0.984,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 19.100000001490116
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 17.757,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 48.20000000298023
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.162,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 26.299999997019768
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 110,
+              "maximum_dispatch_ms": 28.27,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999995634,
+              "maximum_frame_ms": 33.29999999999927,
+              "presentation_proxy_p95_ms": 47.900000005960464
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 269,
+              "maximum_dispatch_ms": 16.029,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 33.30000000000291,
+              "maximum_frame_ms": 33.400000000001455,
+              "presentation_proxy_p95_ms": 46.400000005960464
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 44,
+              "maximum_dispatch_ms": 2.163,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 21.200000002980232
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 128,
+              "maximum_dispatch_ms": 108.953,
+              "long_tasks": {
+                "count": 2,
+                "p50_ms": 154,
+                "p95_ms": 154,
+                "max_ms": 154,
+                "total_ms": 216
+              },
+              "frame_p95_ms": 33.19999999999709,
+              "maximum_frame_ms": 150,
+              "presentation_proxy_p95_ms": 56.399999998509884
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 532,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/summary.json",
+              "bytes": 727056,
+              "sha256": "60b210433d33713fc8375da276a581a719d4e7adae6ceffa7a029a1038e8f46d"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/trace.json",
+              "bytes": 16300806,
+              "sha256": "96c9f26de1f95b27073980a27cc2b71bdd07ad4a20244d085059e03a9399303b"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/native-metrics.json",
+              "bytes": 913961,
+              "sha256": "8e0cb475bd6704096068c26308662e66d1ddf261050ee1454a7cdf48ab2b6e73"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/project-map.png",
+              "bytes": 99883,
+              "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/project-map-drill.cpuprofile",
+              "bytes": 285051,
+              "sha256": "4c236d2acb38f8da14aa3c24ae0b7d4f637e05be47cb1fb05238b22a104ee788"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/riemann-control-2/preparation.json",
+              "bytes": 470,
+              "sha256": "0170e48cdf7bd66957b006ca9662ac77f86765741f3d6ee9cd2c2af325c6118b"
+            }
+          ]
+        }
+      ],
+      "deployed_fidelity": {
+        "complete_original_source_reader_inventory_navigation_evidence_unchanged": true,
+        "original_compiler_search_rendering_chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+          "observation_id": "ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875",
+          "search_id": "3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed",
+          "rendering_id": "f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": ["lean-module-v1"],
+            "implementation_sha256": "03bac0d61dbe7a7db0d2acf8e73655a04d17ebdb84a0c83f399ac61e1f80763d",
+            "configuration_sha256": "77503aaa43a4398625a60d1c075e0fece84907a7d437e456b236862c9d723637",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "9eb0881d0a749a893235921310e8c0d95cf135375141db4b204bf0ab5b809267"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": ["lean-module-v1"],
+            "implementation_sha256": "d16d69bc31d56b332be7a13bc52f32d8faef9b23b8ea36f68c01e3619cf19857",
+            "configuration_sha256": "fc76bd45325bc451a5236b1a0b8bf5253aba609d6829218188ed7fab9007d675",
+            "input_schema_sha256": "4ec3f6e6e25c4ef3ede5705efab16e1ef2d85af900a6e5cbf0a386a0e262e997",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": ["dedukti-v1"],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "source_line_navigation": true,
+        "cameras_preserved": true,
+        "quiet_chat": true,
+        "history_candidates_unchanged": true,
+        "cache_hit": true,
+        "semantic_workers": [],
+        "ready_ms": 16322.958912999999,
+        "scope": "Functional post-deployment observation, not a paired preparation speed comparison. Native executable/resources unchanged."
+      }
+    },
+    {
+      "project": "ethlib",
+      "runs": [
+        {
+          "stage": "control-1",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:10:21.787Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "EthLib/Networking/Gossip/Parameters.lean",
+            "declarations": 42,
+            "project_files": 2517,
+            "setup_preparation_ms": 2075.159244,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/event-latency-20261125-assets",
+            "source_maps_sha256": {
+              "index-CWYDNIMu.js": "e4a0a5c69be34409a7db0cf60f22b5f0951f90e926eb6d0162347aff743c1aa5"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 20.569,
+            "long_tasks": {
+              "count": 4,
+              "p50_ms": 61,
+              "p95_ms": 70,
+              "max_ms": 70,
+              "total_ms": 251
+            },
+            "frames": {
+              "count": 319,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 133.40000000000146,
+              "total_ms": 5799.799999999999
+            },
+            "visible_declarations": 358,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 15,
+              "map_declarations": 383
+            },
+            "steps": [
+              {
+                "path": "EthLib/Cryptography",
+                "category": true,
+                "x": 418.0854187011719,
+                "y": 238.74000549316406,
+                "area": 151924.01089689136
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls",
+                "category": true,
+                "x": 796.2194213867188,
+                "y": 540.9219360351562,
+                "area": 196442.38151367754
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography/Proofs/Bls"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                "category": false,
+                "x": 467.0340576171875,
+                "y": 272.91455078125,
+                "area": 92145.98274445534
+              }
+            ],
+            "detail_requests": 8,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.800000000000182,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 1.822,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 20.100000001490116
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.84,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 20.700000002980232
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.915,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 26
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 6,
+              "maximum_dispatch_ms": 0.913,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 17.100000001490116
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 16.786,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 36.600000001490116
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.228,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 28.600000001490116
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 119,
+              "maximum_dispatch_ms": 21.922,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 32.29999999701977
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 187,
+              "maximum_dispatch_ms": 13.974,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 40.30000000447035
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 32,
+              "maximum_dispatch_ms": 6.349,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 20.5
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 88,
+              "maximum_dispatch_ms": 20.569,
+              "long_tasks": {
+                "count": 4,
+                "p50_ms": 61,
+                "p95_ms": 70,
+                "max_ms": 70,
+                "total_ms": 251
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 133.40000000000146,
+              "presentation_proxy_p95_ms": 127.39999999850988
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000004366,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 0,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/summary.json",
+              "bytes": 634377,
+              "sha256": "016c21624a7ef9385b730536b2c9d1d3a47adb1c174c31e58cb0a59fe85de0fc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/trace.json",
+              "bytes": 14076714,
+              "sha256": "8b52c0a5498acc852600d99fe3664c52908a6dff8a538a91a17cfcdac4f515bc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/native-metrics.json",
+              "bytes": 456339,
+              "sha256": "9456c4950948c15c7d6afa7526ea4ecd04abb7e958489b12a7d77eade6be6371"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/project-map.png",
+              "bytes": 253324,
+              "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/project-map-drill.cpuprofile",
+              "bytes": 298490,
+              "sha256": "c5a58cddbe33ed1ae998c7480831c83fb3f224cd65523c2393f03cae3c2786eb"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-1/preparation.json",
+              "bytes": 421,
+              "sha256": "0a20430f42b1313598b4c1aad02358ea6ca2592cf828d6656cc39d8330fda554"
+            }
+          ]
+        },
+        {
+          "stage": "candidate-1",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:10:59.823Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "EthLib/Networking/Gossip/Parameters.lean",
+            "declarations": 42,
+            "project_files": 2517,
+            "setup_preparation_ms": 3069.578682,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+            "source_maps_sha256": {
+              "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 20.656,
+            "long_tasks": {
+              "count": 4,
+              "p50_ms": 61,
+              "p95_ms": 61,
+              "max_ms": 61,
+              "total_ms": 239
+            },
+            "frames": {
+              "count": 321,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.80000000000291,
+              "max_ms": 116.70000000000073,
+              "total_ms": 5816.4000000000015
+            },
+            "visible_declarations": 358,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 15,
+              "map_declarations": 383
+            },
+            "steps": [
+              {
+                "path": "EthLib/Cryptography",
+                "category": true,
+                "x": 418.0854187011719,
+                "y": 238.74000549316406,
+                "area": 151924.01089689136
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls",
+                "category": true,
+                "x": 796.2194213867188,
+                "y": 540.9219360351562,
+                "area": 196442.38151367754
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography/Proofs/Bls"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                "category": false,
+                "x": 467.0340576171875,
+                "y": 272.91455078125,
+                "area": 92145.98274445534
+              }
+            ],
+            "detail_requests": 8,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.800000000000182,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 1.533,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 16.600000001490116
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 0.834,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 21.900000005960464
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.986,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 26
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 4,
+              "maximum_dispatch_ms": 1.184,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 19.69999999552965
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 14.143,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 31.399999998509884
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 1.414,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 35.599999994039536
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 119,
+              "maximum_dispatch_ms": 17.994,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 34.20000000298023
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 187,
+              "maximum_dispatch_ms": 14.622,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 33.29999999999927,
+              "presentation_proxy_p95_ms": 40.20000000298023
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 32,
+              "maximum_dispatch_ms": 4.901,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 17.5
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 88,
+              "maximum_dispatch_ms": 20.656,
+              "long_tasks": {
+                "count": 4,
+                "p50_ms": 61,
+                "p95_ms": 61,
+                "max_ms": 61,
+                "total_ms": 239
+              },
+              "frame_p95_ms": 16.80000000000291,
+              "maximum_frame_ms": 116.70000000000073,
+              "presentation_proxy_p95_ms": 118.29999999701977
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999995634,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 0,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/summary.json",
+              "bytes": 638719,
+              "sha256": "d71ad95a1322d3f82b66fef3ebc110a88d771ce32f7c9116c89c4aed3742c00e"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/trace.json",
+              "bytes": 14278938,
+              "sha256": "2b8ab6a46b54fd5160617aec00f97174a5b5709190a02f3571a01e382629d394"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/native-metrics.json",
+              "bytes": 545112,
+              "sha256": "b6f5bdae0606187772bf74ae6c78de22888b96bcb13366e9d5700ccd40c6f9b6"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/project-map.png",
+              "bytes": 253324,
+              "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/project-map-drill.cpuprofile",
+              "bytes": 317923,
+              "sha256": "5678c3d3167d9086d85166758a2dcd07321ec174448d3001bb01809ce27cc31d"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-1/preparation.json",
+              "bytes": 421,
+              "sha256": "6dec5f742e93755b7cf50d436c6e5523839fed5201b01915cef5b89dfd071877"
+            }
+          ]
+        },
+        {
+          "stage": "candidate-2",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:11:36.746Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "EthLib/Networking/Gossip/Parameters.lean",
+            "declarations": 42,
+            "project_files": 2517,
+            "setup_preparation_ms": 2033.288792,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/detail-clone-assets",
+            "source_maps_sha256": {
+              "index-C0pKtnUK.js": "313caf83a9736158888f5d398ac6857ff13db7cbe0a0ae8b04eeff5f5e46ac8b"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 17.355,
+            "long_tasks": {
+              "count": 4,
+              "p50_ms": 57,
+              "p95_ms": 57,
+              "max_ms": 57,
+              "total_ms": 224
+            },
+            "frames": {
+              "count": 323,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 133.29999999999927,
+              "total_ms": 5816.5
+            },
+            "visible_declarations": 358,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 15,
+              "map_declarations": 383
+            },
+            "steps": [
+              {
+                "path": "EthLib/Cryptography",
+                "category": true,
+                "x": 418.0854187011719,
+                "y": 238.74000549316406,
+                "area": 151924.01089689136
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls",
+                "category": true,
+                "x": 796.2194213867188,
+                "y": 540.9219360351562,
+                "area": 196442.38151367754
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography/Proofs/Bls"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                "category": false,
+                "x": 467.0340576171875,
+                "y": 272.91455078125,
+                "area": 92145.98274445534
+              }
+            ],
+            "detail_requests": 8,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.800000000000182,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 3.018,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 20.200000002980232
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 241,
+              "maximum_dispatch_ms": 0.683,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 24.19999999552965
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.9,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 25.30000000447035
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 4,
+              "maximum_dispatch_ms": 0.864,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 16.69999999552965
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 12.928,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 31
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 0.829,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 28.899999998509884
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 119,
+              "maximum_dispatch_ms": 21.425,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 33.19999999552965
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 187,
+              "maximum_dispatch_ms": 14.322,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 31
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 32,
+              "maximum_dispatch_ms": 11.248,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 19.80000000447035
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 88,
+              "maximum_dispatch_ms": 17.355,
+              "long_tasks": {
+                "count": 4,
+                "p50_ms": 57,
+                "p95_ms": 57,
+                "max_ms": 57,
+                "total_ms": 224
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 133.29999999999927,
+              "presentation_proxy_p95_ms": 63.900000005960464
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999995634,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 0,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/summary.json",
+              "bytes": 620856,
+              "sha256": "b87f809c180350772392961cbf0172925d9e53e55f444911d626f5d3dea3dc63"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/trace.json",
+              "bytes": 14142912,
+              "sha256": "759e037551aad7c4fb402f632f1a062d3fa4c7428db1e5e61f1f2f3bf83e1cb9"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/native-metrics.json",
+              "bytes": 631916,
+              "sha256": "f21ab536d3f5238f83b982917e31f1c5219e27fc6a6f85f611b8476a6581e98f"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/project-map.png",
+              "bytes": 253324,
+              "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/project-map-drill.cpuprofile",
+              "bytes": 314442,
+              "sha256": "29cdde1ec866f999422a5944c67375261e83711a922c78c49248d75940ed46fa"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-candidate-2/preparation.json",
+              "bytes": 421,
+              "sha256": "8a3afbfeede9b012c9569574e8ae239a132fa74671c3df5e0cf2d4e00f402b5a"
+            }
+          ]
+        },
+        {
+          "stage": "control-2",
+          "environment": {
+            "captured_at_utc": "2026-11-25T15:12:14.775Z",
+            "browser": "149.0.7827.53",
+            "viewport": "1440x960",
+            "throttling": "none",
+            "reduced_motion": "no-preference",
+            "gesture_tail_ms": 600,
+            "file": "EthLib/Networking/Gossip/Parameters.lean",
+            "declarations": 42,
+            "project_files": 2517,
+            "setup_preparation_ms": 3000.7855710000003,
+            "setup_cache_hit": true,
+            "source_map_directory": "/home/gohan/workspace/meden/target/event-latency-20261125-assets",
+            "source_maps_sha256": {
+              "index-CWYDNIMu.js": "e4a0a5c69be34409a7db0cf60f22b5f0951f90e926eb6d0162347aff743c1aa5",
+              "GraphView-B1xIUkJm.js": "bd19fa64936a74dc9b13c6227071cc04bfab83d8fc0c5c082cfa3455294bb47a"
+            }
+          },
+          "deep_zoom": {
+            "maximum_wheel_dispatch_ms": 27.826,
+            "long_tasks": {
+              "count": 5,
+              "p50_ms": 58,
+              "p95_ms": 60,
+              "max_ms": 60,
+              "total_ms": 281
+            },
+            "frames": {
+              "count": 320,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.80000000000291,
+              "max_ms": 116.79999999999927,
+              "total_ms": 5816.4000000000015
+            },
+            "visible_declarations": 358,
+            "retained_dom": {
+              "graph_nodes": 0,
+              "map_boxes": 15,
+              "map_declarations": 383
+            },
+            "steps": [
+              {
+                "path": "EthLib/Cryptography",
+                "category": true,
+                "x": 418.0854187011719,
+                "y": 238.74000549316406,
+                "area": 151924.01089689136
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls",
+                "category": true,
+                "x": 796.2194213867188,
+                "y": 540.9219360351562,
+                "area": 196442.38151367754
+              },
+              {
+                "wheel": -650,
+                "parent": "EthLib/Cryptography/Proofs/Bls"
+              },
+              {
+                "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+                "category": false,
+                "x": 467.0340576171875,
+                "y": 272.91455078125,
+                "area": 92145.98274445534
+              }
+            ],
+            "detail_requests": 7,
+            "camera": {
+              "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+              "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+            }
+          },
+          "windows": [
+            {
+              "name": "graph-idle-poll",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.800000000000182,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-idle-settled",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": null
+            },
+            {
+              "name": "graph-wheel",
+              "dispatch_count": 30,
+              "maximum_dispatch_ms": 1.937,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 17.100000001490116
+            },
+            {
+              "name": "graph-hover",
+              "dispatch_count": 242,
+              "maximum_dispatch_ms": 1.595,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000109,
+              "presentation_proxy_p95_ms": 21.200000002980232
+            },
+            {
+              "name": "graph-pan",
+              "dispatch_count": 71,
+              "maximum_dispatch_ms": 0.943,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 25.69999999552965
+            },
+            {
+              "name": "graph-resize",
+              "dispatch_count": 4,
+              "maximum_dispatch_ms": 0.773,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 17.299999997019768
+            },
+            {
+              "name": "tab-switch",
+              "dispatch_count": 477,
+              "maximum_dispatch_ms": 11.204,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 30.5
+            },
+            {
+              "name": "graph-fit-view",
+              "dispatch_count": 20,
+              "maximum_dispatch_ms": 0.775,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.700000000000728,
+              "presentation_proxy_p95_ms": 27.399999998509884
+            },
+            {
+              "name": "graph-node-select",
+              "dispatch_count": 119,
+              "maximum_dispatch_ms": 20.625,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 16.799999999999272,
+              "presentation_proxy_p95_ms": 32.400000005960464
+            },
+            {
+              "name": "graph-node-select-distinct",
+              "dispatch_count": 187,
+              "maximum_dispatch_ms": 18.774,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999999272,
+              "maximum_frame_ms": 33.29999999999927,
+              "presentation_proxy_p95_ms": 37.899999998509884
+            },
+            {
+              "name": "project-map-wheel",
+              "dispatch_count": 32,
+              "maximum_dispatch_ms": 5.546,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.700000000000728,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": 19
+            },
+            {
+              "name": "project-map-drill",
+              "dispatch_count": 88,
+              "maximum_dispatch_ms": 27.826,
+              "long_tasks": {
+                "count": 5,
+                "p50_ms": 58,
+                "p95_ms": 60,
+                "max_ms": 60,
+                "total_ms": 281
+              },
+              "frame_p95_ms": 16.80000000000291,
+              "maximum_frame_ms": 116.79999999999927,
+              "presentation_proxy_p95_ms": 115.5
+            },
+            {
+              "name": "project-map-idle",
+              "dispatch_count": 0,
+              "maximum_dispatch_ms": null,
+              "long_tasks": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "frame_p95_ms": 16.799999999995634,
+              "maximum_frame_ms": 16.80000000000291,
+              "presentation_proxy_p95_ms": null
+            }
+          ],
+          "native_ring_evicted": 0,
+          "native_span_scope": "Some rings evict during these repeated captures; their spans are not used for native attribution or complete worker-execution claims. Browser traces/requests are independently complete.",
+          "artifacts": [
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/summary.json",
+              "bytes": 645492,
+              "sha256": "1d518a249276a83f1cb9694ccaa9c333f22e965c715209d178094b5e204d54f1"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/trace.json",
+              "bytes": 13777449,
+              "sha256": "c9dd21f0fe4650e7f0e5da9e5b998bf469c90cb48f646c540a3b3238dc70d2ab"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/native-metrics.json",
+              "bytes": 719774,
+              "sha256": "d2fc33f628a1408a123a0fac816e87d7f7181401ca518f84784240ff08c77934"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/project-map.png",
+              "bytes": 253324,
+              "sha256": "9fc7e294913a67f494eb90d3ce353ebe69303fcdae6e5ef7e1d21f0df29b19bc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/project-map-drill.cpuprofile",
+              "bytes": 289660,
+              "sha256": "17fff93c0d321780c34985bb09e3aa0d67e5d8d10bcceda6ceb2f2628c5110fc"
+            },
+            {
+              "path": "target/native-profile/detail-clone-20261126/ethlib-control-2/preparation.json",
+              "bytes": 421,
+              "sha256": "4c8a13095c13acaea07417a1ec7772c8764698ca3d637ba15a269aec8cb6dbc3"
+            }
+          ]
+        }
+      ],
+      "deployed_fidelity": {
+        "complete_original_source_reader_inventory_navigation_evidence_unchanged": true,
+        "original_compiler_search_rendering_chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+          "observation_id": "8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376",
+          "search_id": "c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509",
+          "rendering_id": "be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": ["lean-module-v1"],
+            "implementation_sha256": "dcccbaf00be2e016d987d1a2818575cf5f7f9a3829d1f9779845f3d116202bc0",
+            "configuration_sha256": "2330823cbc41128bd583d7de89ef1f3f423e0196b2b894357aec0fd1811ff27f",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "9eb0881d0a749a893235921310e8c0d95cf135375141db4b204bf0ab5b809267"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": ["lean-module-v1"],
+            "implementation_sha256": "d16d69bc31d56b332be7a13bc52f32d8faef9b23b8ea36f68c01e3619cf19857",
+            "configuration_sha256": "819c812acf37375e765cb9ea00131e4f5cc13449b85f3b2978b7d09cf7875e49",
+            "input_schema_sha256": "4ec3f6e6e25c4ef3ede5705efab16e1ef2d85af900a6e5cbf0a386a0e262e997",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": ["dedukti-v1"],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "ef9f679c57b12497c3adff0e0006d553993e512f256dddb83cf455767d887ee6",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "source_line_navigation": true,
+        "cameras_preserved": true,
+        "quiet_chat": true,
+        "history_candidates_unchanged": true,
+        "cache_hit": true,
+        "semantic_workers": [],
+        "ready_ms": 3147.5316749999997,
+        "scope": "Functional post-deployment observation, not a paired preparation speed comparison. Native executable/resources unchanged."
+      }
+    }
+  ],
+  "pixel_comparisons": [
+    {
+      "project": "riemann",
+      "stage": "candidate-1",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "project": "riemann",
+      "stage": "candidate-2",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "project": "riemann",
+      "stage": "control-2",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "project": "ethlib",
+      "stage": "candidate-1",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "project": "ethlib",
+      "stage": "candidate-2",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    },
+    {
+      "project": "ethlib",
+      "stage": "control-2",
+      "region": [0, 0, 1440, 960],
+      "different_pixels": 0,
+      "maximum_channel_difference": 0
+    }
+  ],
+  "rejected_parser": {
+    "decision": "Reject: native fragment parsing and string construction increase worst pauses.",
+    "runs": [
+      {
+        "stage": "control-1",
+        "max_wheel_ms": 112.946,
+        "long_tasks": {
+          "count": 3,
+          "p50_ms": 64,
+          "p95_ms": 158,
+          "max_ms": 158,
+          "total_ms": 272
+        },
+        "frames": {
+          "count": 328,
+          "p50_ms": 16.69999999999709,
+          "p95_ms": 33.299999999995634,
+          "max_ms": 150,
+          "total_ms": 6099.800000000003
+        },
+        "summary_sha256": "bc8f0b1b5d78faac976043cdf5cc3c01f766ac2fa0c466032d377b5f1cb1f9b0"
+      },
+      {
+        "stage": "candidate-1",
+        "max_wheel_ms": 145.29,
+        "long_tasks": {
+          "count": 4,
+          "p50_ms": 62,
+          "p95_ms": 191,
+          "max_ms": 191,
+          "total_ms": 360
+        },
+        "frames": {
+          "count": 325,
+          "p50_ms": 16.69999999999709,
+          "p95_ms": 33.30000000000291,
+          "max_ms": 183.3000000000029,
+          "total_ms": 6099.799999999996
+        },
+        "summary_sha256": "05f213369771fd7c426fa72d294d9764ae8e4ccf5c39638d322b8bebcef6ff32"
+      },
+      {
+        "stage": "candidate-2",
+        "max_wheel_ms": 150.828,
+        "long_tasks": {
+          "count": 4,
+          "p50_ms": 62,
+          "p95_ms": 196,
+          "max_ms": 196,
+          "total_ms": 366
+        },
+        "frames": {
+          "count": 327,
+          "p50_ms": 16.69999999999709,
+          "p95_ms": 33.299999999995634,
+          "max_ms": 183.3000000000029,
+          "total_ms": 6116.399999999994
+        },
+        "summary_sha256": "c57f88a50a0b2286491466e0d630d0b77666d536500a852e1f6cba2a3c2fdb32"
+      },
+      {
+        "stage": "control-2",
+        "max_wheel_ms": 108.176,
+        "long_tasks": {
+          "count": 3,
+          "p50_ms": 93,
+          "p95_ms": 152,
+          "max_ms": 152,
+          "total_ms": 305
+        },
+        "frames": {
+          "count": 326,
+          "p50_ms": 16.69999999999709,
+          "p95_ms": 16.80000000000291,
+          "max_ms": 150.10000000000582,
+          "total_ms": 6083.0999999999985
+        },
+        "summary_sha256": "d726ec23b81370ff0339a285962820afb8c0d7bc5839054d4d2ccab1b5ea06a8"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/meden-detail-clone-gates-state.json",
+      "bytes": 587,
+      "sha256": "d90daa0e16d9013ee7d89cc5c952e2510daac32d81d3bed89cddab688953cb6d"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-follow-state.json",
+      "bytes": 172,
+      "sha256": "5fe6f7c12da0ef305f5017678619e9c7e11ecd2a805abc58916d59f25c8e55ec"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-reviewed-validation.json",
+      "bytes": 2807,
+      "sha256": "7580868d8b7b3334b1a0ea9140789e0ab9f6c2219aeae1900abf5dc02fc15a5a"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-control-report.json",
+      "bytes": 1077,
+      "sha256": "3801a15ea172a6f1e4410271c15d38b9520fb236e07e7d4c8e0c369eadd9e744"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gui-report.json",
+      "bytes": 927757,
+      "sha256": "eebd4d05c79a9d53eddef1b5f8b974a17df18ea37f4450c54f4102b646d25cde"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-readiness-report.json",
+      "bytes": 355,
+      "sha256": "b80d7197430ff48ccaaf484468a3ce80763327e0da47f9744d35522f88586a0d"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-decoded-screens.json",
+      "bytes": 8257,
+      "sha256": "fd65af59e1a5bd73477948e2ecd0d09b9be71c8e54f8d0c260fb48a5fca0a3b6"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-comparison.json",
+      "bytes": 668309,
+      "sha256": "cc29685f38be1ad348a46b0585af70fee8240853c25d56871403c92167835dae"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-full-pixels.json",
+      "bytes": 1129,
+      "sha256": "3f5fd39f4d3a013b85ee581898df0367b0ce802c115665651edfb644c3249edd"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-before.json",
+      "bytes": 2704,
+      "sha256": "4a37f36ad6318f29fd64636df8eb926c005b9594f85b0b374588f7c7f8611830"
+    },
+    {
+      "path": "target/map-detail-diagnostic.mjs",
+      "bytes": 28606,
+      "sha256": "d9f425d7c025a2f1361a9a20ba3958821a6e475150a141b2e6ec3015b2235f40"
+    },
+    {
+      "path": "target/detail-targets-profile.mjs",
+      "bytes": 28208,
+      "sha256": "23d073a50fba0ba155ae181f80fb700c97e3ea7bb16aff8fd36c10cbd1ce5f8a"
+    },
+    {
+      "path": "target/detail-clone-smoke.mjs",
+      "bytes": 8982,
+      "sha256": "13dfebf3adb1455957510219d4ef145d8b290b308422d794e4a019984a8f9a24"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-unit.log",
+      "bytes": 1701,
+      "sha256": "f29cabac32a1f38ddb795c150561a034716697756080d56622f3809a1586dab0"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-architecture.log",
+      "bytes": 11465,
+      "sha256": "2a90d7042007ddaaaf84c1880618103987f92a127b661ffeeb29bed80b90ee09"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-control.log",
+      "bytes": 4887,
+      "sha256": "3d9f077950c820b2d7f4d7f5e582e7dbd69f8f57571d48dd7d0d041bc7c38ddc"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-tui.log",
+      "bytes": 188,
+      "sha256": "f451a681f3d5427b447a716d4d315be5bc499f458bfb12ba2402ffab1a69b91d"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-gate-gui.log",
+      "bytes": 19670,
+      "sha256": "0af7caafe888a4d34cb7fc4504d822dc9f38808e5a6b216a98c582aeaff8f57b"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-follow-readiness.log",
+      "bytes": 2400,
+      "sha256": "1c0372d5081b14350f5893022f9c8268a938f637c16115def93e92c4fe27a7cd"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-follow-motion-reduce.log",
+      "bytes": 2375,
+      "sha256": "e77395dea7fd289874427b0af5ebffaa554b63aeaab48c49deb8fbf0f52f83cd"
+    },
+    {
+      "path": "/tmp/meden-detail-clone-follow-motion-normal.log",
+      "bytes": 2375,
+      "sha256": "febb893013b5fab9f777b3d4821576af6d2a7288083ee6ff2a971ad56b384855"
+    },
+    {
+      "path": "results/map-target-parser-rejected-20261126.patch",
+      "bytes": 8473,
+      "sha256": "c2db29053fcb61f8d2c3f83273092d15e75e18a4183fc112c10ea24a3cba195b"
+    }
+  ],
+  "remaining": "Background area paint still visits thousands of regions, Riemann worst tasks remain near 150ms, native query/full-content validation is unchanged, and generic layout/collection/navigation annotation ownership and retirement still need completion in the original plan. No new kernel, filesystem or full-renderer refinement claim."
+}

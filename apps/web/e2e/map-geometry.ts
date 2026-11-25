@@ -347,3 +347,17 @@ export function observeRetainedAreaWrites(svg: SVGSVGElement) {
     return changes;
   };
 }
+
+// Count JavaScript attribute writes on actual targets, including creation.
+// Query the actual target elements afterward so initial x/y writes are counted
+// even when React has not assigned their data-map-path attribute yet.
+export function observeTargetCreation() {
+  const writes = new WeakMap<Element, number>();
+  (window as any).__targetAttributeWrites = writes;
+  const original = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    if (this instanceof SVGRectElement)
+      writes.set(this, (writes.get(this) || 0) + 1);
+    original.call(this, name, value);
+  };
+}

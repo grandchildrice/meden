@@ -1,5 +1,5 @@
 import { memo, type KeyboardEvent } from "react";
-import { fileIndexed, type MapArea, type Symbol } from "./project-map-model";
+import { type MapArea, type Symbol } from "./project-map-model";
 
 export const mapColors = [
   "#275f69",
@@ -19,45 +19,6 @@ export const mapAreaColor = (a: MapArea) =>
   a.depth === 1
     ? mapColors[a.color]!
     : `hsl(${(a.color * 67 + a.depth * 31 + (a.path.split("").reduce((n, c) => n + c.charCodeAt(0), 0) % 47)) % 360} 32% 28%)`;
-
-/** Retained SVG interaction geometry; area pixels are owned by the canvas. */
-export const MapAreaCard = memo(function MapAreaCard({
-  area: a,
-  pointer,
-  accessible,
-  focus,
-}: {
-  area: MapArea;
-  pointer: boolean;
-  accessible: boolean;
-  focus: (path: string) => void;
-}) {
-  return (
-    <rect
-      x={a.x}
-      y={a.y}
-      width={a.width}
-      height={a.height}
-      fill="transparent"
-      stroke="none"
-      strokeOpacity={0}
-      pointerEvents={pointer ? "fill" : "none"}
-      className="nodrag"
-      data-map-path={a.path}
-      data-world-x={a.x}
-      data-world-y={a.y}
-      role="button"
-      tabIndex={accessible ? 0 : -1}
-      aria-hidden={!accessible}
-      aria-label={`${a.file ? (fileIndexed(a.file) ? "Dependencies" : "File") : "Category"}: ${a.path}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        focus(a.path);
-      }}
-      onKeyDown={(e) => keyboard(e, () => focus(a.path))}
-    />
-  );
-});
 
 function SymbolMarker({
   symbol,

@@ -1,0 +1,251 @@
+# Rejected experiment against 69ff033; not a runtime alternative.
+# Apply with git apply --unidiff-zero.
+diff --git a/apps/web/src/features/native/MapSceneElements.tsx b/apps/web/src/features/native/MapSceneElements.tsx
+index c9a37a5..4a6c129 100644
+--- a/apps/web/src/features/native/MapSceneElements.tsx
++++ b/apps/web/src/features/native/MapSceneElements.tsx
+@@ -2 +2 @@ import { memo, type KeyboardEvent } from "react";
+-import { fileIndexed, type MapArea, type Symbol } from "./project-map-model";
++import { type MapArea, type Symbol } from "./project-map-model";
+@@ -23,39 +22,0 @@ export const mapAreaColor = (a: MapArea) =>
+-/** Retained SVG interaction geometry; area pixels are owned by the canvas. */
+-export const MapAreaCard = memo(function MapAreaCard({
+-  area: a,
+-  pointer,
+-  accessible,
+-  focus,
+-}: {
+-  area: MapArea;
+-  pointer: boolean;
+-  accessible: boolean;
+-  focus: (path: string) => void;
+-}) {
+-  return (
+-    <rect
+-      x={a.x}
+-      y={a.y}
+-      width={a.width}
+-      height={a.height}
+-      fill="transparent"
+-      stroke="none"
+-      strokeOpacity={0}
+-      pointerEvents={pointer ? "fill" : "none"}
+-      className="nodrag"
+-      data-map-path={a.path}
+-      data-world-x={a.x}
+-      data-world-y={a.y}
+-      role="button"
+-      tabIndex={accessible ? 0 : -1}
+-      aria-hidden={!accessible}
+-      aria-label={`${a.file ? (fileIndexed(a.file) ? "Dependencies" : "File") : "Category"}: ${a.path}`}
+-      onClick={(e) => {
+-        e.stopPropagation();
+-        focus(a.path);
+-      }}
+-      onKeyDown={(e) => keyboard(e, () => focus(a.path))}
+-    />
+-  );
+-});
+-
+diff --git a/apps/web/src/features/native/NativeWorkspaceGraph.tsx b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+index 72bfc3c..90e631b 100644
+--- a/apps/web/src/features/native/NativeWorkspaceGraph.tsx
++++ b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+@@ -24,0 +25 @@ import {
++import { MapAreaTargets } from "./MapAreaTargets";
+@@ -29 +29,0 @@ import {
+-  MapAreaCard,
+@@ -92,11 +92,6 @@ function Scene({ data }: NodeProps<SceneNode>) {
+-          <g key={batch.key}>
+-            {batch.visible.map(({ area: a, opacity: alpha }) => (
+-              <MapAreaCard
+-                key={a.path}
+-                area={a}
+-                pointer={alpha >= 0.5}
+-                accessible={alpha > 0.5 || a.path === focusedArea}
+-                focus={data.focus}
+-              />
+-            ))}
+-          </g>
++          <MapAreaTargets
++            key={batch.key}
++            areas={batch.visible}
++            focused={focusedArea}
++            focus={data.focus}
++          />
+diff --git a/apps/web/src/features/native/MapAreaTargets.tsx b/apps/web/src/features/native/MapAreaTargets.tsx
+new file mode 100644
+index 0000000..6c9adce
+--- /dev/null
++++ b/apps/web/src/features/native/MapAreaTargets.tsx
+@@ -0,0 +1,170 @@
++import { memo, useLayoutEffect, useRef, type SyntheticEvent } from "react";
++import {
++  fileIndexed,
++  type MapArea,
++  type mapAreaBatches,
++} from "./project-map-model";
++
++type Areas = ReturnType<typeof mapAreaBatches>[number]["visible"];
++type Target = {
++  element: SVGRectElement;
++  area: MapArea;
++  pointer: boolean;
++  accessible: boolean;
++};
++// Fragment parsing must preserve literal filenames, including attribute whitespace.
++const escape = (value: string | number | boolean) =>
++  String(value).replace(
++    /[&"<>\t\n\r]/g,
++    (c) =>
++      ({
++        "&": "&amp;",
++        '"': "&quot;",
++        "<": "&lt;",
++        ">": "&gt;",
++        "\t": "&#9;",
++        "\n": "&#10;",
++        "\r": "&#13;",
++      })[c]!,
++  );
++const label = (area: MapArea) =>
++  `${area.file ? (fileIndexed(area.file) ? "Dependencies" : "File") : "Category"}: ${area.path}`;
++const geometry = (area: MapArea) => ({
++  x: area.x,
++  y: area.y,
++  width: area.width,
++  height: area.height,
++  "data-world-x": area.x,
++  "data-world-y": area.y,
++});
++
++/** One bounded SVG batch. React owns its parent; this disposable DOM adapter
++ * retains exact targets and parses only new rectangles together. It owns no
++ * layout, selection or source data and never replaces a retained element.
++ */
++class Targets {
++  #parent: SVGGElement;
++  #targets = new Map<string, Target>();
++  constructor(parent: SVGGElement) {
++    this.#parent = parent;
++  }
++  update(areas: Areas, focused?: string) {
++    const wanted = new Set(areas.map(({ area }) => area.path));
++    for (const [path, target] of this.#targets)
++      if (!wanted.has(path)) {
++        target.element.remove();
++        this.#targets.delete(path);
++      }
++    const added = areas.filter(({ area }) => !this.#targets.has(area.path));
++    if (added.length) {
++      const range = document.createRange();
++      range.selectNodeContents(this.#parent);
++      const fragment = range.createContextualFragment(
++        added
++          .map(
++            ({ area, opacity }) =>
++              "<rect " +
++              Object.entries({
++                ...geometry(area),
++                fill: "transparent",
++                stroke: "none",
++                "stroke-opacity": 0,
++                "pointer-events": opacity >= 0.5 ? "fill" : "none",
++                class: "nodrag",
++                "data-map-path": area.path,
++                role: "button",
++                tabindex: opacity > 0.5 || area.path === focused ? 0 : -1,
++                "aria-hidden": !(opacity > 0.5 || area.path === focused),
++                "aria-label": label(area),
++              })
++                .map(([name, value]) => `${name}="${escape(value)}"`)
++                .join(" ") +
++              "></rect>",
++          )
++          .join(""),
++      );
++      for (let i = 0; i < added.length; i++) {
++        const { area, opacity } = added[i]!;
++        const element = fragment.children[i] as SVGRectElement;
++        this.#targets.set(area.path, {
++          element,
++          area,
++          pointer: opacity >= 0.5,
++          accessible: opacity > 0.5 || area.path === focused,
++        });
++      }
++    }
++    let next: SVGRectElement | null = null;
++    for (let i = areas.length - 1; i >= 0; i--) {
++      const { area, opacity } = areas[i]!,
++        target = this.#targets.get(area.path)!;
++      const pointer = opacity >= 0.5,
++        accessible = opacity > 0.5 || area.path === focused;
++      if (target.area !== area) {
++        const before = geometry(target.area);
++        for (const [name, value] of Object.entries(geometry(area)))
++          if (before[name as keyof typeof before] !== value)
++            target.element.setAttribute(name, String(value));
++        if (label(target.area) !== label(area))
++          target.element.setAttribute("aria-label", label(area));
++      }
++      if (target.pointer !== pointer)
++        target.element.setAttribute(
++          "pointer-events",
++          pointer ? "fill" : "none",
++        );
++      if (target.accessible !== accessible) {
++        target.element.setAttribute("tabindex", accessible ? "0" : "-1");
++        target.element.setAttribute("aria-hidden", String(!accessible));
++      }
++      // Insert before the retained successor; unchanged targets never move.
++      if (
++        target.element.parentNode !== this.#parent ||
++        target.element.nextSibling !== next
++      )
++        this.#parent.insertBefore(target.element, next);
++      Object.assign(target, { area, pointer, accessible });
++      next = target.element;
++    }
++  }
++}
++
++export const MapAreaTargets = memo(function MapAreaTargets({
++  areas,
++  focused,
++  focus,
++}: {
++  areas: Areas;
++  focused?: string;
++  focus: (path: string) => void;
++}) {
++  const parent = useRef<SVGGElement>(null),
++    targets = useRef<Targets>(undefined);
++  useLayoutEffect(() => {
++    (targets.current ??= new Targets(parent.current!)).update(areas, focused);
++  }, [areas, focused]);
++  const activate = (event: SyntheticEvent<SVGGElement>) => {
++    if (
++      !(event.target instanceof SVGRectElement) ||
++      event.target.parentNode !== event.currentTarget
++    )
++      return;
++    const path = event.target.getAttribute("data-map-path");
++    if (path !== null) {
++      event.stopPropagation();
++      focus(path);
++    }
++  };
++  return (
++    <g
++      onClick={activate}
++      onKeyDown={(event) => {
++        if (event.key === "Enter" || event.key === " ") {
++          event.preventDefault();
++          activate(event);
++        }
++      }}
++      ref={parent}
++    />
++  );
++});
