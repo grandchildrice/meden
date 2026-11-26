@@ -36,6 +36,98 @@ export function interactionTraceWindow(trace, phase) {
   };
 }
 
+// Attribute observed leaf samples, not timeDeltas as measured CPU durations.
+// Real Chrome captures can have negative deltas: reconstruct each timestamp
+// with its original node before sorting. Nested dispatches remain inclusive.
+export function interactionSampledDispatch(profile, window) {
+  const finite = Number.isFinite;
+  if (
+    !finite(profile.startTime) ||
+    !finite(profile.endTime) ||
+    !finite(window.start_us) ||
+    !finite(window.end_us) ||
+    window.end_us < window.start_us ||
+    profile.startTime > window.start_us ||
+    profile.endTime < window.end_us ||
+    !Number.isInteger(window.process) ||
+    !Number.isInteger(window.thread) ||
+    !Array.isArray(profile.nodes) ||
+    !Array.isArray(profile.samples) ||
+    !Array.isArray(profile.timeDeltas) ||
+    profile.samples.length !== profile.timeDeltas.length
+  )
+    throw Error("Incomplete CPU profile or mismatched capture window");
+  const nodes = new Map();
+  for (const node of profile.nodes) {
+    if (
+      !Number.isSafeInteger(node.id) ||
+      nodes.has(node.id) ||
+      !node.callFrame ||
+      typeof node.callFrame !== "object"
+    )
+      throw Error("Invalid CPU profile node");
+    nodes.set(node.id, node.callFrame);
+  }
+  let timestamp = profile.startTime,
+    nonmonotonicDeltas = 0;
+  const points = profile.samples.map((id, index) => {
+    const delta = profile.timeDeltas[index];
+    if (!finite(delta) || !nodes.has(id))
+      throw Error("Invalid CPU sample observation");
+    if (delta < 0) nonmonotonicDeltas++;
+    timestamp += delta;
+    if (
+      !finite(timestamp) ||
+      timestamp < profile.startTime ||
+      timestamp > profile.endTime
+    )
+      throw Error("CPU sample leaves its original profile interval");
+    return { timestamp, id };
+  });
+  points.sort((a, b) => a.timestamp - b.timestamp);
+  const events = window.events
+    .filter((event) => event.name === "EventDispatch")
+    .sort((a, b) => a.ts - b.ts)
+    .map((event) => {
+      if (
+        event.pid !== window.process ||
+        event.tid !== window.thread ||
+        event.ph !== "X" ||
+        !finite(event.ts) ||
+        !finite(event.dur) ||
+        event.dur < 0 ||
+        event.ts < window.start_us ||
+        event.ts + event.dur > window.end_us
+      )
+        throw Error("Invalid document dispatch observation");
+      const counts = new Map();
+      for (const point of points) {
+        if (point.timestamp >= event.ts + event.dur) break;
+        if (point.timestamp >= event.ts)
+          counts.set(point.id, (counts.get(point.id) || 0) + 1);
+      }
+      return {
+        type:
+          typeof event.args?.data?.type === "string"
+            ? event.args.data.type
+            : null,
+        offset_ms: (event.ts - window.start_us) / 1000,
+        duration_ms: event.dur / 1000,
+        observed_samples: [...counts.values()].reduce((a, b) => a + b, 0),
+        samples: [...counts].map(([node_id, count]) => ({
+          node_id,
+          count,
+          frame: nodes.get(node_id),
+        })),
+      };
+    });
+  return {
+    profile_samples: points.length,
+    nonmonotonic_deltas: nonmonotonicDeltas,
+    events,
+  };
+}
+
 // Invalidation observations are instant records, not duration spans. Keep them
 // on the same marked document thread, separately from inclusive event timing.
 export function interactionInvalidations(trace, window) {

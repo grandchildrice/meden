@@ -81,6 +81,13 @@ but the interleaved actual preparation is slower; the first warmup is also much
 slower than the measured runs. This separates Lake query and content-validation
 costs without claiming a production speedup or weakening current-input checks.
 
+The [individual dispatch analysis](../performance/dispatch-samples.md) binds
+original CPU sample points to each measured document input, including observed
+nonmonotonic deltas and empty samples. A renewed actual Riemann Worker comparison
+still fails to establish lower worst pauses. Target creation/attribute work
+remains inside the slow wheel; whole-window Canvas totals are separate. This
+adds routine diagnostic coverage without adding an asynchronous runtime path.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

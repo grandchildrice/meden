@@ -6,6 +6,26 @@ causes. Separate non-scaling-reference and background-grouping trials are
 rejected; the production renderer remains unchanged. Per-type summaries and
 individual dispatch observations are explicitly distinguished.
 
+For the cause of each individual dispatch, run:
+
+```sh
+node tools/perf/dispatch-samples.mjs CAPTURE_DIRECTORY /tmp/meden-dispatch-samples
+```
+
+The input must contain the original `summary.json`, complete `trace.json` and
+per-phase `.cpuprofile` files from the local interaction profiler. The output
+directory must be new. This offline command writes `samples.json` and
+`samples.csv`, binding original file digests and retaining repeated inputs and
+zero-sample observations. It counts leaf samples whose reconstructed timestamps
+fall within each document dispatch; nested handlers remain inclusive. Counts
+and shares are not measured CPU milliseconds, and zero samples does not prove
+zero work. Nonmonotonic profile deltas retain their original timestamp/node
+association. Mismatched summary/trace attribution, lost trace completion and
+changed recorded source maps refuse output. Unrecorded maps are not used. Original CDP-session
+provenance and clock alignment remain capture-adapter assumptions, not established
+by interval overlap. Raw local captures remain private. See the
+[actual per-dispatch analysis and renewed Worker comparison](../../docs/performance/dispatch-samples.md).
+
 The [publication-camera record](../../docs/performance/graph-publication-camera.md)
 fixes a native viewer reset when valid graph updates reissue IDs. It separately
 records rejected border/path replays, an actual world-path-cache comparison and

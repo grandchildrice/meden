@@ -1,0 +1,3068 @@
+{
+  "date": "2026-11-26",
+  "source_revision": "b8a6ad6b96703dc20e5e1e1324665182c4965ddf",
+  "scope": "Offline per-dispatch leaf-sample attribution plus a renewed actual Riemann Worker comparison. The asynchronous prototype is rejected; production browser/native/controller behavior and resource/cache identities are unchanged.",
+  "environment": {
+    "system": "Linux",
+    "release": "6.12.92",
+    "arch": "x64",
+    "browser": "149",
+    "viewport": "1440x960",
+    "motion": "no-preference",
+    "throttling": "none"
+  },
+  "production": {
+    "binary_sha256": "df37370508ff564a3bdffb7998eceef56b06f6444dadcd666f971cbed3be0a7f",
+    "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90",
+    "static_files": 88,
+    "source_unchanged": true,
+    "services_restarted": false
+  },
+  "capture": {
+    "helper_sha256": "d58b7b5e0da5738607a1dc39c629ad6c8520c4143364069ef62759f779d8dcdc",
+    "profiler_sha256": "ddc2c3417437b04ffc35c58ced13992fe791707a1ce3b0debfa20b97162ce433",
+    "assets": {
+      "baseline": {
+        "files": 88,
+        "manifest_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90"
+      },
+      "candidate": {
+        "files": 89,
+        "manifest_sha256": "c7cbbadee1da2471b5a15afb97d7b2ada32aec29823e8d5ca6fe14cc98304b1b"
+      }
+    },
+    "sequence": ["baseline", "candidate", "candidate", "baseline"],
+    "scope": "Real native APIs and installed source/compiler/search/render objects; only test-browser static responses change while original security headers remain. No concurrent build/test/inference/second sampler. Project/OS caches retained; ordinary desktop activity uncontrolled. Two observations per variant; no universal/field percentile claim.",
+    "coordinator_recovery": {
+      "initial_exit_code": 1,
+      "cause": "Obsolete trace_spans.wheel field read after first complete successful browser capture",
+      "capture_exit_code": 0,
+      "correction": "Use dispatch.wheel; validate and retain the original complete first capture, then run remaining three. No replacement control."
+    },
+    "samples": [
+      {
+        "order": 0,
+        "variant": "baseline",
+        "capture": "target/worker-revisit-experiment/riemann-0-baseline",
+        "summary_sha256": "89151b7035450bc112be86d8022cdc5593c07df34a1663b8c82ed37cd5495241",
+        "dispatches": 1401,
+        "nonmonotonic_profiles": 13,
+        "worker_observations": [],
+        "windows": [
+          {
+            "phase": "graph-idle-poll",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999891,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000109,
+              "total_ms": 3716.600000000002
+            }
+          },
+          {
+            "phase": "graph-idle-settled",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.5
+            }
+          },
+          {
+            "phase": "graph-wheel",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 30,
+            "maximum_dispatch_ms": 2.173,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 93,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1550
+            }
+          },
+          {
+            "phase": "graph-hover",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 242,
+            "maximum_dispatch_ms": 0.298,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 98,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1633.2999999999993
+            }
+          },
+          {
+            "phase": "graph-pan",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 71,
+            "maximum_dispatch_ms": 0.608,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 74,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1233.2999999999993
+            }
+          },
+          {
+            "phase": "graph-resize",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 10,
+            "maximum_dispatch_ms": 1.601,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 47,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.700000000000728,
+              "total_ms": 783.2999999999993
+            }
+          },
+          {
+            "phase": "tab-switch",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 477,
+            "maximum_dispatch_ms": 14.879,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 152,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 33.400000000001455,
+              "total_ms": 2566.5999999999985
+            }
+          },
+          {
+            "phase": "graph-fit-view",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 20,
+            "maximum_dispatch_ms": 1.251,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 46,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.700000000000728,
+              "total_ms": 766.7000000000007
+            }
+          },
+          {
+            "phase": "graph-node-select",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 110,
+            "maximum_dispatch_ms": 28.276,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 85,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1416.5999999999985
+            }
+          },
+          {
+            "phase": "graph-node-select-distinct",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 269,
+            "maximum_dispatch_ms": 12.872,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 86,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1500
+            }
+          },
+          {
+            "phase": "project-map-wheel",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 44,
+            "maximum_dispatch_ms": 3.641,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1533.2000000000044
+            }
+          },
+          {
+            "phase": "project-map-drill",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 128,
+            "maximum_dispatch_ms": 84.611,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 125,
+              "p95_ms": 125,
+              "max_ms": 125,
+              "total_ms": 184
+            },
+            "frames": {
+              "count": 331,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 116.69999999999709,
+              "total_ms": 6033.100000000006
+            }
+          },
+          {
+            "phase": "project-map-idle",
+            "process": 1206566,
+            "thread": 1206566,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.5
+            }
+          }
+        ],
+        "drill": {
+          "maximum_wheel_ms": 84.611,
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 125,
+            "p95_ms": 125,
+            "max_ms": 125,
+            "total_ms": 184
+          },
+          "frames": {
+            "count": 331,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 33.299999999995634,
+            "max_ms": 116.69999999999709,
+            "total_ms": 6033.100000000006
+          },
+          "visible_declarations": 26,
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ]
+        },
+        "worst_wheel_samples": {
+          "type": "wheel",
+          "offset_ms": 920.889,
+          "duration_ms": 84.611,
+          "observed_samples": 90,
+          "hotspots": [
+            {
+              "location": "(native):-1 · cloneNode",
+              "leaf_samples": 12,
+              "node_ids": [601]
+            },
+            {
+              "location": "(native):-1 · setAttribute",
+              "leaf_samples": 10,
+              "node_ids": [602]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:52 · update",
+              "leaf_samples": 10,
+              "node_ids": [600]
+            },
+            {
+              "location": "(native):-1 · (program)",
+              "leaf_samples": 7,
+              "node_ids": [2]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:18 · a",
+              "leaf_samples": 7,
+              "node_ids": [606]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:11 · area",
+              "leaf_samples": 7,
+              "node_ids": [605]
+            },
+            {
+              "location": "(native):-1 · insertBefore",
+              "leaf_samples": 5,
+              "node_ids": [603]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:43 · v",
+              "leaf_samples": 4,
+              "node_ids": [469]
+            },
+            {
+              "location": "(native):-1 · fill",
+              "leaf_samples": 4,
+              "node_ids": [470]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:310 · visitChildren",
+              "leaf_samples": 3,
+              "node_ids": [586]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:48 · Scene",
+              "leaf_samples": 3,
+              "node_ids": [432]
+            },
+            {
+              "location": "(native):-1 · stroke",
+              "leaf_samples": 3,
+              "node_ids": [607]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/ordered-bounds.ts:49 · visit",
+              "leaf_samples": 2,
+              "node_ids": [587]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:281 · declarationDetail",
+              "leaf_samples": 2,
+              "node_ids": [593, 612]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:223 · (anonymous)",
+              "leaf_samples": 2,
+              "node_ids": [611]
+            },
+            {
+              "location": "index-DvurKR2q.js:0 · Vn",
+              "leaf_samples": 1,
+              "node_ids": [588]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:330 · visibleMapAreas",
+              "leaf_samples": 1,
+              "node_ids": [585]
+            },
+            {
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 · handleInterpolation",
+              "leaf_samples": 1,
+              "node_ids": [591]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:277 · A2",
+              "leaf_samples": 1,
+              "node_ids": [594]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:55 · x",
+              "leaf_samples": 1,
+              "node_ids": [592]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:125 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [595]
+            },
+            {
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks",
+              "leaf_samples": 1,
+              "node_ids": [599]
+            },
+            {
+              "location": "(native):-1 · fillText",
+              "leaf_samples": 1,
+              "node_ids": [604]
+            },
+            {
+              "location": "(native):-1 · roundRect",
+              "leaf_samples": 1,
+              "node_ids": [608]
+            }
+          ]
+        },
+        "native_stage_ring_evictions": 0
+      },
+      {
+        "order": 1,
+        "variant": "candidate",
+        "capture": "target/worker-revisit-experiment/riemann-1-candidate",
+        "summary_sha256": "77e5bd99942476b5fb8b88dfc4d4fb3e4a94ead40dee514fdfb74ae1639b16df",
+        "dispatches": 1398,
+        "nonmonotonic_profiles": 13,
+        "worker_observations": [
+          {
+            "path": "/assets/map-area-worker-CnXyuG4p.js",
+            "fonts": [
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              }
+            ]
+          }
+        ],
+        "windows": [
+          {
+            "phase": "graph-idle-poll",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 224,
+              "p50_ms": 16.69999999999891,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000109,
+              "total_ms": 3733.199999999999
+            }
+          },
+          {
+            "phase": "graph-idle-settled",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.5999999999985
+            }
+          },
+          {
+            "phase": "graph-wheel",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 30,
+            "maximum_dispatch_ms": 0.809,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1533.2000000000007
+            }
+          },
+          {
+            "phase": "graph-hover",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 241,
+            "maximum_dispatch_ms": 2.164,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 104,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1733.2999999999993
+            }
+          },
+          {
+            "phase": "graph-pan",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 71,
+            "maximum_dispatch_ms": 0.394,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 75,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1249.9000000000015
+            }
+          },
+          {
+            "phase": "graph-resize",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 16,
+            "maximum_dispatch_ms": 7.562,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 51,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.700000000000728,
+              "total_ms": 850
+            }
+          },
+          {
+            "phase": "tab-switch",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 477,
+            "maximum_dispatch_ms": 14.197,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 137,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 2283.2999999999993
+            }
+          },
+          {
+            "phase": "graph-fit-view",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 20,
+            "maximum_dispatch_ms": 1.152,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 46,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 766.6000000000022
+            }
+          },
+          {
+            "phase": "graph-node-select",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 111,
+            "maximum_dispatch_ms": 29.925,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 80,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 33.29999999999927,
+              "total_ms": 1350
+            }
+          },
+          {
+            "phase": "graph-node-select-distinct",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 269,
+            "maximum_dispatch_ms": 16.062,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 86,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.30000000000291,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1516.5999999999985
+            }
+          },
+          {
+            "phase": "project-map-wheel",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 43,
+            "maximum_dispatch_ms": 2.733,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1533.300000000003
+            }
+          },
+          {
+            "phase": "project-map-drill",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 120,
+            "maximum_dispatch_ms": 79.69,
+            "long_tasks": {
+              "count": 1,
+              "p50_ms": 124,
+              "p95_ms": 124,
+              "max_ms": 124,
+              "total_ms": 124
+            },
+            "frames": {
+              "count": 353,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 116.70000000000437,
+              "total_ms": 5999.699999999997
+            }
+          },
+          {
+            "phase": "project-map-idle",
+            "process": 1208000,
+            "thread": 1208000,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.600000000006
+            }
+          }
+        ],
+        "drill": {
+          "maximum_wheel_ms": 79.69,
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 124,
+            "p95_ms": 124,
+            "max_ms": 124,
+            "total_ms": 124
+          },
+          "frames": {
+            "count": 353,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 16.799999999995634,
+            "max_ms": 116.70000000000437,
+            "total_ms": 5999.699999999997
+          },
+          "visible_declarations": 26,
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ]
+        },
+        "worst_wheel_samples": {
+          "type": "wheel",
+          "offset_ms": 918.288,
+          "duration_ms": 79.69,
+          "observed_samples": 84,
+          "hotspots": [
+            {
+              "location": "(native):-1 · cloneNode",
+              "leaf_samples": 19,
+              "node_ids": [492]
+            },
+            {
+              "location": "(native):-1 · setAttribute",
+              "leaf_samples": 15,
+              "node_ids": [491]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:7 · area",
+              "leaf_samples": 8,
+              "node_ids": [496]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:52 · update",
+              "leaf_samples": 7,
+              "node_ids": [489]
+            },
+            {
+              "location": "(native):-1 · (program)",
+              "leaf_samples": 6,
+              "node_ids": [2]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:18 · a",
+              "leaf_samples": 6,
+              "node_ids": [497]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:12 · frame",
+              "leaf_samples": 3,
+              "node_ids": [403]
+            },
+            {
+              "location": "index-CV33a4RC.js:0 · Vn",
+              "leaf_samples": 2,
+              "node_ids": [435, 493]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:281 · declarationDetail",
+              "leaf_samples": 2,
+              "node_ids": [444, 501]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:48 · Scene",
+              "leaf_samples": 2,
+              "node_ids": [442]
+            },
+            {
+              "location": "(native):-1 · (garbage collector)",
+              "leaf_samples": 2,
+              "node_ids": [495]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:310 · visitChildren",
+              "leaf_samples": 1,
+              "node_ids": [433]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/ordered-bounds.ts:49 · visit",
+              "leaf_samples": 1,
+              "node_ids": [434]
+            },
+            {
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:2737 · createFiberFromTypeAndProps",
+              "leaf_samples": 1,
+              "node_ids": [441]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:277 · A2",
+              "leaf_samples": 1,
+              "node_ids": [445]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:391 · mapAreaBatches",
+              "leaf_samples": 1,
+              "node_ids": [446]
+            },
+            {
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:5363 · mountEffectImpl",
+              "leaf_samples": 1,
+              "node_ids": [454]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:15 · area",
+              "leaf_samples": 1,
+              "node_ids": [490]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:36 · file",
+              "leaf_samples": 1,
+              "node_ids": [494]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:123 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [488]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:25 · _",
+              "leaf_samples": 1,
+              "node_ids": [283]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:214 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [499]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:223 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [500]
+            }
+          ]
+        },
+        "native_stage_ring_evictions": 0
+      },
+      {
+        "order": 2,
+        "variant": "candidate",
+        "capture": "target/worker-revisit-experiment/riemann-2-candidate",
+        "summary_sha256": "8dfa3dad9fabc4e013f787f6ddd05d4e7bc6af05019e982dc4cf143680c0dd08",
+        "dispatches": 1403,
+        "nonmonotonic_profiles": 13,
+        "worker_observations": [
+          {
+            "path": "/assets/map-area-worker-CnXyuG4p.js",
+            "fonts": [
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              },
+              {
+                "family": "\"Roboto Variable\"",
+                "status": "loaded",
+                "weight": "100 900",
+                "style": "normal"
+              }
+            ]
+          }
+        ],
+        "windows": [
+          {
+            "phase": "graph-idle-poll",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999891,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000109,
+              "total_ms": 3716.5999999999985
+            }
+          },
+          {
+            "phase": "graph-idle-settled",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 224,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3733.100000000002
+            }
+          },
+          {
+            "phase": "graph-wheel",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 30,
+            "maximum_dispatch_ms": 2.787,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1533.4000000000015
+            }
+          },
+          {
+            "phase": "graph-hover",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 242,
+            "maximum_dispatch_ms": 0.622,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 105,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 33.30000000000291,
+              "total_ms": 1766.5999999999985
+            }
+          },
+          {
+            "phase": "graph-pan",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 71,
+            "maximum_dispatch_ms": 0.683,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 79,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1316.5999999999985
+            }
+          },
+          {
+            "phase": "graph-resize",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 8,
+            "maximum_dispatch_ms": 2.022,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 47,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.80000000000291,
+              "max_ms": 16.80000000000291,
+              "total_ms": 783.1999999999971
+            }
+          },
+          {
+            "phase": "tab-switch",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 477,
+            "maximum_dispatch_ms": 16.227,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 145,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 2416.5999999999985
+            }
+          },
+          {
+            "phase": "graph-fit-view",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 20,
+            "maximum_dispatch_ms": 1.307,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 47,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 783.4000000000015
+            }
+          },
+          {
+            "phase": "graph-node-select",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 111,
+            "maximum_dispatch_ms": 27.24,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 85,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1433.300000000003
+            }
+          },
+          {
+            "phase": "graph-node-select-distinct",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 273,
+            "maximum_dispatch_ms": 17.12,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 88,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1566.7000000000044
+            }
+          },
+          {
+            "phase": "project-map-wheel",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 43,
+            "maximum_dispatch_ms": 3.328,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 16.799999999995634,
+              "total_ms": 1533.300000000003
+            }
+          },
+          {
+            "phase": "project-map-drill",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 128,
+            "maximum_dispatch_ms": 85.147,
+            "long_tasks": {
+              "count": 1,
+              "p50_ms": 139,
+              "p95_ms": 139,
+              "max_ms": 139,
+              "total_ms": 139
+            },
+            "frames": {
+              "count": 346,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 133.1999999999971,
+              "total_ms": 5983.0999999999985
+            }
+          },
+          {
+            "phase": "project-map-idle",
+            "process": 1210046,
+            "thread": 1210046,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 33.400000000001455,
+              "total_ms": 3733.199999999997
+            }
+          }
+        ],
+        "drill": {
+          "maximum_wheel_ms": 85.147,
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 139,
+            "p95_ms": 139,
+            "max_ms": 139,
+            "total_ms": 139
+          },
+          "frames": {
+            "count": 346,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 16.799999999995634,
+            "max_ms": 133.1999999999971,
+            "total_ms": 5983.0999999999985
+          },
+          "visible_declarations": 26,
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ]
+        },
+        "worst_wheel_samples": {
+          "type": "wheel",
+          "offset_ms": 929.453,
+          "duration_ms": 85.147,
+          "observed_samples": 91,
+          "hotspots": [
+            {
+              "location": "(native):-1 · setAttribute",
+              "leaf_samples": 22,
+              "node_ids": [598]
+            },
+            {
+              "location": "(native):-1 · cloneNode",
+              "leaf_samples": 15,
+              "node_ids": [597]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:7 · area",
+              "leaf_samples": 9,
+              "node_ids": [602]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:18 · a",
+              "leaf_samples": 8,
+              "node_ids": [603]
+            },
+            {
+              "location": "(native):-1 · (program)",
+              "leaf_samples": 6,
+              "node_ids": [2]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:52 · update",
+              "leaf_samples": 5,
+              "node_ids": [568]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:12 · frame",
+              "leaf_samples": 4,
+              "node_ids": [422]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:48 · Scene",
+              "leaf_samples": 2,
+              "node_ids": [590]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:281 · declarationDetail",
+              "leaf_samples": 2,
+              "node_ids": [592, 608]
+            },
+            {
+              "location": "index-CV33a4RC.js:0 · Vn",
+              "leaf_samples": 2,
+              "node_ids": [595]
+            },
+            {
+              "location": "(native):-1 · insertBefore",
+              "leaf_samples": 2,
+              "node_ids": [600]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:21 · (anonymous)",
+              "leaf_samples": 2,
+              "node_ids": [604]
+            },
+            {
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:39 · getNearestMountedFiber",
+              "leaf_samples": 1,
+              "node_ids": [580]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:310 · visitChildren",
+              "leaf_samples": 1,
+              "node_ids": [585]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:377 · child",
+              "leaf_samples": 1,
+              "node_ids": [587]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/ordered-bounds.ts:49 · visit",
+              "leaf_samples": 1,
+              "node_ids": [586]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:417 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [589]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:277 · A2",
+              "leaf_samples": 1,
+              "node_ids": [593]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:61 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [594]
+            },
+            {
+              "location": "index-CV33a4RC.js:0 · tE",
+              "leaf_samples": 1,
+              "node_ids": [596]
+            },
+            {
+              "location": "(native):-1 · (garbage collector)",
+              "leaf_samples": 1,
+              "node_ids": [599]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:28 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [601]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:223 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [607]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:214 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [606]
+            }
+          ]
+        },
+        "native_stage_ring_evictions": 0
+      },
+      {
+        "order": 3,
+        "variant": "baseline",
+        "capture": "target/worker-revisit-experiment/riemann-3-baseline",
+        "summary_sha256": "be1970839c8e44612fd80183f7a9dbc8b737417327ffbd9a1f984035bb6faf47",
+        "dispatches": 1400,
+        "nonmonotonic_profiles": 13,
+        "worker_observations": [],
+        "windows": [
+          {
+            "phase": "graph-idle-poll",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.500000000002
+            }
+          },
+          {
+            "phase": "graph-idle-settled",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 223,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 3716.5
+            }
+          },
+          {
+            "phase": "graph-wheel",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 30,
+            "maximum_dispatch_ms": 0.756,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1533.2999999999993
+            }
+          },
+          {
+            "phase": "graph-hover",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 241,
+            "maximum_dispatch_ms": 0.333,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 104,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1733.2999999999993
+            }
+          },
+          {
+            "phase": "graph-pan",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 71,
+            "maximum_dispatch_ms": 0.601,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 75,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 16.799999999999272,
+              "total_ms": 1249.9000000000015
+            }
+          },
+          {
+            "phase": "graph-resize",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 14,
+            "maximum_dispatch_ms": 1.367,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 50,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000000728,
+              "max_ms": 16.799999999999272,
+              "total_ms": 833.2999999999993
+            }
+          },
+          {
+            "phase": "tab-switch",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 477,
+            "maximum_dispatch_ms": 16.971,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 141,
+              "p50_ms": 16.700000000000728,
+              "p95_ms": 16.799999999999272,
+              "max_ms": 33.400000000001455,
+              "total_ms": 2383.2999999999993
+            }
+          },
+          {
+            "phase": "graph-fit-view",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 20,
+            "maximum_dispatch_ms": 1.542,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 46,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 16.80000000000291,
+              "total_ms": 766.5999999999985
+            }
+          },
+          {
+            "phase": "graph-node-select",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 110,
+            "maximum_dispatch_ms": 47.537,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 83,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1416.5999999999985
+            }
+          },
+          {
+            "phase": "graph-node-select-distinct",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 273,
+            "maximum_dispatch_ms": 18.443,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 86,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.299999999995634,
+              "max_ms": 33.400000000001455,
+              "total_ms": 1566.7000000000044
+            }
+          },
+          {
+            "phase": "project-map-wheel",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 44,
+            "maximum_dispatch_ms": 4.111,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 92,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.799999999995634,
+              "max_ms": 16.80000000000291,
+              "total_ms": 1533.2000000000044
+            }
+          },
+          {
+            "phase": "project-map-drill",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 120,
+            "maximum_dispatch_ms": 91.481,
+            "long_tasks": {
+              "count": 2,
+              "p50_ms": 136,
+              "p95_ms": 136,
+              "max_ms": 136,
+              "total_ms": 197
+            },
+            "frames": {
+              "count": 328,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 33.19999999999709,
+              "max_ms": 133.40000000000146,
+              "total_ms": 5999.799999999996
+            }
+          },
+          {
+            "phase": "project-map-idle",
+            "process": 1213349,
+            "thread": 1213349,
+            "dispatches": 0,
+            "maximum_dispatch_ms": 0,
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "frames": {
+              "count": 224,
+              "p50_ms": 16.69999999999709,
+              "p95_ms": 16.700000000004366,
+              "max_ms": 33.39999999999418,
+              "total_ms": 3749.7999999999956
+            }
+          }
+        ],
+        "drill": {
+          "maximum_wheel_ms": 91.481,
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 136,
+            "p95_ms": 136,
+            "max_ms": 136,
+            "total_ms": 197
+          },
+          "frames": {
+            "count": 328,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 33.19999999999709,
+            "max_ms": 133.40000000000146,
+            "total_ms": 5999.799999999996
+          },
+          "visible_declarations": 26,
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ]
+        },
+        "worst_wheel_samples": {
+          "type": "wheel",
+          "offset_ms": 940.441,
+          "duration_ms": 91.481,
+          "observed_samples": 97,
+          "hotspots": [
+            {
+              "location": "(native):-1 · setAttribute",
+              "leaf_samples": 19,
+              "node_ids": [542]
+            },
+            {
+              "location": "(native):-1 · cloneNode",
+              "leaf_samples": 11,
+              "node_ids": [543]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:11 · area",
+              "leaf_samples": 9,
+              "node_ids": [548]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:52 · update",
+              "leaf_samples": 8,
+              "node_ids": [541]
+            },
+            {
+              "location": "(native):-1 · (program)",
+              "leaf_samples": 6,
+              "node_ids": [2]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:123 · (anonymous)",
+              "leaf_samples": 5,
+              "node_ids": [540]
+            },
+            {
+              "location": "(native):-1 · fill",
+              "leaf_samples": 5,
+              "node_ids": [549]
+            },
+            {
+              "location": "(native):-1 · insertBefore",
+              "leaf_samples": 4,
+              "node_ids": [545]
+            },
+            {
+              "location": "(native):-1 · roundRect",
+              "leaf_samples": 4,
+              "node_ids": [207]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:48 · Scene",
+              "leaf_samples": 3,
+              "node_ids": [294]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaCanvas.tsx:43 · v",
+              "leaf_samples": 3,
+              "node_ids": [206]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:21 · (anonymous)",
+              "leaf_samples": 3,
+              "node_ids": [551]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:310 · visitChildren",
+              "leaf_samples": 2,
+              "node_ids": [418]
+            },
+            {
+              "location": "(native):-1 · (garbage collector)",
+              "leaf_samples": 2,
+              "node_ids": [546]
+            },
+            {
+              "location": "(native):-1 · stroke",
+              "leaf_samples": 2,
+              "node_ids": [547]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:223 · (anonymous)",
+              "leaf_samples": 2,
+              "node_ids": [554]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/ordered-bounds.ts:49 · visit",
+              "leaf_samples": 1,
+              "node_ids": [497]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:330 · visibleMapAreas",
+              "leaf_samples": 1,
+              "node_ids": [417]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:277 · A2",
+              "leaf_samples": 1,
+              "node_ids": [500]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:61 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [501]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:125 · (anonymous)",
+              "leaf_samples": 1,
+              "node_ids": [502]
+            },
+            {
+              "location": "(native):-1 · appendChild",
+              "leaf_samples": 1,
+              "node_ids": [506]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapAreaTargets.tsx:15 · area",
+              "leaf_samples": 1,
+              "node_ids": [544]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/MapSceneElements.tsx:18 · a",
+              "leaf_samples": 1,
+              "node_ids": [550]
+            },
+            {
+              "location": "../../../../apps/web/src/features/native/project-map-model.ts:281 · declarationDetail",
+              "leaf_samples": 1,
+              "node_ids": [555]
+            }
+          ]
+        },
+        "native_stage_ring_evictions": 0
+      }
+    ]
+  },
+  "attribution": {
+    "tool": "tools/perf/dispatch-samples.mjs",
+    "tool_sha256": "ac33b832d508207e81247177b3c0313c33da58f99a92080ec261ce9cc81028bc",
+    "helper_sha256": "a98cd7b6845cc11cd10169556a7223b02c342e874273ef676a4cc79d4de0a50d",
+    "phase_windows": 52,
+    "dispatches": 5602,
+    "nonmonotonic_profiles": 52,
+    "scope": "Observed timestamp/node point counts within half-open dispatch intervals. Original complete dispatch vectors retained. Nested handlers are inclusive; counts/shares are not CPU durations or full coverage. Original document-session provenance and clock alignment remain capture-adapter assumptions. Used recorded map digests are checked; unrecorded maps are not used."
+  },
+  "decision": {
+    "runtime": "Keep the current painter; do not promote Worker prototype.",
+    "reason": "Lower total long-task duration does not establish consistently lower worst tasks or frame gaps. SVG target creation/attribute work remains in the individually sampled slow wheel.",
+    "pixel_comparison": {
+      "paths": [
+        "target/worker-revisit-experiment/riemann-0-baseline/project-map.png",
+        "target/worker-revisit-experiment/riemann-1-candidate/project-map.png",
+        "target/worker-revisit-experiment/riemann-2-candidate/project-map.png",
+        "target/worker-revisit-experiment/riemann-3-baseline/project-map.png"
+      ],
+      "region": {
+        "x": 236,
+        "y": 110,
+        "width": 837,
+        "height": 838
+      },
+      "comparisons": [
+        {
+          "reference": 0,
+          "comparison": 1,
+          "different_channels": 0,
+          "total_channels": 2805624,
+          "max_channel_delta": 0
+        },
+        {
+          "reference": 0,
+          "comparison": 2,
+          "different_channels": 0,
+          "total_channels": 2805624,
+          "max_channel_delta": 0
+        },
+        {
+          "reference": 0,
+          "comparison": 3,
+          "different_channels": 0,
+          "total_channels": 2805624,
+          "max_channel_delta": 0
+        }
+      ],
+      "scope": "Settled screenshot map region only. Does not prove asynchronous frame/camera atomicity, keyboard focus, DPR variants or every transition."
+    }
+  },
+  "validation": {
+    "architecture_report_checks": 70,
+    "new_report_export_cases": 6,
+    "independent_generated_point_cases": 512,
+    "mutants": [
+      {
+        "kind": "control",
+        "code": 0,
+        "expected": 0,
+        "source_sha256": "a98cd7b6845cc11cd10169556a7223b02c342e874273ef676a4cc79d4de0a50d",
+        "selected": "seeded unordered sample points|dispatch samples preserve",
+        "scope": "Independent synthetic point-count/boundary oracle only. Unselected cases are not counted as gate coverage."
+      },
+      {
+        "kind": "unsorted",
+        "code": 1,
+        "expected": 1,
+        "source_sha256": "1509444df7078d8571aff228dd9551027228f91a6a4f819b01dfe6d0c2d0206d",
+        "selected": "seeded unordered sample points",
+        "scope": "Independent synthetic point-count/boundary oracle only. Unselected cases are not counted as gate coverage."
+      },
+      {
+        "kind": "closed-end",
+        "code": 1,
+        "expected": 1,
+        "source_sha256": "974f68ff21c5e782ca715bbb1834b8e0a3c0917502e07edc1adb6bc3ee08ddae",
+        "selected": "dispatch samples preserve",
+        "scope": "Independent synthetic point-count/boundary oracle only. Unselected cases are not counted as gate coverage."
+      }
+    ],
+    "public_tui": {
+      "passed": 37,
+      "skipped": 0,
+      "inference": "scripted fixtures; no live-model validation",
+      "binary_sha256": "df37370508ff564a3bdffb7998eceef56b06f6444dadcd666f971cbed3be0a7f",
+      "summary_sha256": "142b450372028985836ab84a08500cb09454614702b2635d85511e07e5994025",
+      "inspected_decoded_screens": [
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 792,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Workspace source inventory changed",
+              "seconds": 73.495,
+              "screen_sha256": "545eeaa56cc9c1381e0412ca2daccd6a5d7fb7cdfc3e1128657ea3d50f675285"
+            },
+            {
+              "label": "Source graph ready: 5 files",
+              "seconds": 73.26,
+              "screen_sha256": "5b3c6e02deb0aa366632f68428b9a07f45466d763bedbd0c2f06df25d51765b1"
+            },
+            {
+              "label": "Choose a model connection",
+              "seconds": 73.479,
+              "screen_sha256": "d0fcaea16bed5bed2bef8b4ce9af67463f09e6abb7d9fb05c5636b9d7aafe7ce"
+            }
+          ]
+        },
+        {
+          "label": "repair",
+          "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "frames": 85,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "LEAN-MODEL-REPAIRED",
+              "seconds": 5.33,
+              "screen_sha256": "cde5a4ae4efebddc1c7a7d70223a23dbfe106a89afb7f7511637be856a2ee34a"
+            }
+          ]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 153,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Portable work stopped:",
+              "seconds": 14.092,
+              "screen_sha256": "2108fa943da52d554dea04c1fea167bff8368a0a15884ca0517af3b50954152a"
+            }
+          ]
+        },
+        {
+          "label": "plain-source",
+          "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+          "frames": 36,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Source observation failed for missing.smt2",
+              "seconds": 0.434,
+              "screen_sha256": "e9649b935489e9b1376034f5156577fb8b8332915e86e0afb688257a8c20a993"
+            },
+            {
+              "label": "Sources ready: 3 files",
+              "seconds": 0.708,
+              "screen_sha256": "f43df039bdc9a2804b8febe1565042e63a633d7f7847b72c1b235ae7cd5c3d84"
+            }
+          ]
+        }
+      ]
+    },
+    "browser": [
+      {
+        "motion": "reduce",
+        "stats": {
+          "total": 3,
+          "expected": 3,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "interleaved-wheel-and-node-hover",
+                "data_sha256": "377f366638fbcdba25a0eb8e06e6b564482c7894215bab55301b70f74962dd63"
+              },
+              {
+                "name": "hidden-file-layout.json",
+                "data_sha256": "a2808630f94fd1646973df4efa6fa6a1b0058617d03d0a197dfd03fc2aae13fc"
+              },
+              {
+                "name": "navigation-performance",
+                "data_sha256": "21cc865b8842dcf5aad442be9e3b770622da4241431397e1f72f9380a1a08e18"
+              }
+            ]
+          },
+          {
+            "title": "project map retains screen-space geometry and avoids rewriting retained areas during zoom",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "retained-area-geometry.json",
+                "data_sha256": "65714b69ba4abf29cbcc4aaca15400c2527f7ad313d8c60e577896fbbd6a183d"
+              }
+            ]
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "cache-phase-observations",
+                "data_sha256": "711338a197c52a3ed49b90574bfc3972788b93ce06dd7c13198e3edaa345792e"
+              },
+              {
+                "name": "navigation-cache-repaired-through-refresh",
+                "data_sha256": "f26256681d55d5f55381c664866992eae5cef80ff729527a56fbcc4f79e8870c"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "stats": {
+          "total": 3,
+          "expected": 3,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "interleaved-wheel-and-node-hover",
+                "data_sha256": "bb5fff5dbc82b9cbd68844b032a116e25c2c73ff9dbdb793c692e53a4e70472c"
+              },
+              {
+                "name": "hidden-file-layout.json",
+                "data_sha256": "a2808630f94fd1646973df4efa6fa6a1b0058617d03d0a197dfd03fc2aae13fc"
+              },
+              {
+                "name": "navigation-performance",
+                "data_sha256": "a58f15f7aa89aa371ba8903241eba58cc059682dd7d4bc2b61d2f2c5a9b8335d"
+              }
+            ]
+          },
+          {
+            "title": "project map retains screen-space geometry and avoids rewriting retained areas during zoom",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "retained-area-geometry.json",
+                "data_sha256": "65714b69ba4abf29cbcc4aaca15400c2527f7ad313d8c60e577896fbbd6a183d"
+              }
+            ]
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "ok": true,
+            "outcome": "expected",
+            "attachments": [
+              {
+                "name": "cache-phase-observations",
+                "data_sha256": "f26696e69e34ded64a20d75d9ca46adc6322e4619fdf5710abadcd024208621c"
+              },
+              {
+                "name": "navigation-cache-repaired-through-refresh",
+                "data_sha256": "f26256681d55d5f55381c664866992eae5cef80ff729527a56fbcc4f79e8870c"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "browser_geometry_screens_inspected": true,
+    "gates": [
+      {
+        "name": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "browser-reduce",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "decode-reduce",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "browser-no-preference",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "decode-no-preference",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "format_check": true,
+    "actual_views": [
+      {
+        "project": "riemann",
+        "running": false,
+        "authorized": false,
+        "original_history_candidates_equal": true,
+        "views": [
+          {
+            "name": "source",
+            "bytes": 68496,
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017634,
+            "sha256": "4a19276b22c783abfb7bfc644fe457dfbf5227ba2901329503b1c3d78da7bfaa",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "nav",
+            "bytes": 13881,
+            "sha256": "5b3eb0d86548a422f36d7bd9c7fca3556e21e28a022b17dabdf0d5a7b6e6d8af",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "original_bytes_equal": true
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "running": false,
+        "authorized": false,
+        "original_history_candidates_equal": true,
+        "views": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "inventory",
+            "bytes": 7343437,
+            "sha256": "477cdb314263c3db7d19a6681b3727356ab382ec4da5eb5b71a3c4b9c652aac0",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "nav",
+            "bytes": 1530,
+            "sha256": "ddf16c2543f96c021412147a095c3285f861a8bc5b052a083dabd69593ccd929",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "original_bytes_equal": true
+          }
+        ]
+      }
+    ],
+    "compiled_artifacts": [
+      {
+        "project": "riemann",
+        "files": 58,
+        "bytes": 3189928,
+        "complete_original_bytes_equal": true
+      },
+      {
+        "project": "ethlib",
+        "files": 46,
+        "bytes": 4072212,
+        "complete_original_bytes_equal": true
+      }
+    ],
+    "compiled_artifact_manifest_sha256": "51e22ad96fb4374702f0f58891c6f09e9280d962472d7cb47455fe4493c0c755"
+  },
+  "artifacts": [
+    {
+      "path": "target/worker-revisit-experiment/build.mjs",
+      "bytes": 1324,
+      "sha256": "b610092006b057d8e7a59eff1ae93f0cc60abece23a3d3cf73282f06add5c534"
+    },
+    {
+      "path": "target/worker-revisit-experiment/compare.initial.mjs",
+      "bytes": 3335,
+      "sha256": "a1b76288d2545ba0255a631aeb2c1b24f207e08b5d8654c3c10a2e7e9837ebac"
+    },
+    {
+      "path": "target/worker-revisit-experiment/compare.mjs",
+      "bytes": 3369,
+      "sha256": "31966182a3fbdb269946d8b06ff687b45ccc312f39fe82c9fcb74176ff2a09e3"
+    },
+    {
+      "path": "target/worker-revisit-experiment/prepare-profile.mjs",
+      "bytes": 1721,
+      "sha256": "95d5078c82cf5cab92542ee5246e8ea43fdbc28c5391eebb83e23c6a438a1017"
+    },
+    {
+      "path": "target/worker-revisit-experiment/profile.mjs",
+      "bytes": 31239,
+      "sha256": "ddc2c3417437b04ffc35c58ced13992fe791707a1ce3b0debfa20b97162ce433"
+    },
+    {
+      "path": "target/worker-revisit-experiment/MapAreaCanvas.original.tsx",
+      "bytes": 4417,
+      "sha256": "2c7643256ef3bf5025302c2acff01620cbf36887b82f90270663f9dfc5627d12"
+    },
+    {
+      "path": "target/worker-revisit-experiment/MapAreaCanvas.candidate.tsx",
+      "bytes": 4596,
+      "sha256": "8c9c3bfaab1fff22e674bc83d56c1626a041c5e6359138d82e279e08644c185d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/map-area-worker.candidate.ts",
+      "bytes": 2535,
+      "sha256": "9dda4cd48a2fe4114f5ac3e461f5de3488c7ea66044aaaf9fde7820e25caf058"
+    },
+    {
+      "path": "target/worker-revisit-experiment/analyze.initial.mjs",
+      "bytes": 1896,
+      "sha256": "f9da4e4bef6d36914322ba223f390a7391bbcec822ab667920b89a08bbc833df"
+    },
+    {
+      "path": "target/worker-revisit-experiment/analyze.mjs",
+      "bytes": 1899,
+      "sha256": "cb45af6ccddcaf6176ccd1f9cd8e098c1d11b6eda3e61f4e67338fc3081cb69d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/analysis.json",
+      "bytes": 352966,
+      "sha256": "f66aeeff2100a5be2a5ffde20870cf41b48a980b991bf3b51e6a8ee3cadb8762"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutations.mjs",
+      "bytes": 1729,
+      "sha256": "d5747b17cacf6040d1e71c0aac4cf1b96057bef0ae26afc5a4a2899b0ba05cab"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutations.json",
+      "bytes": 1008,
+      "sha256": "f5b35ca308b8ea5bf9a19d09fa0d68731c569e31684943fe7ece451688fcac14"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-control.log",
+      "bytes": 608,
+      "sha256": "c6273c556a2fbd0d8445238cf53b08757757c276ce60439f989b7b6acbc20395"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-unsorted.log",
+      "bytes": 1203,
+      "sha256": "28379f7ef01809a4729561915fd36baf1d13178f77f94f13643a7a02b20e2003"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-closed-end.log",
+      "bytes": 1819,
+      "sha256": "4060c1337ab71283d3642b5c9b8d63718ba80d25c7a0b650b5a8cf394830c11d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-control/interaction-report.mjs",
+      "bytes": 10943,
+      "sha256": "a98cd7b6845cc11cd10169556a7223b02c342e874273ef676a4cc79d4de0a50d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-control/interaction-report.test.mjs",
+      "bytes": 13889,
+      "sha256": "4ff321eece52521f1f1d45d78a9eb7733ffdf0db146150819a99f716d762d9ec"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-unsorted/interaction-report.mjs",
+      "bytes": 10933,
+      "sha256": "1509444df7078d8571aff228dd9551027228f91a6a4f819b01dfe6d0c2d0206d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-unsorted/interaction-report.test.mjs",
+      "bytes": 13889,
+      "sha256": "4ff321eece52521f1f1d45d78a9eb7733ffdf0db146150819a99f716d762d9ec"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-closed-end/interaction-report.mjs",
+      "bytes": 10942,
+      "sha256": "974f68ff21c5e782ca715bbb1834b8e0a3c0917502e07edc1adb6bc3ee08ddae"
+    },
+    {
+      "path": "target/worker-revisit-experiment/mutant-closed-end/interaction-report.test.mjs",
+      "bytes": 13889,
+      "sha256": "4ff321eece52521f1f1d45d78a9eb7733ffdf0db146150819a99f716d762d9ec"
+    },
+    {
+      "path": "target/worker-revisit-experiment/pixels.mjs",
+      "bytes": 1534,
+      "sha256": "dbd3bc8c4d352fdda448133a4f13259b121137273da94d55756f9ea00a006ab5"
+    },
+    {
+      "path": "target/worker-revisit-experiment/pixels.json",
+      "bytes": 1032,
+      "sha256": "2ae2f5b4321ca01c75a9a05514a930852daf682e2dbc6ac2f6793739920cb6b8"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gates.mjs",
+      "bytes": 2070,
+      "sha256": "fb8e85afd0f2a92ea533b44be3f04bd44c9cf12509f8841d0d6215f931684187"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gates-state.json",
+      "bytes": 275,
+      "sha256": "c80c93a5f718db522dd364f389d52cad7f294efac0ef68f5de968383e73b0955"
+    },
+    {
+      "path": "target/worker-revisit-experiment/views.mjs",
+      "bytes": 2231,
+      "sha256": "816654320c3aff2eeed7bb2a93e1b986eba33e0230a940ce5043e9d238451225"
+    },
+    {
+      "path": "target/worker-revisit-experiment/views.json",
+      "bytes": 2203,
+      "sha256": "597f884e375c22920f85636a0a51bcdcae7d8f16a2a467e70074a9a0e1a9561b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/artifacts.mjs",
+      "bytes": 1344,
+      "sha256": "81e18a90870cbf0a6886ff6214e6ec3c17056816824019e2d37a2f54256a0cd3"
+    },
+    {
+      "path": "target/worker-revisit-experiment/compiled-after-artifacts.json",
+      "bytes": 23273,
+      "sha256": "51e22ad96fb4374702f0f58891c6f09e9280d962472d7cb47455fe4493c0c755"
+    },
+    {
+      "path": "target/worker-revisit-experiment/inspect.mjs",
+      "bytes": 1515,
+      "sha256": "222475cc66ae0e596c6016047784cfd7641cacbcb2b76a6b6ecc639e188d43c2"
+    },
+    {
+      "path": "target/worker-revisit-experiment/decoded-screens.json",
+      "bytes": 2102,
+      "sha256": "9c68b5ddc7b805548ee6f72792781d68a16c64a331e4796eccf10df3cb0cee3b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/decoded-screens.txt",
+      "bytes": 13615,
+      "sha256": "716867588c3265fcc855e991896a85607b8991cfc154083d114bbf99df5bffb4"
+    },
+    {
+      "path": "target/worker-revisit-experiment/record.mjs",
+      "bytes": 10113,
+      "sha256": "996e6488d592fb8cd0f7fe8ce2471089bfec4ed389d6c3cd7a2835cf3eb0aa58"
+    },
+    {
+      "path": "target/worker-revisit-experiment/architecture-final.log",
+      "bytes": 15182,
+      "sha256": "13b6c3074167b6ca757acf6da0ee61dfe4dcdf574072e302391bb6f572c6798d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/format-check.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "target/worker-revisit-experiment/reduce-decoded.json",
+      "bytes": 47286,
+      "sha256": "3dcc243d71079be80d67845a0a14454f278fe1e03d0c7774a54bda7548bb7dcc"
+    },
+    {
+      "path": "target/worker-revisit-experiment/no-preference-decoded.json",
+      "bytes": 46548,
+      "sha256": "bbd522449429031eed7d3071f3fb7fd40976f83a56fbd2f35f0c2863ee78ce77"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gate-tui.log",
+      "bytes": 192,
+      "sha256": "54a54571b0e655b174a7705227cd57e4aa9f558e5dac759025b15b1ecabe65b6"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gate-browser-reduce.log",
+      "bytes": 2860,
+      "sha256": "b43acd26c72c73e299e19548107d5b9c347ec63f920bebee748a8b6ea9e9e12d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gate-decode-reduce.log",
+      "bytes": 83,
+      "sha256": "f94c6b264aeeab337e6b0a7cd4b5a4543e75c18501d2b1cd548774a4d0b4e391"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gate-browser-no-preference.log",
+      "bytes": 2860,
+      "sha256": "830912bb3bb91fd5947b43573c1ecb4c8990771bdef1fecf843bd51f8b26e597"
+    },
+    {
+      "path": "target/worker-revisit-experiment/gate-decode-no-preference.log",
+      "bytes": 83,
+      "sha256": "f94c6b264aeeab337e6b0a7cd4b5a4543e75c18501d2b1cd548774a4d0b4e391"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/summary.json",
+      "bytes": 730424,
+      "sha256": "89151b7035450bc112be86d8022cdc5593c07df34a1663b8c82ed37cd5495241"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/trace.json",
+      "bytes": 15238367,
+      "sha256": "e09526013b95f181e8ed62e7d257ee43a68bf2246fd7f0a6affd2d64733e0033"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/trace-status.json",
+      "bytes": 84,
+      "sha256": "c5cbd2ce8797c2719698196bc1cb6ad2e5bf86cb46b51a2391280751690e1e39"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/dispatch-events.csv",
+      "bytes": 102116,
+      "sha256": "359e8eb07a88bfcf4341e7d4fc31336cbe793cc690d7299e3041532e498246d9"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/events.csv",
+      "bytes": 10797,
+      "sha256": "6baf7246a0b3a00630797c800852cca3cbc3c95b61230aafde8e06c8da9a973b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/project-map.png",
+      "bytes": 99883,
+      "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-idle-poll.cpuprofile",
+      "bytes": 112348,
+      "sha256": "952f05b6a4bc3d875a17559a2b94f08b782a44bd86153016e9419f97ac8b5c05"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-idle-settled.cpuprofile",
+      "bytes": 93601,
+      "sha256": "88a4a2d22653e79cfe319e017a9d35810568c2783a880d564eeef5e2acbc9a46"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-wheel.cpuprofile",
+      "bytes": 62309,
+      "sha256": "fe49c07e0b7cd2d8c363d642110b9ad86b7e04709cb70d5959b1aa2141ae4ce6"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-hover.cpuprofile",
+      "bytes": 260308,
+      "sha256": "8385b64a7b3fec1e52c5b6befa8d5f1dbfde242f7fa410e7e1a6973e2a3570ad"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-pan.cpuprofile",
+      "bytes": 95284,
+      "sha256": "23817a156f81e085535a2ce1397bd5af9d63b5468da7639ecaf194e0d942dd5a"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-resize.cpuprofile",
+      "bytes": 64848,
+      "sha256": "e0a2dff4d42cf0e0d2a2f919343fe732bbd68a48e839846dc86788a63a7d4204"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/tab-switch.cpuprofile",
+      "bytes": 174944,
+      "sha256": "5cabb18ac64f29ff27566834e8ea460c6b5efe291274525d93a347b3b9f19cda"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-fit-view.cpuprofile",
+      "bytes": 71718,
+      "sha256": "5df404b10b3a1a471be0068b4bdf5cc5d9135c2a902918b831cdc88d2ca10d40"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-node-select.cpuprofile",
+      "bytes": 228215,
+      "sha256": "acd58afe1e15899412cfab21d5a589d86fb00b15ec6852844450de395c8082a8"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/graph-node-select-distinct.cpuprofile",
+      "bytes": 268394,
+      "sha256": "462d140f9915d0682c50c90d3c8464d892dd28166f2beb33de550909c72aae4a"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/project-map-wheel.cpuprofile",
+      "bytes": 142508,
+      "sha256": "3b72c5cc2c72c1ed21c412b01a74031e88bbe87cbc9bf5044277ae1995d14cc3"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/project-map-drill.cpuprofile",
+      "bytes": 321774,
+      "sha256": "5741191827fceb5ee9a3f96239917be51f200a51c2af60bbcece439f9ea90e3b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-baseline/project-map-idle.cpuprofile",
+      "bytes": 105602,
+      "sha256": "3cc7a8df803be079c46e8b93a4c9433b6e14d47e46d144d93a19b2525f4967ef"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-dispatch-admitted/samples.json",
+      "bytes": 632352,
+      "sha256": "4a38af017ea680eeb5b6ba0de60676bc205fbd5632f065e5b4fd45e8a1da71be"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-0-dispatch-admitted/samples.csv",
+      "bytes": 245668,
+      "sha256": "ebac2b55ebf00231005fd6cbce66a16b5dfe1b6d6de8748b6d597d40a70ef9f5"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/summary.json",
+      "bytes": 746531,
+      "sha256": "77e5bd99942476b5fb8b88dfc4d4fb3e4a94ead40dee514fdfb74ae1639b16df"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/trace.json",
+      "bytes": 16795149,
+      "sha256": "1d4532ab78c18535cec2d181f4bce32f302857ed99886ff68f8748740044c8dd"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/trace-status.json",
+      "bytes": 84,
+      "sha256": "f2b1828ac2c4a3ca11081379471287cef11884a453e995ccb28f749c6ebb328b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/dispatch-events.csv",
+      "bytes": 101795,
+      "sha256": "8947f3c7c753efc355897a98fc1167332b6754be38564a11a0f88b1799c4e244"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/events.csv",
+      "bytes": 10852,
+      "sha256": "acc70aae4bb838e286bb65a78c7000b8ea6db81e23dcc5ff1c1e10fcec6278cf"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/project-map.png",
+      "bytes": 99883,
+      "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-idle-poll.cpuprofile",
+      "bytes": 106555,
+      "sha256": "8e18a61746d0c38338c62b8d75790f1e34b59836109dc403e1a0f85a13934749"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-idle-settled.cpuprofile",
+      "bytes": 92965,
+      "sha256": "fcd9e6f341a687f620b505cddba3140d9d11f65624799955d9a584f108b869a4"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-wheel.cpuprofile",
+      "bytes": 60063,
+      "sha256": "5661cda829ed6f4dd9373863692c73a590903a23428014b0fb5dd87fa0b7860f"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-hover.cpuprofile",
+      "bytes": 323994,
+      "sha256": "489145a6aaa5961b99a48a39fccb508ee07bf1dc2f094eac9e97398161e8f857"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-pan.cpuprofile",
+      "bytes": 53115,
+      "sha256": "7b6369e29225079e4990a13349f0a346e240a755a371d834030dcc9c215a176e"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-resize.cpuprofile",
+      "bytes": 70635,
+      "sha256": "33e57a00a4c03f685dc012517efea8d8add7bbc6108c6b958d6529646f7efe2c"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/tab-switch.cpuprofile",
+      "bytes": 156857,
+      "sha256": "2cc0b64fa03bb55b2cc345ac22f5db4818b107c4cb96bd638b6f26011962dcd0"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-fit-view.cpuprofile",
+      "bytes": 70531,
+      "sha256": "173393599ca9451d181594b03f1ca611c187cbdf4feba536ed6e9beaa22c1963"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-node-select.cpuprofile",
+      "bytes": 226194,
+      "sha256": "7419d255b3d2e925a2d210c1b86c705d6ec8d4e369157294734dccb3c9eae344"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/graph-node-select-distinct.cpuprofile",
+      "bytes": 275064,
+      "sha256": "1dd98caef443501e292386ead9cac5ba7aab9eba1ebf5bfef12f477a7e5afd29"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/project-map-wheel.cpuprofile",
+      "bytes": 104719,
+      "sha256": "b06f98df49a11294fcf6bd6fd086910a1297692ddf9b7adf66392dd745e96829"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/project-map-drill.cpuprofile",
+      "bytes": 287297,
+      "sha256": "c0d92d96056cb4d0ec4b58c58f763c7dbb1716302fa3d5ebc00187f5973a9f5d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-candidate/project-map-idle.cpuprofile",
+      "bytes": 104993,
+      "sha256": "60e4d14c5d37b29018073557bb124ef33795d58590364b3fb49eae012cf2348d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-dispatch-admitted/samples.json",
+      "bytes": 618572,
+      "sha256": "67a04109cac0bc58897ebe13e93e474a973f9e5a945775e00ca881373c250013"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-1-dispatch-admitted/samples.csv",
+      "bytes": 237160,
+      "sha256": "41728db95cb16c28dc17dc15ee57e79db35ce50d90eae5524e90396336ddbdc0"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/summary.json",
+      "bytes": 721426,
+      "sha256": "8dfa3dad9fabc4e013f787f6ddd05d4e7bc6af05019e982dc4cf143680c0dd08"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/trace.json",
+      "bytes": 15876154,
+      "sha256": "f2327bf7be83d24e62d6cc55b3101c3357718fd64d478195f362f81f0db78294"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/trace-status.json",
+      "bytes": 84,
+      "sha256": "a13db9f99de0d8b79e5bf495c3b419b223e6f8494fa9fb2b849d940bbdd246d9"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/dispatch-events.csv",
+      "bytes": 102246,
+      "sha256": "0b091452a6da4f0522eb14aff8c31cba7e32d75c99c78ccd97a5ebf4d0773180"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/events.csv",
+      "bytes": 10715,
+      "sha256": "36a524f3ddc888d2b9f64bea0b746795251626784e61c7262b2cc249a3141ce2"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/project-map.png",
+      "bytes": 99883,
+      "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-idle-poll.cpuprofile",
+      "bytes": 161730,
+      "sha256": "005e2271ae83956dc26ce935d568172602f7dd62cdda6f1f09d2a3aa5e2a3e1d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-idle-settled.cpuprofile",
+      "bytes": 112024,
+      "sha256": "68e672c7b1a1109d48305e1c080f53f32fa81afe585652598c061f11bfdd8e27"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-wheel.cpuprofile",
+      "bytes": 61291,
+      "sha256": "e2575e8af56183b07bed1146d7725658ee75f05a3f1827e3b819570d6c2d1011"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-hover.cpuprofile",
+      "bytes": 336616,
+      "sha256": "0e3fbb7c2fc70f3f8de97a1cff859e26ce457dc6a2f9abcc1d7cf479bf0e9029"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-pan.cpuprofile",
+      "bytes": 65097,
+      "sha256": "a96a018274a162688439480e73c20826f80dd429bcca4d723fe03779581c1a89"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-resize.cpuprofile",
+      "bytes": 80728,
+      "sha256": "8abff414c026e2e34262ba1409e2df38aebdd8d766b4db51cb0f682851116497"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/tab-switch.cpuprofile",
+      "bytes": 224979,
+      "sha256": "7a3b59a26ee49ff46d93906978b7a6f0611c555c90024cdadb48ec6ff102a561"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-fit-view.cpuprofile",
+      "bytes": 57988,
+      "sha256": "4488acc5d2b1d32405e98dba799b93c387c381c0d09f47a447d07e324e5ef289"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-node-select.cpuprofile",
+      "bytes": 214839,
+      "sha256": "73869e9b6642bb2ca8bd572d29a8ab6f0e26b4f137de33fe7c38906110ead1d2"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/graph-node-select-distinct.cpuprofile",
+      "bytes": 282069,
+      "sha256": "0a8b28437608306b0e15ac7ea1976ba2ec743889a11927a883918d6d766aa3e6"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/project-map-wheel.cpuprofile",
+      "bytes": 99006,
+      "sha256": "c541583b0697e1265ed6f7a676b34ac5e1f607afb502f8c4e8725ed7e692650c"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/project-map-drill.cpuprofile",
+      "bytes": 294372,
+      "sha256": "917757b415c67070336126e7973a2678a269782cf0fc421e1c3bd4d06e38545b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-candidate/project-map-idle.cpuprofile",
+      "bytes": 130504,
+      "sha256": "56958792112c882dd713feea65b909465c2bded3934a300c4d731cbbbb6a8cbf"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-dispatch-admitted/samples.json",
+      "bytes": 631302,
+      "sha256": "89d648c736f864c670ea8692684f635a47aa67a77802bb1952bc3cfe703cd343"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-2-dispatch-admitted/samples.csv",
+      "bytes": 245496,
+      "sha256": "d9d6b0b081789dd24ca1edccbe058fa9702e1aedb5804b99a401572adc6f0b06"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/summary.json",
+      "bytes": 716120,
+      "sha256": "be1970839c8e44612fd80183f7a9dbc8b737417327ffbd9a1f984035bb6faf47"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/trace.json",
+      "bytes": 15920174,
+      "sha256": "6f384329c49b43d7033629d1550ede3656cb981b404f8731285b5d5fba1e47ee"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/trace-status.json",
+      "bytes": 84,
+      "sha256": "70824c86b1999d477199895cf655c30c237971a6e24b241d2be08431fd789230"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/dispatch-events.csv",
+      "bytes": 102045,
+      "sha256": "162e2cc9d39e884e377a75fdfb731ee9306f55a551f307f1e84e0c4e581c30f2"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/events.csv",
+      "bytes": 10828,
+      "sha256": "65e3ce83e5446c7146edfef8e000bdb460aa8b6c9eb92a4a222fc5968ff746d3"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/project-map.png",
+      "bytes": 99883,
+      "sha256": "d0267d4a210ea7c3ef54669282a39c75e1812526c9cceb97909187d52f9ca336"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-idle-poll.cpuprofile",
+      "bytes": 96557,
+      "sha256": "1fb28f0696d63d570c999e27e818ea80a40cfe78fc4e024162691efaea5a8987"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-idle-settled.cpuprofile",
+      "bytes": 109589,
+      "sha256": "f79f74df906970fa9485b5cac798b9dc2e23436aea13de3e51d67b65b6548b7d"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-wheel.cpuprofile",
+      "bytes": 57481,
+      "sha256": "eb4b1b39f11bdf302302f6213896d1f94b16116f0d2c241056dbea1eacf6f368"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-hover.cpuprofile",
+      "bytes": 315324,
+      "sha256": "256e55d190c2bc1b73dab0d96ab386dc007ab5b7d5309520e335a0cec02cb10b"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-pan.cpuprofile",
+      "bytes": 69541,
+      "sha256": "c3f96e5210560961432b7f5c3cd77c63a836d27112fe5de2e3379d9a0832c287"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-resize.cpuprofile",
+      "bytes": 53865,
+      "sha256": "cb1daa10e4a12c58a91ad358fad637a84145416b655f0221efdea75bffa16fce"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/tab-switch.cpuprofile",
+      "bytes": 188565,
+      "sha256": "7828c1e278c16c5472550278e98408e97d0ad9ea537463ffad237961c74599d5"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-fit-view.cpuprofile",
+      "bytes": 54721,
+      "sha256": "e8e13e3ead71a26e302f1275a3cff829c6b923fb75ff54849a1c83499ae8ebe2"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-node-select.cpuprofile",
+      "bytes": 220363,
+      "sha256": "889727b83de30b4773ae135f5514e91986c179b7608bf1535cc018f3fa3312f0"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/graph-node-select-distinct.cpuprofile",
+      "bytes": 261238,
+      "sha256": "800d97c8136ae45b8ef919a44f796a093c241e791dfdcc123a09bb63251f962c"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/project-map-wheel.cpuprofile",
+      "bytes": 145440,
+      "sha256": "218814e6d379cb65eb60ff7d778c290e6c458ed00c7c58a52e43c8e589be22ef"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/project-map-drill.cpuprofile",
+      "bytes": 290769,
+      "sha256": "3c5d219e07e2c9e7b2b4a1309bf0e6a8647c843f8c92d94e236d3d046de2ff62"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-baseline/project-map-idle.cpuprofile",
+      "bytes": 106017,
+      "sha256": "ab82d37bb8ef5a6ac77583635c5bb1193e8b9ae8853da6c7cb80614232334e27"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-dispatch-admitted/samples.json",
+      "bytes": 630229,
+      "sha256": "ab1a7c067b80b9030d74502a253fdfc4f82345674e429f6ba5b857752132c086"
+    },
+    {
+      "path": "target/worker-revisit-experiment/riemann-3-dispatch-admitted/samples.csv",
+      "bytes": 245854,
+      "sha256": "c0cd20ddd0b5c5cbc6eff0e697c26f75cdcad603db04597764af71af42a88e19"
+    },
+    {
+      "path": "target/gui-dispatch-samples-reduce-output/native-native-GUI-with-rea-3d3a3--retained-areas-during-zoom/retained-map-geometry.png",
+      "bytes": 138140,
+      "sha256": "ccf117824c51b22d970966e6a62bf7dd2a38eab5b14673f0ddc559bd68f65690"
+    },
+    {
+      "path": "target/gui-dispatch-samples-no-preference-output/native-native-GUI-with-rea-3d3a3--retained-areas-during-zoom/retained-map-geometry.png",
+      "bytes": 138140,
+      "sha256": "ccf117824c51b22d970966e6a62bf7dd2a38eab5b14673f0ddc559bd68f65690"
+    }
+  ],
+  "limits": [
+    "Per-dispatch counts are sampled points, not measured exclusive CPU milliseconds. Empty sampling is not zero work; nested dispatch observations overlap.",
+    "Trace/profile timestamps matching the window do not independently establish CDP-session/thread origin or physical execution attribution.",
+    "Four Riemann captures do not establish universal smoothness, physical presentation, field INP or new EthLib performance.",
+    "Settled pixel equality does not prove intermediate asynchronous camera/paint atomicity, Worker failure recovery, keyboard focus, DPR variants or production readiness. The prototype remains outside runtime.",
+    "Native rings may evict observations; no complete native-worker absence/CPU attribution follows from them.",
+    "Scripted-provider and installed-tool gates are not live-model, cold-install, large/local-model, confidentiality or new kernel/refinement evidence.",
+    "Decoded cancellation still retains a spinner and some composer fragments; no settled-every-frame rendering authenticity claim.",
+    "SVG construction/painting, complete prepared-input waits and the full five-exit migration remain open."
+  ]
+}

@@ -60,6 +60,16 @@ lost records, compare all original cached file fields after cold population,
 unchanged refresh and sealed resume, and calibrate sampling against a quiet run.
 Nested/parallel intervals and child-process CPU require separate attribution.
 
+Per-dispatch CPU attribution must retain the complete original dispatch vector,
+document markers and profile/trace digests. Reconstructed sample points keep
+their original nodes through nonmonotonic deltas; half-open event boundaries,
+nested handlers and zero-sample observations remain explicit. An independent
+point oracle must reject omitted sorting and closed-end attribution. Lossy
+completion, mismatched summary/trace observations, changed recorded source maps
+and existing export destinations must refuse output. Sample counts are not
+measured CPU durations, and interval overlap alone does not prove original
+CDP-session/thread attribution.
+
 Hinted source grouping must preserve every original path/hint association and
 complete content field. Actual confined frames must handle JSON control escapes
 and unknown sizes, refuse an understated hint's oversized frame, reject a later
