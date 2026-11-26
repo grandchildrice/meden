@@ -1,0 +1,1395 @@
+{
+  "date": "2026-11-26",
+  "baseline_commit": "64b1da3",
+  "candidate_sha256": "6a3039f6b5c9432fbafc17b68d7a6a167a93fbece5e190ea9892be7bc1d52f9b",
+  "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90",
+  "source_files": [
+    {
+      "path": "crates/meden-app/src/navigation/saved.rs",
+      "sha256": "90ea67267a9a3e6e4ac72511364874567255681ffa79f57d32686c02b3485665"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/saved/tests.rs",
+      "sha256": "50247c845e18ac7805502eab81ffbcc6c42b31cb51551ad5c299c1f2205089d5"
+    },
+    {
+      "path": "crates/meden-cli/src/gui/overview.rs",
+      "sha256": "58e64a00f01ecce456598e498783a3bb13ff93eee2ca27e2baa0520d7de68077"
+    },
+    {
+      "path": "apps/web/src/app/NativeApp.tsx",
+      "sha256": "3063e607c4a95f3c6208220838e571d69b08c31cc38e4c02a224e82c37341176"
+    },
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "sha256": "44ae2a6707279a412caf9cc42b88b90a511af7379bda62a13839f1c04b76b477"
+    },
+    {
+      "path": "apps/web/e2e/launcher-gate.ts",
+      "sha256": "11391ca5ce2c24794c6cfeea90d3da21637348a4cd6c3c7cf860cb745b0d3416"
+    },
+    {
+      "path": "tools/gui/prepare-native-variants.mjs",
+      "sha256": "2a4c0e15392fabec80e9db9992764bc741b01a597da95c512f0f9e95d90b253a"
+    }
+  ],
+  "variants": {
+    "original": {
+      "sha256": "7a6a00d93345df57ca27a4d8d0c0e0a66557fec97af49634c24f3d7c3942032b",
+      "changed_sources": [
+        {
+          "path": "crates/meden-app/src/adapters/source.rs",
+          "sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+        },
+        {
+          "path": "crates/meden-cli/src/gui/overview.rs",
+          "sha256": "58e64a00f01ecce456598e498783a3bb13ff93eee2ca27e2baa0520d7de68077"
+        }
+      ],
+      "implementation_sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+    },
+    "updated": {
+      "sha256": "b8371a7fca1601106169a376b68fb4966425583c96d8b2571c66e1be17037b25",
+      "changed_sources": [
+        {
+          "path": "crates/meden-app/src/adapters/source.rs",
+          "sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+        },
+        {
+          "path": "crates/meden-cli/src/gui/overview.rs",
+          "sha256": "58e64a00f01ecce456598e498783a3bb13ff93eee2ca27e2baa0520d7de68077"
+        }
+      ],
+      "implementation_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+    },
+    "rejected": {
+      "sha256": "56c9944c6dfebae81c3fcafc3a73fe43552e75862433e0057c5ed346f1658e38",
+      "changed_sources": [
+        {
+          "path": "crates/meden-app/src/adapters/source.rs",
+          "sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+        },
+        {
+          "path": "crates/meden-cli/src/gui/overview.rs",
+          "sha256": "70c635914b85d5daf9add0d735e92f3242c501244c64bd2cdfe44fcea867e2e1"
+        }
+      ],
+      "implementation_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+    }
+  },
+  "frame": {
+    "version": 1,
+    "location": "navigation/inventory.json",
+    "max_bytes": 67108864,
+    "original_indexer_and_composition_preserved": true,
+    "new_observation_required_for_replacement": true,
+    "former_format_decoder": false,
+    "compiler_input_or_evidence": false
+  },
+  "validation": {
+    "phase": "complete",
+    "application_cases": 192,
+    "architecture_cases": 64,
+    "tui_cases": 37,
+    "manually_inspected_decoded_journeys": 9,
+    "decoded_observations": 21,
+    "browser": [
+      {
+        "motion": "reduce",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+          "open file tabs restore source, graph camera and explanations without another inspection",
+          "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+          "saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera",
+          "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "large project map loads declaration nodes on zoom without opening files or changing chat"
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "tests": [
+          "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+          "open file tabs restore source, graph camera and explanations without another inspection",
+          "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+          "saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera",
+          "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "large project map loads declaration nodes on zoom without opening files or changing chat"
+        ]
+      }
+    ],
+    "negative": {
+      "stats": {
+        "total": 1,
+        "expected": 0,
+        "unexpected": 1,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "title": "saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera",
+      "held": {
+        "state": "loading",
+        "scanned": 0,
+        "total": 0,
+        "revision": null,
+        "error": null
+      },
+      "reason": "Actual counterfactual executable reinstates former composition check using the same current frame; fails target visibility after real preparation and held new discovery."
+    },
+    "orchestration": {
+      "exit_code": 143,
+      "terminal_processes_confirmed": true,
+      "last_browser_exit_code": "unobserved",
+      "last_browser_outcome": "All six cases completed; final published Playwright report independently decoded and checked. Original driver state is preserved.",
+      "scope": "No tests restarted or inferred successful from an incomplete report."
+    },
+    "scope": "Actual installed offline tools, scripted fixtures. No live-model, cold-install or physical-presentation claim.",
+    "gates": {
+      "phase": "complete",
+      "rows": [
+        {
+          "name": "negative",
+          "code": 1,
+          "signal": null,
+          "wanted": 1
+        },
+        {
+          "name": "decode-negative",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "app",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "architecture",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "format",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "schema",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "typecheck",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "tui",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "browser-reduce",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "decode-reduce",
+          "code": 0,
+          "signal": null,
+          "wanted": 0
+        },
+        {
+          "name": "browser-no-preference",
+          "code": null,
+          "verification": "six complete expected Playwright outcomes in final report; runner exit unobserved after driver termination"
+        },
+        {
+          "name": "decode-no-preference",
+          "code": 0
+        }
+      ],
+      "orchestrator": {
+        "exit_code": 143,
+        "terminal_processes_confirmed": true,
+        "last_browser_exit_code": "unobserved",
+        "last_browser_outcome": "All six cases completed; final published Playwright report independently decoded and checked. Original driver state is preserved.",
+        "scope": "No tests restarted or inferred successful from an incomplete report."
+      }
+    },
+    "reports": [
+      {
+        "motion": "reduce",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "cases": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "outcome": "expected"
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera",
+            "outcome": "expected"
+          },
+          {
+            "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "outcome": "expected"
+          }
+        ],
+        "update": {
+          "original_indexer": "sha256:9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445",
+          "new_indexer": "sha256:49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+          "original_inventory": "sha256:b59c4c16609f281f4793810b474071c147e5a871977c0edc4c739c25a115006f",
+          "new_inventory": "sha256:343a5f43b17f85ff1cecb3730068865a048279ae26c1d836afba3222c3148cff",
+          "original_saved_bytes_unchanged_while_held": true,
+          "original_chunk_retained": true,
+          "source_inspection_did_not_relabel_saved_map": true,
+          "camera_retained": true,
+          "failed_dispatch_retried": true,
+          "restarted_unapproved": true,
+          "saved_visible_after_navigation_ms": 1292.8923159999977,
+          "scope": "Two actual parser implementations and complete 10002-file inventory. Real confined discovery/cache workers and Lean/Plausible/GF source preparation. Explicit trusted launcher hold/failure; no admitted source result during failure, no live-model or cold-install claim."
+        }
+      },
+      {
+        "motion": "no-preference",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "cases": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "outcome": "expected"
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera",
+            "outcome": "expected"
+          },
+          {
+            "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "outcome": "expected"
+          }
+        ],
+        "update": {
+          "original_indexer": "sha256:9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445",
+          "new_indexer": "sha256:49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+          "original_inventory": "sha256:b59c4c16609f281f4793810b474071c147e5a871977c0edc4c739c25a115006f",
+          "new_inventory": "sha256:343a5f43b17f85ff1cecb3730068865a048279ae26c1d836afba3222c3148cff",
+          "original_saved_bytes_unchanged_while_held": true,
+          "original_chunk_retained": true,
+          "source_inspection_did_not_relabel_saved_map": true,
+          "camera_retained": true,
+          "failed_dispatch_retried": true,
+          "restarted_unapproved": true,
+          "saved_visible_after_navigation_ms": 1214.9622079999972,
+          "scope": "Two actual parser implementations and complete 10002-file inventory. Real confined discovery/cache workers and Lean/Plausible/GF source preparation. Explicit trusted launcher hold/failure; no admitted source result during failure, no live-model or cold-install claim."
+        }
+      }
+    ],
+    "clippy": {
+      "passed": true,
+      "command": "cargo clippy -p meden-app -p meden-cli --all-targets --offline -- -D warnings"
+    },
+    "exploratory_probes": [
+      {
+        "report": "target/gui-saved-origin-probe-report",
+        "outcome": "Failed waiting for visible error while global host-dispatch fault remained active; missing root-refresh retry route identified."
+      },
+      {
+        "report": "target/gui-saved-origin-recovery-report",
+        "outcome": "Retry route added; same visibility assertion still failed while global host fault remained active."
+      },
+      {
+        "report": "target/gui-saved-origin-final-probe-report",
+        "outcome": "Passed after ending injected host fault at actual failed state, then requiring visible error/source inspection/user Retry. Does not establish error-display latency during an ongoing global worker outage."
+      }
+    ]
+  },
+  "startup": [
+    {
+      "project": "riemann",
+      "phase": "reused",
+      "binary_sha256": "6a3039f6b5c9432fbafc17b68d7a6a167a93fbece5e190ea9892be7bc1d52f9b",
+      "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90",
+      "browser": "149.0.7827.53",
+      "viewport": "1440x960",
+      "motion": "no-preference",
+      "listening_ms": 833.6775349999998,
+      "first_observed_after_restart_ms": 4066.714019,
+      "first": {
+        "attached_ms": 3145.5,
+        "two_raf_ms": 3156,
+        "saved_label": "Saved map",
+        "boxes": 7,
+        "revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+        "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+      },
+      "ready_ms": 9029.250261,
+      "first_observed_state": {
+        "overview": "loading",
+        "running": true,
+        "authorized": false
+      },
+      "final_inventory_sha256": "3488d2e54b47aa8d1b935a64862d7fcbeb644acc0f982bd9eca3a98bad8a7df0",
+      "project_files": 175187,
+      "commands": [
+        {
+          "type": "inspect",
+          "directory": true
+        }
+      ],
+      "original_history_and_candidates_unchanged": true,
+      "native_ring_evicted": 0,
+      "stages": [
+        {
+          "context": {
+            "trace": 11,
+            "span": 14
+          },
+          "parent": 13,
+          "name": "navigation.saved.load",
+          "start_us": 472254,
+          "wall_us": 1338135,
+          "thread_cpu_us": 1333129
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 26
+          },
+          "parent": 13,
+          "name": "view.inventory.materialize",
+          "start_us": 1937088,
+          "wall_us": 776492,
+          "thread_cpu_us": 774068
+        },
+        {
+          "context": {
+            "trace": 39,
+            "span": 39
+          },
+          "parent": null,
+          "name": "gui.inventory_respond",
+          "start_us": 2973396,
+          "wall_us": 46844,
+          "thread_cpu_us": 7788
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 31
+          },
+          "parent": 13,
+          "name": "navigation.collect.paths",
+          "start_us": 2724049,
+          "wall_us": 4169808,
+          "thread_cpu_us": 1376877
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 109
+          },
+          "parent": 107,
+          "name": "navigation.collect.worker",
+          "start_us": 7598845,
+          "wall_us": 3,
+          "thread_cpu_us": 1
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 110
+          },
+          "parent": 107,
+          "name": "navigation.collect.worker",
+          "start_us": 7598879,
+          "wall_us": 2,
+          "thread_cpu_us": 1
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 111
+          },
+          "parent": 107,
+          "name": "navigation.collect.worker",
+          "start_us": 7598887,
+          "wall_us": 2,
+          "thread_cpu_us": 1
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 108
+          },
+          "parent": 107,
+          "name": "navigation.collect.worker",
+          "start_us": 7598779,
+          "wall_us": 52465,
+          "thread_cpu_us": 1647
+        },
+        {
+          "context": {
+            "trace": 11,
+            "span": 107
+          },
+          "parent": 13,
+          "name": "navigation.collect.sources",
+          "start_us": 7598615,
+          "wall_us": 52814,
+          "thread_cpu_us": 194
+        },
+        {
+          "context": {
+            "trace": 149,
+            "span": 149
+          },
+          "parent": null,
+          "name": "gui.inventory_respond",
+          "start_us": 8787056,
+          "wall_us": 52782,
+          "thread_cpu_us": 12306
+        }
+      ],
+      "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference."
+    },
+    {
+      "project": "ethlib",
+      "phase": "reused",
+      "binary_sha256": "6a3039f6b5c9432fbafc17b68d7a6a167a93fbece5e190ea9892be7bc1d52f9b",
+      "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90",
+      "browser": "149.0.7827.53",
+      "viewport": "1440x960",
+      "motion": "no-preference",
+      "listening_ms": 1250.7178410000015,
+      "first_observed_after_restart_ms": 3899.076159,
+      "first": {
+        "attached_ms": 2581.7999999970198,
+        "two_raf_ms": 2586.5,
+        "saved_label": "Saved map",
+        "boxes": 20,
+        "revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+        "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+      },
+      "ready_ms": 19865.688031,
+      "first_observed_state": {
+        "overview": "loading",
+        "running": true,
+        "authorized": false
+      },
+      "final_inventory_sha256": "deb7fb171818a1aaa7963a8b5b065742fe0d715fc0eef550dcfd4bba4dd4b3aa",
+      "project_files": 2517,
+      "commands": [
+        {
+          "type": "inspect",
+          "directory": true
+        }
+      ],
+      "original_history_and_candidates_unchanged": true,
+      "native_ring_evicted": 0,
+      "stages": [
+        {
+          "context": {
+            "trace": 13,
+            "span": 16
+          },
+          "parent": 15,
+          "name": "navigation.saved.load",
+          "start_us": 840984,
+          "wall_us": 1101480,
+          "thread_cpu_us": 1097294
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 27
+          },
+          "parent": 15,
+          "name": "view.inventory.materialize",
+          "start_us": 2055115,
+          "wall_us": 968896,
+          "thread_cpu_us": 966078
+        },
+        {
+          "context": {
+            "trace": 43,
+            "span": 43
+          },
+          "parent": null,
+          "name": "gui.inventory_respond",
+          "start_us": 3296311,
+          "wall_us": 5610,
+          "thread_cpu_us": 4997
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 35
+          },
+          "parent": 15,
+          "name": "navigation.collect.paths",
+          "start_us": 3057832,
+          "wall_us": 11432269,
+          "thread_cpu_us": 1041446
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 297
+          },
+          "parent": 295,
+          "name": "navigation.collect.worker",
+          "start_us": 14493221,
+          "wall_us": 2629771,
+          "thread_cpu_us": 1482085
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 299
+          },
+          "parent": 295,
+          "name": "navigation.collect.worker",
+          "start_us": 14493234,
+          "wall_us": 2679236,
+          "thread_cpu_us": 1440032
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 296
+          },
+          "parent": 295,
+          "name": "navigation.collect.worker",
+          "start_us": 14493140,
+          "wall_us": 2683932,
+          "thread_cpu_us": 1595532
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 298
+          },
+          "parent": 295,
+          "name": "navigation.collect.worker",
+          "start_us": 14493223,
+          "wall_us": 2685823,
+          "thread_cpu_us": 1465418
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 295
+          },
+          "parent": 15,
+          "name": "navigation.collect.sources",
+          "start_us": 14490108,
+          "wall_us": 2689701,
+          "thread_cpu_us": 3662
+        },
+        {
+          "context": {
+            "trace": 2999,
+            "span": 2999
+          },
+          "parent": null,
+          "name": "gui.inventory_respond",
+          "start_us": 19570387,
+          "wall_us": 5450,
+          "thread_cpu_us": 5185
+        }
+      ],
+      "scope": "Fresh isolated browser context per project. Normal actual systemd restart and public GUI; existing project/OS/native metadata caches retained. First scene/two-rAF and host polling are presentation/readiness proxies, not physical paint or field latency. Native spans overlap. Only navigation is exercised, without model approval, file inspection or inference."
+    }
+  ],
+  "deployment": {
+    "fidelity": [
+      {
+        "project": "riemann",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 68496,
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017634,
+            "sha256": "56c1c6680fc742514e9b57ca72100a0aea3f0086e1719ba4ddda914836aebb17",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "nav",
+            "bytes": 13881,
+            "sha256": "ce0b919939f8ab3efaed3ea8f73899f0abce1bde2f9022c5b729bcccd6fb1025",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "complete retained ring"
+      },
+      {
+        "project": "ethlib",
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 7343437,
+            "sha256": "deb7fb171818a1aaa7963a8b5b065742fe0d715fc0eef550dcfd4bba4dd4b3aa",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "nav",
+            "bytes": 1530,
+            "sha256": "617bd71856563301ef49475207074d4c5c018d73680ebdc803fffd75414532a4",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "complete retained ring"
+      }
+    ],
+    "retained_semantic_files": [
+      {
+        "project": "riemann",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 2547,
+            "sha256": "c83d739e2443e8aa2110c52a230bbf7301e657b600ec10e3d60600475c6760b8"
+          },
+          {
+            "path": "observations/1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454.json",
+            "bytes": 143826,
+            "sha256": "1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454"
+          },
+          {
+            "path": "observations/1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd.json",
+            "bytes": 143826,
+            "sha256": "1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd"
+          },
+          {
+            "path": "observations/44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2.json",
+            "bytes": 143826,
+            "sha256": "44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2"
+          },
+          {
+            "path": "observations/4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f.json",
+            "bytes": 182398,
+            "sha256": "4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f"
+          },
+          {
+            "path": "observations/4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca.json",
+            "bytes": 143826,
+            "sha256": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca"
+          },
+          {
+            "path": "observations/5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664.json",
+            "bytes": 143870,
+            "sha256": "5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664"
+          },
+          {
+            "path": "observations/79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4.json",
+            "bytes": 143870,
+            "sha256": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4"
+          },
+          {
+            "path": "observations/80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c.json",
+            "bytes": 143826,
+            "sha256": "80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c"
+          },
+          {
+            "path": "observations/9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00.json",
+            "bytes": 146872,
+            "sha256": "9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00"
+          },
+          {
+            "path": "observations/9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267.json",
+            "bytes": 147323,
+            "sha256": "9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267"
+          },
+          {
+            "path": "observations/9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28.json",
+            "bytes": 143826,
+            "sha256": "9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28"
+          },
+          {
+            "path": "observations/add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa.json",
+            "bytes": 143870,
+            "sha256": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa"
+          },
+          {
+            "path": "observations/c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b.json",
+            "bytes": 143826,
+            "sha256": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b"
+          },
+          {
+            "path": "observations/ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875.json",
+            "bytes": 143870,
+            "sha256": "ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875"
+          },
+          {
+            "path": "observations/cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda.json",
+            "bytes": 143826,
+            "sha256": "cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda"
+          },
+          {
+            "path": "observations/dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424.json",
+            "bytes": 143826,
+            "sha256": "dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424"
+          },
+          {
+            "path": "observations/e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3.json",
+            "bytes": 143826,
+            "sha256": "e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3"
+          },
+          {
+            "path": "observations/e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e.json",
+            "bytes": 143826,
+            "sha256": "e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e"
+          },
+          {
+            "path": "observations/f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80.json",
+            "bytes": 143826,
+            "sha256": "f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 2547,
+            "sha256": "2282e1be5524b637e12dc60d0871ddbc4093b451f46dbe1a456b55a2ff9db254"
+          },
+          {
+            "path": "renderings/083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815.json",
+            "bytes": 16851,
+            "sha256": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815"
+          },
+          {
+            "path": "renderings/09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274.json",
+            "bytes": 16851,
+            "sha256": "09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274"
+          },
+          {
+            "path": "renderings/0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb.json",
+            "bytes": 16851,
+            "sha256": "0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb"
+          },
+          {
+            "path": "renderings/19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3.json",
+            "bytes": 19534,
+            "sha256": "19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3"
+          },
+          {
+            "path": "renderings/1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89.json",
+            "bytes": 16851,
+            "sha256": "1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89"
+          },
+          {
+            "path": "renderings/6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a.json",
+            "bytes": 16851,
+            "sha256": "6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a"
+          },
+          {
+            "path": "renderings/713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9.json",
+            "bytes": 16851,
+            "sha256": "713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9"
+          },
+          {
+            "path": "renderings/77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c.json",
+            "bytes": 16851,
+            "sha256": "77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c"
+          },
+          {
+            "path": "renderings/7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f.json",
+            "bytes": 16851,
+            "sha256": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f"
+          },
+          {
+            "path": "renderings/933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e.json",
+            "bytes": 16851,
+            "sha256": "933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e"
+          },
+          {
+            "path": "renderings/a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537.json",
+            "bytes": 16851,
+            "sha256": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537"
+          },
+          {
+            "path": "renderings/b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7.json",
+            "bytes": 16851,
+            "sha256": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7"
+          },
+          {
+            "path": "renderings/c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7.json",
+            "bytes": 16851,
+            "sha256": "c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7"
+          },
+          {
+            "path": "renderings/d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78.json",
+            "bytes": 16851,
+            "sha256": "d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78"
+          },
+          {
+            "path": "renderings/da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e.json",
+            "bytes": 16851,
+            "sha256": "da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e"
+          },
+          {
+            "path": "renderings/e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a.json",
+            "bytes": 16851,
+            "sha256": "e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a"
+          },
+          {
+            "path": "renderings/f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38.json",
+            "bytes": 16851,
+            "sha256": "f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38"
+          },
+          {
+            "path": "renderings/f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304.json",
+            "bytes": 16851,
+            "sha256": "f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304"
+          },
+          {
+            "path": "renderings/f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2.json",
+            "bytes": 16471,
+            "sha256": "f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2279,
+            "sha256": "c1bf6de4dab8395fd1c57f5e45958f198fe39cec855aa67fb8d991af0e9aec04"
+          },
+          {
+            "path": "searches/047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719.json",
+            "bytes": 4830,
+            "sha256": "047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719"
+          },
+          {
+            "path": "searches/0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73.json",
+            "bytes": 5081,
+            "sha256": "0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73"
+          },
+          {
+            "path": "searches/1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d.json",
+            "bytes": 4376,
+            "sha256": "1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d"
+          },
+          {
+            "path": "searches/15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5.json",
+            "bytes": 5081,
+            "sha256": "15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5"
+          },
+          {
+            "path": "searches/27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd.json",
+            "bytes": 5081,
+            "sha256": "27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd"
+          },
+          {
+            "path": "searches/2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9.json",
+            "bytes": 5081,
+            "sha256": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9"
+          },
+          {
+            "path": "searches/3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed.json",
+            "bytes": 5081,
+            "sha256": "3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed"
+          },
+          {
+            "path": "searches/42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750.json",
+            "bytes": 5081,
+            "sha256": "42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750"
+          },
+          {
+            "path": "searches/4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a.json",
+            "bytes": 5081,
+            "sha256": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a"
+          },
+          {
+            "path": "searches/6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c.json",
+            "bytes": 4376,
+            "sha256": "6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c"
+          },
+          {
+            "path": "searches/784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07.json",
+            "bytes": 3874,
+            "sha256": "784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07"
+          },
+          {
+            "path": "searches/7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f.json",
+            "bytes": 4375,
+            "sha256": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f"
+          },
+          {
+            "path": "searches/8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45.json",
+            "bytes": 5081,
+            "sha256": "8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45"
+          },
+          {
+            "path": "searches/b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5.json",
+            "bytes": 5081,
+            "sha256": "b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5"
+          },
+          {
+            "path": "searches/c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2.json",
+            "bytes": 4376,
+            "sha256": "c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2"
+          },
+          {
+            "path": "searches/e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8.json",
+            "bytes": 5081,
+            "sha256": "e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8"
+          },
+          {
+            "path": "searches/ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb.json",
+            "bytes": 5081,
+            "sha256": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 1877,
+            "sha256": "cc267bbbaf33884f982af784a4db6d4d87b6ac637542d6fcc7426791a6bf9b60"
+          },
+          {
+            "path": "observations/2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded.json",
+            "bytes": 215991,
+            "sha256": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded"
+          },
+          {
+            "path": "observations/547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc.json",
+            "bytes": 215991,
+            "sha256": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc"
+          },
+          {
+            "path": "observations/697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9.json",
+            "bytes": 215957,
+            "sha256": "697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9"
+          },
+          {
+            "path": "observations/7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e.json",
+            "bytes": 215957,
+            "sha256": "7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e"
+          },
+          {
+            "path": "observations/81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011.json",
+            "bytes": 215991,
+            "sha256": "81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011"
+          },
+          {
+            "path": "observations/8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376.json",
+            "bytes": 215991,
+            "sha256": "8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376"
+          },
+          {
+            "path": "observations/9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7.json",
+            "bytes": 215957,
+            "sha256": "9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7"
+          },
+          {
+            "path": "observations/9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1.json",
+            "bytes": 215957,
+            "sha256": "9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1"
+          },
+          {
+            "path": "observations/b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97.json",
+            "bytes": 215957,
+            "sha256": "b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97"
+          },
+          {
+            "path": "observations/c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28.json",
+            "bytes": 215957,
+            "sha256": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28"
+          },
+          {
+            "path": "observations/cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7.json",
+            "bytes": 215957,
+            "sha256": "cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7"
+          },
+          {
+            "path": "observations/d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b.json",
+            "bytes": 215957,
+            "sha256": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b"
+          },
+          {
+            "path": "observations/db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a.json",
+            "bytes": 215957,
+            "sha256": "db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a"
+          },
+          {
+            "path": "observations/f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e.json",
+            "bytes": 215957,
+            "sha256": "f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 1877,
+            "sha256": "1581b6522d07c1658d2cea7cf44bdb6bcca7c0331f45517d414cd6872ab64e23"
+          },
+          {
+            "path": "renderings/180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8.json",
+            "bytes": 54382,
+            "sha256": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8"
+          },
+          {
+            "path": "renderings/543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2.json",
+            "bytes": 54382,
+            "sha256": "543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2"
+          },
+          {
+            "path": "renderings/6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905.json",
+            "bytes": 54382,
+            "sha256": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905"
+          },
+          {
+            "path": "renderings/6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15.json",
+            "bytes": 54382,
+            "sha256": "6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15"
+          },
+          {
+            "path": "renderings/6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35.json",
+            "bytes": 54382,
+            "sha256": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35"
+          },
+          {
+            "path": "renderings/7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069.json",
+            "bytes": 54382,
+            "sha256": "7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069"
+          },
+          {
+            "path": "renderings/8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa.json",
+            "bytes": 54382,
+            "sha256": "8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa"
+          },
+          {
+            "path": "renderings/b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0.json",
+            "bytes": 54382,
+            "sha256": "b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0"
+          },
+          {
+            "path": "renderings/be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b.json",
+            "bytes": 54382,
+            "sha256": "be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b"
+          },
+          {
+            "path": "renderings/bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825.json",
+            "bytes": 54382,
+            "sha256": "bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825"
+          },
+          {
+            "path": "renderings/c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb.json",
+            "bytes": 54382,
+            "sha256": "c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb"
+          },
+          {
+            "path": "renderings/cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f.json",
+            "bytes": 54382,
+            "sha256": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f"
+          },
+          {
+            "path": "renderings/cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816.json",
+            "bytes": 54382,
+            "sha256": "cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816"
+          },
+          {
+            "path": "renderings/db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969.json",
+            "bytes": 54382,
+            "sha256": "db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2011,
+            "sha256": "865dd176a151bbbe13d566209739a674733dd4bdee7c5351e122d5cdb9f28b97"
+          },
+          {
+            "path": "searches/0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396.json",
+            "bytes": 18771,
+            "sha256": "0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396"
+          },
+          {
+            "path": "searches/225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19.json",
+            "bytes": 18771,
+            "sha256": "225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19"
+          },
+          {
+            "path": "searches/3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee.json",
+            "bytes": 18771,
+            "sha256": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee"
+          },
+          {
+            "path": "searches/4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0.json",
+            "bytes": 18771,
+            "sha256": "4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0"
+          },
+          {
+            "path": "searches/5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7.json",
+            "bytes": 18771,
+            "sha256": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7"
+          },
+          {
+            "path": "searches/5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c.json",
+            "bytes": 18771,
+            "sha256": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c"
+          },
+          {
+            "path": "searches/73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323.json",
+            "bytes": 18771,
+            "sha256": "73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323"
+          },
+          {
+            "path": "searches/7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999.json",
+            "bytes": 18771,
+            "sha256": "7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999"
+          },
+          {
+            "path": "searches/829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9.json",
+            "bytes": 18771,
+            "sha256": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9"
+          },
+          {
+            "path": "searches/bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff.json",
+            "bytes": 18771,
+            "sha256": "bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff"
+          },
+          {
+            "path": "searches/c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509.json",
+            "bytes": 18771,
+            "sha256": "c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509"
+          },
+          {
+            "path": "searches/e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b.json",
+            "bytes": 18771,
+            "sha256": "e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b"
+          },
+          {
+            "path": "searches/e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a.json",
+            "bytes": 18771,
+            "sha256": "e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a"
+          },
+          {
+            "path": "searches/f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37.json",
+            "bytes": 18771,
+            "sha256": "f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37"
+          },
+          {
+            "path": "searches/f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480.json",
+            "bytes": 18771,
+            "sha256": "f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480"
+          }
+        ]
+      }
+    ],
+    "integrity": {
+      "assets_match_dist_and_hidden_maps": 88,
+      "rows": [
+        {
+          "project": "riemann",
+          "pid": 406196,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "6a3039f6b5c9432fbafc17b68d7a6a167a93fbece5e190ea9892be7bc1d52f9b",
+          "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90"
+        },
+        {
+          "project": "ethlib",
+          "pid": 406610,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "6a3039f6b5c9432fbafc17b68d7a6a167a93fbece5e190ea9892be7bc1d52f9b",
+          "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90"
+        }
+      ]
+    }
+  },
+  "artifact_hashes": [
+    {
+      "path": "/tmp/meden-saved-origin-recovered-gates.json",
+      "sha256": "3cb1b8d18ea31131299ba24dfd8f8e57ad7800014344e7c7a6519bbdcba481dd"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-reviewed-validation.json",
+      "sha256": "ffddb91c2cb864c743f701e467fef892615c630273e5958f4752d418a92e505a"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-decoded-screens.json",
+      "sha256": "b1e754e9af7a4937cc40436d9a0ea0785f912ccef37daeccad5a5864bf1da95b"
+    },
+    {
+      "path": "/tmp/meden-ux-saved-origin-20261126/summary.json",
+      "sha256": "a657d1a65e709a3c791bb060f4ca4a286b3d2281643d02b7b9045d7db622fcf1"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-reduce-decoded.json",
+      "sha256": "f94a81d78211d611161f9f1d889bd7f774c6d9792653d1ee00c2a4d862cf53f6"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-no-preference-decoded.json",
+      "sha256": "d40ba8e6e0190c05e25cb86d63622586fd22aa64d4d87e0ffe1685cbe2312542"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-negative-decoded.json",
+      "sha256": "54e5b4c7126377048ebfecf8a88d9a3b993a9e38613c75157f20c1169b7a8385"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-clippy.log",
+      "sha256": "8fc02ad9f03ed8aa16ac500dc9ac9034d9797b1b33a9b5a62d925e781e99550e"
+    },
+    {
+      "path": "/tmp/meden-saved-origin-gate-app.log",
+      "sha256": "b6bdd091fcfdb83defb096db90a0137a650533af492e52ed69fce7b7a109a573"
+    },
+    {
+      "path": "target/native-profile/saved-origin-startup-20261126/reused.json",
+      "sha256": "7c9f0b175983446d3a9d56d76ebcec7d1a6bb42379a1d194de803421d979a6e2"
+    }
+  ],
+  "scope": "Saved presentation across parser updates, not faster complete cache population or compiler input checks. Complete 10002-file public browser update/failure/retry/restart journey, actual offline workers and installed Lean/Plausible/GF/Z3, original inventory/chunk attribution retained; current source cannot be merged into the former map. Both motion settings; counterfactual compiled loader coupling must fail. Actual-workspace startup uses current unchanged parser, retained metadata/OS caches, one serial sample per project and normal motion; only viewing while refresh is running is measured, not an actual-project parser-update timing pair. First scene/two-rAF is an automation-visible proxy, not physical presentation. No simultaneous test/build/sampler during actual startup. Missing new-format frame requires ordinary observation once. Scripted fixtures are not live-model or cold-install validation. Bounded metric observations and exact stored artifact hashes do not extend kernel refinement."
+}

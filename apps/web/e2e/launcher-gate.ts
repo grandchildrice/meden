@@ -57,7 +57,8 @@ export async function verificationGate(
   await access(bwrap, constants.X_OK);
   const launcher = resolve(root, "held-bwrap"),
     started = resolve(root, "verification-started"),
-    release = resolve(root, "verification-release");
+    release = resolve(root, "verification-release"),
+    failure = resolve(root, "verification-failure");
   await writeFile(
     launcher,
     `#!${bash}
@@ -67,6 +68,10 @@ ${kind === "inventory" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "worker-file" && 
 if $hold; then
   printf started > ${quote(started)}
   while [[ ! -e ${quote(release)} ]]; do ${quote(sleep)} 0.02; done
+  if [[ -e ${quote(failure)} ]]; then
+    printf 'Intentional host dispatch failure\\n' >&2
+    exit 97
+  fi
 fi
 exec ${quote(bwrap)} "$@"
 `,
@@ -81,5 +86,7 @@ exec ${quote(bwrap)} "$@"
       await rm(release, { force: true });
     },
     release: () => writeFile(release, "release"),
+    fail: () => writeFile(failure, "fail"),
+    recover: () => rm(failure, { force: true }),
   };
 }

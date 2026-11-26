@@ -49,6 +49,12 @@ compiler-input validation.
 The actual Riemann method update additionally spends 99.833 seconds populating
 its large private syntax cache; reducing that upgrade/startup wait remains work.
 
+The [saved-map update boundary](../performance/saved-map-parser-update.md) keeps
+presentation storage independent of parser selection and preserves the original
+indexer/composition while a new observation runs. Failed discovery can be retried
+inside the map. Current file inspection cannot relabel that former view. This
+advances read-model separation; it does not shorten full cache population.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

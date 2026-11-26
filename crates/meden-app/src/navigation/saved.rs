@@ -14,6 +14,10 @@ use std::{
 #[derive(Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Inventory<S> {
+    /// Original lexical implementation, never replaced when restoring a view.
+    pub indexer: String,
+    /// Original navigation composition, independent of this storage format.
+    pub method: String,
     /// Original ordered file metadata and navigation headings.
     pub files: Vec<File<S>>,
     /// Original explicitly excluded names.
@@ -26,7 +30,7 @@ pub struct Inventory<S> {
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Record<T> {
-    method: String,
+    version: u8,
     sha256: String,
     inventory: T,
 }
@@ -82,15 +86,14 @@ fn digest(value: &impl Serialize) -> Result<String> {
 /// Host-scoped, bounded navigation storage, independent of accepted/session state.
 pub struct Store {
     path: PathBuf,
-    method: String,
 }
 impl Store {
-    /// Select the native parser composition before reading any saved data.
-    pub fn host(root: &Path, method: String) -> Result<Self> {
+    /// Select the host's saved presentation, independently of parser updates.
+    pub fn host(root: &Path) -> Result<Self> {
         let path = crate::storage::directory(root)?
             .join("navigation")
-            .join(format!("{:x}.json", Sha256::digest(method.as_bytes())));
-        Ok(Self { path, method })
+            .join("inventory.json");
+        Ok(Self { path })
     }
     /// Restore complete saved metadata only. Callers validate their own projection
     /// before exposing it and retain a non-current observation state.
@@ -112,10 +115,8 @@ impl Store {
             "Saved navigation exceeds 64 MiB"
         );
         let saved: Record<Inventory<S>> = serde_json::from_slice(&bytes)?;
-        anyhow::ensure!(
-            saved.method == self.method,
-            "Saved navigation method changed"
-        );
+        anyhow::ensure!(saved.version == 1, "Unsupported saved navigation format");
+        saved.inventory.validate()?;
         anyhow::ensure!(
             saved.sha256 == digest(&saved.inventory)?,
             "Saved navigation content changed"
@@ -126,8 +127,9 @@ impl Store {
     /// Failure leaves the previous complete record, never a successful prefix.
     pub fn retain<S: Serialize>(&self, inventory: &Inventory<S>) -> Result<()> {
         let _timing = meden_runtime::metrics::Span::start("navigation.saved.retain");
+        inventory.validate()?;
         let record = Record {
-            method: self.method.clone(),
+            version: 1,
             sha256: digest(inventory)?,
             inventory,
         };
@@ -149,6 +151,20 @@ impl Store {
             writer.flush()?;
         }
         staged.persist(&self.path).map_err(|e| e.error)?;
+        Ok(())
+    }
+}
+impl<S> Inventory<S> {
+    fn validate(&self) -> Result<()> {
+        anyhow::ensure!(
+            [&self.method, &self.indexer].iter().all(|id| {
+                id.len() == 64
+                    && id
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            }),
+            "Invalid saved navigation origin"
+        );
         Ok(())
     }
 }

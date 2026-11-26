@@ -159,6 +159,14 @@ An unchanged restart must still observe directories, show the original
 declaration and retain fresh approval state while preserving the saved file and
 avoiding a second materialization. A changed observation must replace the view.
 
+Parser updates must also retain the original saved-map attribution while actual
+new discovery is held. The 10,002-file update journey preserves its complete
+inventory and selected chunk, ends a dispatch fault after observing failure,
+opens changed source without relabeling the old map and uses visible Retry map
+to replace it without moving the camera. Both motion settings and an actual
+former-composition-check executable exercise this boundary. Saved presentation
+does not restore source execution context, approval or evidence.
+
 Compiler/search/render cache contexts retain their original bare digests and
 complete parent/body checks. The actual body's type selects its storage role;
 decoded identity spelling does not grant ownership. Public source preparation,

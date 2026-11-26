@@ -33,12 +33,17 @@ const changes =
               "\n// Orchestration-only implementation update.\n",
             ],
           ]
-        : kind === "navigation"
-          ? [["crates/meden-app/src/adapters/source.rs", ""]]
+        : kind === "navigation" || kind === "saved-map"
+          ? [
+              ["crates/meden-app/src/adapters/source.rs", ""],
+              ...(kind === "saved-map"
+                ? [["crates/meden-cli/src/gui/overview.rs", ""]]
+                : []),
+            ]
           : null;
 if (!changes)
   throw new Error(
-    "Choose the fixed metadata, repair, pipeline or navigation test variant",
+    "Choose the fixed metadata, repair, pipeline, navigation or saved-map test variant",
   );
 const directory = resolve("target/gui-native-variants/" + kind);
 await mkdir(directory, { recursive: true });
@@ -76,8 +81,12 @@ const originals = await Promise.all(
 );
 const target = resolve(directory, "build");
 const result = {};
-for (const name of ["original", "updated"]) {
-  if (kind === "navigation" && name === "original") {
+for (const name of [
+  "original",
+  "updated",
+  ...(kind === "saved-map" ? ["rejected"] : []),
+]) {
+  if ((kind === "navigation" || kind === "saved-map") && name === "original") {
     // Private counterfactual only: the original independent two-pass algorithm
     // implements the current typed port. Production has only the combined pass.
     const current = originals[0].text;
@@ -109,7 +118,7 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
 `,
     );
   }
-  if (name === "updated")
+  if (name !== "original")
     for (const change of originals)
       await writeFile(
         resolve(source, change.path),
@@ -120,6 +129,26 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
             )
           : change.text) + change.suffix,
       );
+  if (name === "rejected") {
+    const overview = resolve(source, "crates/meden-cli/src/gui/overview.rs");
+    const current = await readFile(overview, "utf8");
+    const original = "saved(workspace).and_then(|s| s.load())";
+    if (!current.includes(original))
+      throw Error("Saved-map restore boundary missing");
+    // Counterfactual only: reintroduce the former method coupling in the
+    // original restore location, with the same current storage/schema.
+    await writeFile(
+      overview,
+      current.replace(
+        original,
+        `saved(workspace).and_then(|s| {
+            let saved: Option<Captured> = s.load()?;
+            anyhow::ensure!(saved.as_ref().is_none_or(|c| c.method == crate::adapters::navigation::identity()), "Saved navigation method changed");
+            Ok(saved)
+        })`,
+      ),
+    );
+  }
   // Each snapshot has new absolute source paths. Never trust a shared target's
   // prior workspace dep-info to notice those paths or a helper-only edit.
   await exec(
@@ -176,6 +205,11 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
       "Built executable does not embed the selected implementation",
     );
   const digest = createHash("sha256").update(bytes).digest("hex");
+  if (
+    name === "rejected" &&
+    !bytes.includes(Buffer.from("Saved navigation method changed"))
+  )
+    throw Error("Former saved-map coupling was not compiled");
   const binary = resolve(directory, digest, "meden");
   await mkdir(dirname(binary), { recursive: true });
   await writeFile(binary, bytes, { mode: 0o555, flag: "wx" }).catch(

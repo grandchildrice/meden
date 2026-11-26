@@ -40,7 +40,7 @@ impl Snapshot {
                 .collect::<Result<_>>()?,
             excluded: captured.excluded.iter().map(ToString::to_string).collect(),
             inventory_only: captured.inventory_only,
-            indexer: format!("sha256:{}", crate::adapters::source::identity()),
+            indexer: format!("sha256:{}", captured.indexer),
         };
         let prepared = inventory::Prepared::new(&data)?;
         let chunks = Mutex::new(inventory::Chunks::new(prepared.reference().clone())?);
@@ -179,6 +179,8 @@ fn capture(
         0
     };
     Ok(Captured {
+        indexer: crate::adapters::source::identity(),
+        method: crate::adapters::navigation::identity(),
         files,
         excluded: EXCLUDED.iter().map(ToString::to_string).collect(),
         inventory_only,
@@ -271,7 +273,12 @@ fn index_sources(
     path: &str,
 ) -> Result<()> {
     let snapshot = lock(view).overview_snapshot.clone();
-    let Some(snapshot) = snapshot.filter(|s| s.files.iter().any(|f| f.path == path)) else {
+    // A former implementation's saved view stays intact until complete refresh.
+    // Do not mix a newly inspected file into its original method attribution.
+    let Some(snapshot) = snapshot.filter(|s| {
+        s.method == crate::adapters::navigation::identity()
+            && s.files.iter().any(|f| f.path == path)
+    }) else {
         return Ok(());
     };
     let mut indexed = if snapshot.inventory_only {
@@ -408,7 +415,9 @@ pub(super) fn cached(
 }
 
 fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Result<Vec<File>> {
-    if !snapshot.inventory_only {
+    // A saved view from another composition serves only its own retained data.
+    // The current cache namespace cannot supply records under that old parent.
+    if !snapshot.inventory_only || snapshot.method != crate::adapters::navigation::identity() {
         return Ok(snapshot
             .files
             .iter()
@@ -425,8 +434,5 @@ fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Res
 }
 
 fn saved(workspace: &Workspace) -> Result<meden_app::navigation::saved::Store> {
-    meden_app::navigation::saved::Store::host(
-        workspace.path(),
-        crate::adapters::navigation::identity(),
-    )
+    meden_app::navigation::saved::Store::host(workspace.path())
 }

@@ -38,6 +38,10 @@ separates first displayed navigation from complete native refresh. It retains
 baseline/prototype/final startup observations, exact original inventory digests,
 source/reader/navigation/evidence fidelity and both intended negative controls.
 Saved viewing does not remove current-input checks or the serial command queue.
+The [parser-update boundary](../../docs/performance/saved-map-parser-update.md)
+keeps that presentation across implementation changes while preserving original
+attribution. Its held-worker/failure/retry journey and rejected composition-check
+control are separate from actual-workspace startup timing and full cache warming.
 
 The [November 26 deployed audit](../../docs/performance/event-audit-20261126.md)
 records all 13 interaction windows twice per actual project on `e41a847`, with

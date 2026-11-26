@@ -1,5 +1,10 @@
 # Display a saved project map before discovery
 
+This record describes the original saved-map implementation and measurements.
+The later [parser-update boundary](saved-map-parser-update.md) separates storage
+format from syntax selection while retaining original attribution; changing a
+parser no longer discards an otherwise valid saved presentation.
+
 The application now retains a disposable navigation inventory independently of
 source preparation, accepted meaning, model sessions and admitted evidence.
 On restart, the GUI validates and publishes that saved metadata before running

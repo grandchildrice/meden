@@ -1108,7 +1108,11 @@ export function NativeApp({ token }: { token: string }) {
                         ? () => {
                             void indexMapFile(navigationError.path);
                           }
-                        : undefined
+                        : state.overview.state === "failed"
+                          ? () => {
+                              void command({ type: "refresh_workspace" });
+                            }
+                          : undefined
                   }
                   active={!activeFile}
                   canIndex={

@@ -3219,6 +3219,290 @@ test.describe("native GUI with real offline workers", () => {
     });
   });
 
+  test("saved maps keep original attribution across parser updates, recover failed discovery and replace data without moving the camera", async ({
+    page,
+  }, info) => {
+    test.setTimeout(360000);
+    const variants = process.env.MEDEN_GUI_SAVED_MAP_VARIANTS
+      ? JSON.parse(
+          await readFile(process.env.MEDEN_GUI_SAVED_MAP_VARIANTS, "utf8"),
+        )
+      : JSON.parse(
+          (
+            await promisify(execFile)(
+              process.execPath,
+              [resolve("tools/gui/prepare-native-variants.mjs"), "saved-map"],
+              { timeout: 240000, maxBuffer: 1024 * 1024 },
+            )
+          ).stdout,
+        );
+    expect(variants.kind).toBe("saved-map");
+    for (const variant of [
+      variants.original,
+      variants.updated,
+      variants.rejected,
+    ])
+      expect(
+        createHash("sha256")
+          .update(await readFile(variant.binary))
+          .digest("hex"),
+      ).toBe(variant.sha256);
+    for (const source of variants.updated.changed_sources)
+      expect(
+        createHash("sha256")
+          .update(await readFile(source.path))
+          .digest("hex"),
+      ).toBe(source.sha256);
+    expect(variants.original.implementation_sha256).not.toBe(
+      variants.updated.implementation_sha256,
+    );
+    await mkdir(resolve(project, "Many"));
+    for (let start = 0; start < 10001; start += 200)
+      await Promise.all(
+        Array.from({ length: Math.min(200, 10001 - start) }, (_, i) =>
+          writeFile(
+            resolve(project, "Many", `Node${start + i}.rs`),
+            `pub fn node${start + i}() {}\n`,
+          ),
+        ),
+      );
+    const original = "theorem old_name : True := True.intro\n";
+    await writeFile(resolve(project, "Main.lean"), original);
+    const ready = async () => {
+      await expect
+        .poll(
+          async () => {
+            const state = await nativeState(page);
+            return !state.running && state.overview.state === "ready";
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+    };
+    const inventory = (revision: string) =>
+      page.evaluate(async (revision) => {
+        const response = await fetch(
+          "/api/inventory?revision=" + encodeURIComponent(revision),
+          {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          },
+        );
+        if (!response.ok) throw Error("Inventory unavailable");
+        const body = await response.json();
+        if (body.revision !== revision) throw Error("Foreign inventory");
+        return body;
+      }, revision);
+    await page.goto(await start(0, {}, [], variants.original.binary));
+    await ready();
+    const before = await nativeState(page),
+      beforeInventory = await inventory(before.overview.revision);
+    expect(beforeInventory.data.files).toHaveLength(10002);
+    expect(beforeInventory.data.indexer).toBe(
+      "sha256:" + variants.original.implementation_sha256,
+    );
+    const recordPath = resolve(
+      root,
+      "data/meden/projects",
+      createHash("sha256").update(project).digest("hex"),
+      "navigation/inventory.json",
+    );
+    const savedBytes = await readFile(recordPath),
+      saved = JSON.parse(savedBytes.toString());
+    expect(saved.inventory.indexer).toBe(
+      variants.original.implementation_sha256,
+    );
+    const originalMain = saved.inventory.files.find(
+      (f: any) => f.path === "Main.lean",
+    );
+    expect(originalMain.symbols.map((s: any) => s.name)).toEqual(["old_name"]);
+    await stop();
+    await writeFile(
+      resolve(project, "Main.lean"),
+      original.replace("old_name", "new_name"),
+    );
+    const gate = await verificationGate(root, "inventory");
+    const selected =
+      process.env.MEDEN_GUI_SAVED_MAP_REJECT_CHANGED_METHOD === "1"
+        ? variants.rejected
+        : variants.updated;
+    const commands: string[] = [];
+    page.on("request", (r) => {
+      if (new URL(r.url()).pathname === "/api/command")
+        commands.push(r.postDataJSON().type);
+    });
+    const nextUrl = await start(0, gate.environment, [], selected.binary);
+    const navigationStarted = performance.now();
+    await page.goto(nextUrl);
+    try {
+      await expect.poll(gate.started).toBe("started");
+      const held = await nativeState(page);
+      await info.attach("parser-update-discovery-held", {
+        body: JSON.stringify({
+          running: held.running,
+          overview: held.overview,
+          source_preparation: held.source_preparation,
+          authorized: held.authorized,
+          variants,
+        }),
+        contentType: "application/json",
+      });
+      const map = page.getByRole("region", {
+        name: "Project map",
+        exact: true,
+      });
+      const pin = map.getByRole("button", {
+        name: "Main theorems: Main.lean (1)",
+        exact: true,
+      });
+      await expect(pin).toBeVisible();
+      await page.evaluate(async () => {
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+      });
+      const savedVisibleMs = performance.now() - navigationStarted;
+      await expect(map.getByRole("status")).toHaveText("Saved map");
+      expect(held.overview.state).toBe("loading");
+      expect(held.running).toBe(true);
+      expect(held.authorized).toBe(false);
+      expect(held.sources.current).toBeNull();
+      expect(held.source_preparation).toEqual({});
+      const displayed = await inventory(held.overview.revision);
+      expect(displayed).toEqual(beforeInventory);
+      expect((await readFile(recordPath)).equals(savedBytes)).toBe(true);
+      await pin.click();
+      const oldName = map.getByRole("button", {
+        name: /Declaration: old_name · Main.lean:/,
+      });
+      await expect(oldName).toBeVisible();
+      // Actual map GETs must use the original retained data, never the new
+      // parser's not-yet-prepared private cache under the former parent.
+      const chunk = await page.evaluate(async (revision) => {
+        const r = await fetch(
+          "/api/map?inventory=" +
+            encodeURIComponent(revision) +
+            "&path=Main.lean",
+          {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          },
+        );
+        if (!r.ok) throw Error("Saved chunk unavailable");
+        return r.json();
+      }, held.overview.revision);
+      expect(chunk.data.revision).toBe(held.overview.revision);
+      expect(chunk.data.files[0].sha256).toBe(originalMain.sha256);
+      expect(chunk.data.files[0].symbols).toEqual(originalMain.symbols);
+      await page.evaluate(() => new Promise((r) => setTimeout(r, 350)));
+      const viewport = map.locator(".react-flow__viewport"),
+        camera = await viewport.getAttribute("style");
+      expect(commands).toEqual([]);
+      expect(requests).toHaveLength(0);
+      await page.screenshot({
+        path: info.outputPath("saved-map-parser-update-held.png"),
+      });
+      // Fail only the trusted launcher dispatch, admitting no worker result.
+      // Once that host fault ends, source opening and visible Retry execute
+      // the original confined workers and real Lean compiler normally.
+      await gate.fail();
+      await gate.release();
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      expect((await nativeState(page)).overview.state).toBe("failed");
+      await gate.recover();
+      await expect(map.getByRole("alert")).toContainText(
+        "Could not refresh the map",
+      );
+      await page
+        .getByRole("button", { name: "File: Main.lean", exact: true })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Main.lean"]?.outcome
+              .state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      await expect(
+        page.getByRole("region", { name: "Source code", exact: true }),
+      ).toContainText("theorem new_name");
+      // A current file may be inspected independently, but must not be merged
+      // into a saved map with the original parser/composition attribution.
+      expect(await inventory(held.overview.revision)).toEqual(beforeInventory);
+      await page.getByRole("tab", { name: "Project map", exact: true }).click();
+      await expect(oldName).toBeVisible();
+      await map.getByRole("button", { name: "Retry map", exact: true }).click();
+      await ready();
+      await expect(
+        map.getByRole("button", { name: /Declaration: new_name · Main.lean:/ }),
+      ).toBeVisible();
+      await expect(oldName).toHaveCount(0);
+      await expect(map.getByRole("status")).toHaveCount(0);
+      await expect(viewport).toHaveAttribute("style", camera!);
+      const current = await nativeState(page),
+        afterInventory = await inventory(current.overview.revision);
+      expect(afterInventory.data.indexer).toBe(
+        "sha256:" + variants.updated.implementation_sha256,
+      );
+      expect(afterInventory.revision).not.toBe(beforeInventory.revision);
+      expect(
+        afterInventory.data.files.filter((f: any) => f.path !== "Main.lean"),
+      ).toEqual(
+        beforeInventory.data.files.filter((f: any) => f.path !== "Main.lean"),
+      );
+      const replacement = JSON.parse((await readFile(recordPath)).toString());
+      expect(replacement.inventory.indexer).toBe(
+        variants.updated.implementation_sha256,
+      );
+      expect(replacement.inventory.method).not.toBe(saved.inventory.method);
+      expect(
+        replacement.inventory.files
+          .find((f: any) => f.path === "Main.lean")
+          .symbols.map((s: any) => s.name),
+      ).toEqual(["new_name"]);
+      expect(current.authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+      await stop();
+      await page.goto(await start(0, {}, [], variants.updated.binary));
+      await ready();
+      await expect(
+        map.getByRole("button", {
+          name: "Main theorems: Main.lean (1)",
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+      await info.attach("saved-map-parser-update", {
+        body: JSON.stringify({
+          original_indexer: beforeInventory.data.indexer,
+          new_indexer: afterInventory.data.indexer,
+          original_inventory: beforeInventory.revision,
+          new_inventory: afterInventory.revision,
+          original_saved_bytes_unchanged_while_held: true,
+          original_chunk_retained: true,
+          source_inspection_did_not_relabel_saved_map: true,
+          camera_retained: true,
+          failed_dispatch_retried: true,
+          restarted_unapproved: true,
+          saved_visible_after_navigation_ms: savedVisibleMs,
+          scope:
+            "Two actual parser implementations and complete 10002-file inventory. Real confined discovery/cache workers and Lean/Plausible/GF source preparation. Explicit trusted launcher hold/failure; no admitted source result during failure, no live-model or cold-install claim.",
+        }),
+        contentType: "application/json",
+      });
+    } finally {
+      await gate.recover();
+      await gate.release();
+    }
+  });
+
   test("bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis", async ({
     page,
   }) => {
