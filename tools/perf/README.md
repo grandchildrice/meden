@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [attribute-invalidation audit](../../docs/performance/attribute-invalidation.md)
+adds chronological `dispatch-events.csv` and an opt-in source of style/layout
+causes. Separate non-scaling-reference and background-grouping trials are
+rejected; the production renderer remains unchanged. Per-type summaries and
+individual dispatch observations are explicitly distinguished.
+
 The [publication-camera record](../../docs/performance/graph-publication-camera.md)
 fixes a native viewer reset when valid graph updates reissue IDs. It separately
 records rejected border/path replays, an actual world-path-cache comparison and
@@ -322,7 +328,12 @@ zero CPU samples means unavailable measurement rather than zero CPU work.
 `events.csv` and `events.md` expose each action/event type's sample count,
 synchronous handler p50/p95/max and the corresponding two-rAF p95. The JSON
 keeps chronological dispatches, inclusive rendering spans and sampled CPU
-leaders. A separate `project-map-drill` phase clicks reachable category headers
+leaders. `dispatch-events.csv` additionally exports every observed dispatch as
+one row, with its phase, original document process/thread, window start,
+chronological offset and inclusive duration. Repeated inputs remain separate;
+missing document attribution or invalid timing fails the export. These event
+durations overlap nested work and must not be summed as exclusive CPU time.
+A separate `project-map-drill` phase clicks reachable category headers
 and a file box, retaining lazy map traffic and its rendering tail; overview
 wheel events alone do not exercise declaration-chunk updates. Discrete
 [Event Timing](https://www.w3.org/TR/event-timing/) observations additionally
@@ -496,3 +507,19 @@ For separate duplicate-background diagnostics, set
 the native wrapper manifest. Hooks perturb timing; leave the flag unset for
 comparisons. This is scoped to the current area painter, not arbitrary Canvas
 pixel equivalence. See [the rejected cache trial](../../docs/performance/map-repaint-cache.md).
+
+For separate style/layout-cause diagnostics, set
+`MEDEN_GUI_STYLE_INVALIDATIONS=1` when running either profiler. The browser must
+advertise the requested invalidation category. Each operation window's
+`style_invalidations` in `summary.json` counts observed instant records by reason,
+attribute/pseudo and node description on the marked document thread. The full
+trace retains their original timestamps. Worker, other-document and out-of-window
+records are excluded. Without the flag the field is `null`; zero observed
+records do not prove zero style work. These counts are neither selector costs
+nor duration spans and must not be added to event timings. Extra tracing changes
+timing; leave the flag unset for latency comparisons.
+The flag requests a bounded 512 MiB trace buffer. `trace-status.json` retains
+Chrome's completion-loss flag and observed event count; the native manifest
+hashes it too. Raw traces survive phase/completion refusal. Lossy or unavailable
+completion never admits a report, and missing/ambiguous window marks remain
+failures independently.

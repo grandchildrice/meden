@@ -16,7 +16,7 @@ Each capture includes document-thread CDP events, sampled browser CPU, native
 99 Hz user-space CPU samples, authenticated stage spans and original build logs.
 No builds, tests, inference or another sampler run concurrently with captures.
 Existing project, semantic and OS caches remain; these are diagnostic desktop
-observations, not cold-install or field percentiles. Raw captures, per-event CSV,
+observations, not cold-install or field percentiles. Raw captures, event-type summary CSV,
 profiles and screenshots remain local under
 `target/native-profile/event-latency-current-20261125/`.
 

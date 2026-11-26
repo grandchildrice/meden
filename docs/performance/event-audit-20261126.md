@@ -14,7 +14,7 @@ other samplers during capture. Existing project, semantic and OS caches remain;
 this is not cold-install or field latency measurement.
 
 Each capture retains all 13 operation windows, chronological event dispatches,
-per-event CSV/Markdown tables, browser CPU profiles, document-thread traces,
+event-type summary CSV/Markdown tables, browser CPU profiles, document-thread traces,
 native user-space CPU samples, bounded stage spans and the original preparation
 log. Raw captures stay private under
 `target/native-profile/event-audit-20261126/`.

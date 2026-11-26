@@ -33,6 +33,12 @@ waits. The earlier [deployed event audit](../performance/event-latency-latest-20
 also separates these rendering and native stages. Those are not fixed by moving
 metadata code, by a missing CPU sample, or by a fast retained-tab test.
 
+The [attribute-invalidation audit](../performance/attribute-invalidation.md)
+identifies concrete presentation-attribute/inserted-subtree observations and adds
+a chronological per-dispatch export to the local profiler. Isolated reference
+stroke and background grouping trials are rejected; reducing attribute writes
+does not by itself establish faster detail exposure.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

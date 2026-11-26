@@ -1,0 +1,36 @@
+diff --git a/apps/web/src/features/native/MapSceneElements.tsx b/apps/web/src/features/native/MapSceneElements.tsx
+index 4a6c129..219212d 100644
+--- a/apps/web/src/features/native/MapSceneElements.tsx
++++ b/apps/web/src/features/native/MapSceneElements.tsx
+@@ -115,9 +115,7 @@ export const MapReference = memo(function MapReference({
+   from,
+   to,
+   opacity,
+-  zoom,
+ }: {
+-  zoom: number;
+   from: Symbol;
+   to: Symbol;
+   opacity: number;
+@@ -129,7 +127,8 @@ export const MapReference = memo(function MapReference({
+       y1={from.y}
+       x2={to.x}
+       y2={to.y}
+-      strokeWidth={1 / zoom}
++      strokeWidth={1}
++      vectorEffect="non-scaling-stroke"
+       stroke="#bbd4de"
+       strokeOpacity={opacity * 0.65}
+       pointerEvents="none"
+diff --git a/apps/web/src/features/native/NativeWorkspaceGraph.tsx b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+index c6a96bc..b9a7420 100644
+--- a/apps/web/src/features/native/NativeWorkspaceGraph.tsx
++++ b/apps/web/src/features/native/NativeWorkspaceGraph.tsx
+@@ -114,7 +114,6 @@ function Scene({ data }: NodeProps<SceneNode>) {
+                 from={a}
+                 to={b}
+                 opacity={alpha}
+-                zoom={v.zoom}
+               />
+             );
+           })}

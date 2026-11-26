@@ -2,7 +2,7 @@
 
 The [numeric record](../../results/event-audit-20261125.json) measures the deployed Riemann and EthLib GUIs after the inventory and publication changes. **Deep zoom still blocks the browser main thread; cache-hit file preparation has a separate native cost.** This audit changes neither the application nor its deployment.
 
-Two fresh-browser captures per project exercise 13 operation windows. Captures run sequentially, with normal motion, Chrome 149.0.7827.53, 1440×960 and no throttling. All seven served JavaScript bundles match the hidden-source-map build byte for byte. The native executable is pinned by SHA-256; its 13 compiler-captured source files are unchanged. Browser traces, CPU profiles, per-event CSV/Markdown tables, native samples and original preparation logs remain private under `target/native-profile/event-audit-20261125/`.
+Two fresh-browser captures per project exercise 13 operation windows. Captures run sequentially, with normal motion, Chrome 149.0.7827.53, 1440×960 and no throttling. All seven served JavaScript bundles match the hidden-source-map build byte for byte. The native executable is pinned by SHA-256; its 13 compiler-captured source files are unchanged. Browser traces, CPU profiles, event-type summary CSV/Markdown tables, native samples and original preparation logs remain private under `target/native-profile/event-audit-20261125/`.
 
 ## Event handling
 

@@ -36,6 +36,51 @@ export function interactionTraceWindow(trace, phase) {
   };
 }
 
+// Invalidation observations are instant records, not duration spans. Keep them
+// on the same marked document thread, separately from inclusive event timing.
+export function interactionInvalidations(trace, window) {
+  const names = new Set([
+    "StyleRecalcInvalidationTracking",
+    "ScheduleStyleInvalidationTracking",
+    "StyleInvalidatorInvalidationTracking",
+    "LayoutInvalidationTracking",
+  ]);
+  const rows = new Map();
+  let observed = 0;
+  for (const event of trace) {
+    if (
+      event.pid !== window.process ||
+      event.tid !== window.thread ||
+      event.ts < window.start_us ||
+      event.ts > window.end_us ||
+      !Number.isFinite(event.ts) ||
+      event.ph !== "I" ||
+      !names.has(event.name)
+    )
+      continue;
+    const data = event.args?.data;
+    if (!data || typeof data !== "object") continue;
+    const string = (value) => (typeof value === "string" ? value : null);
+    const row = {
+      type: event.name,
+      reason: string(data.reason),
+      attribute_or_pseudo: string(
+        data.extraData ?? data.changedAttribute ?? data.changedPseudo,
+      ),
+      node: string(data.nodeName),
+    };
+    const key = JSON.stringify(row);
+    const retained = rows.get(key);
+    if (retained) retained.count++;
+    else rows.set(key, { ...row, count: 1 });
+    observed++;
+  }
+  return {
+    observed,
+    rows: [...rows.values()].sort((a, b) => b.count - a.count),
+  };
+}
+
 export function interactionRows(samples) {
   return Object.entries(samples).flatMap(([phase, sample]) =>
     Object.entries(sample.dispatch).map(([event, handler]) => {
@@ -71,6 +116,59 @@ export function interactionCsv(rows) {
     "queue_p95_ms",
   ];
   const cell = (value) => JSON.stringify(value ?? "");
+  return (
+    [
+      keys.map(cell).join(","),
+      ...rows.map((r) => keys.map((k) => cell(r[k])).join(",")),
+    ].join("\n") + "\n"
+  );
+}
+
+export function interactionDispatchCsv(samples) {
+  const keys = [
+    "phase",
+    "event",
+    "process",
+    "thread",
+    "window_start_us",
+    "offset_ms",
+    "duration_ms",
+  ];
+  const rows = Object.entries(samples).flatMap(([phase, sample]) => {
+    const window = sample.document_trace;
+    if (
+      !Number.isInteger(window?.process) ||
+      !Number.isInteger(window?.thread) ||
+      !Number.isFinite(window?.start_us)
+    )
+      throw Error(`Missing document attribution for ${phase}`);
+    return [...sample.dispatch_events]
+      .sort((a, b) => a.offset_ms - b.offset_ms)
+      .map((event) => {
+        if (
+          !Number.isFinite(event.offset_ms) ||
+          event.offset_ms < 0 ||
+          !Number.isFinite(event.duration_ms) ||
+          event.duration_ms < 0
+        )
+          throw Error(`Invalid dispatch observation for ${phase}`);
+        return {
+          phase,
+          event: typeof event.type === "string" ? event.type : null,
+          process: window.process,
+          thread: window.thread,
+          window_start_us: window.start_us,
+          offset_ms: event.offset_ms,
+          duration_ms: event.duration_ms,
+        };
+      });
+  });
+  const cell = (value) =>
+    typeof value === "string"
+      ? `"${value.replaceAll('"', '""')}"`
+      : value == null
+        ? '""'
+        : String(value);
   return (
     [
       keys.map(cell).join(","),

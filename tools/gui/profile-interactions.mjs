@@ -7,8 +7,10 @@ import { createHash } from "node:crypto";
 import { TraceMap, originalPositionFor } from "@jridgewell/trace-mapping";
 import {
   interactionTraceWindow,
+  interactionInvalidations,
   interactionRows,
   interactionCsv,
+  interactionDispatchCsv,
   interactionMarkdown,
 } from "./interaction-report.mjs";
 
@@ -25,6 +27,8 @@ const browser = await chromium.launch({
   args: ["--no-sandbox"],
 });
 const motion = process.env.MEDEN_GUI_MOTION || "reduce";
+const observeInvalidations = process.env.MEDEN_GUI_STYLE_INVALIDATIONS === "1";
+const traceBufferKiB = observeInvalidations ? 512 * 1024 : null;
 if (!["reduce", "no-preference"].includes(motion))
   throw new Error("MEDEN_GUI_MOTION must be reduce or no-preference");
 const samples = {};
@@ -316,9 +320,29 @@ try {
   await cdp.send("Profiler.setSamplingInterval", { interval: 1000 });
   const trace = [];
   cdp.on("Tracing.dataCollected", ({ value }) => trace.push(...value));
+  const categories = ["devtools.timeline", "blink.user_timing", "v8.execute"];
+  if (observeInvalidations) {
+    const category =
+      "disabled-by-default-devtools.timeline.invalidationTracking";
+    if (
+      !(await cdp.send("Tracing.getCategories")).categories.includes(category)
+    )
+      throw Error("Style invalidation tracing unavailable in this browser");
+    categories.push(category);
+  }
   await cdp.send("Tracing.start", {
-    categories: "devtools.timeline,blink.user_timing,v8.execute",
-    options: "record-as-much-as-possible",
+    ...(observeInvalidations
+      ? {
+          traceConfig: {
+            recordMode: "recordAsMuchAsPossible",
+            traceBufferSizeInKb: traceBufferKiB,
+            includedCategories: categories,
+          },
+        }
+      : {
+          categories: categories.join(","),
+          options: "record-as-much-as-possible",
+        }),
   });
   const waitFrames = (count) =>
     page.evaluate(async (n) => {
@@ -590,7 +614,29 @@ try {
     cdp.once("Tracing.tracingComplete", resolve),
   );
   await cdp.send("Tracing.end");
-  await done;
+  const completion = await done;
+  // Retain raw observations even when their completion/marks refuse admission.
+  await writeFile(
+    resolve(destination, "trace.json"),
+    JSON.stringify({ traceEvents: trace }, (_, v) =>
+      typeof v === "string"
+        ? v.replace(/#session=[a-f0-9]+/g, "#session=REDACTED")
+        : v,
+    ),
+  );
+  const traceObservation = {
+    data_loss_occurred: completion.dataLossOccurred ?? null,
+    events: trace.length,
+    requested_buffer_kib: traceBufferKiB,
+  };
+  await writeFile(
+    resolve(destination, "trace-status.json"),
+    JSON.stringify(traceObservation, null, 2),
+  );
+  if (completion.dataLossOccurred !== false)
+    throw Error(
+      "Chrome trace completion is lossy or unavailable; output not admitted",
+    );
   const metrics = await page.evaluate(() => window.__medenProfile);
   for (const [label, sample] of Object.entries(samples)) {
     sample.frames = quantiles(
@@ -638,6 +684,9 @@ try {
     );
     sample.requests = requests.filter((r) => r.phase === label);
     const windowTrace = interactionTraceWindow(trace, label);
+    sample.style_invalidations = observeInvalidations
+      ? interactionInvalidations(trace, windowTrace)
+      : null;
     const { events, start_us: start, ...threadWindow } = windowTrace;
     sample.document_trace = { ...threadWindow, start_us: start };
     // Keep the chronological observations: a first selection and repeated
@@ -701,6 +750,8 @@ try {
       throttling: "none",
       reduced_motion: motion,
       area_paint_hooks: observePaint,
+      style_invalidation_tracking: observeInvalidations,
+      trace_observation: traceObservation,
       gesture_tail_ms: 600,
       file,
       declarations: preparedSource.graph.declarations.length,
@@ -767,18 +818,14 @@ try {
       );
   }
   const rows = interactionRows(samples);
+  await writeFile(
+    resolve(destination, "dispatch-events.csv"),
+    interactionDispatchCsv(samples),
+  );
   await writeFile(resolve(destination, "events.csv"), interactionCsv(rows));
   await writeFile(
     resolve(destination, "events.md"),
     interactionMarkdown(rows, samples),
-  );
-  await writeFile(
-    resolve(destination, "trace.json"),
-    JSON.stringify({ traceEvents: trace }, (_, v) =>
-      typeof v === "string"
-        ? v.replace(/#session=[a-f0-9]+/g, "#session=REDACTED")
-        : v,
-    ),
   );
   await page.screenshot({ path: resolve(destination, "project-map.png") });
   console.log(

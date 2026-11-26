@@ -12,8 +12,9 @@ Existing project, compiler, search and OS caches remain available.
 Each capture covers thirteen operation windows: initial and settled graph idle,
 graph zoom, hover, pan, resize, retained-tab switching, Fit View, same-node and
 different-node selection, map overview zoom, map detail drill and settled map
-idle. Chronological dispatch durations for **every delivered event** are in the
-private `events.csv` and `events.md`, alongside Chrome traces, CPU profiles,
+idle. Chronological dispatch durations for **every delivered event** are in each
+private `summary.json`'s `dispatch_events`; `events.csv` and `events.md` contain
+event-type summaries, alongside Chrome traces, CPU profiles,
 native samples, stage spans and streamed preparation logs. The numeric record
 retains their hashes under `target/native-profile/event-audit-latest-20261126/`.
 This is an audit; application behavior and deployment are unchanged.

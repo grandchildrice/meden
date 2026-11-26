@@ -4,7 +4,7 @@ The [numeric record](../../results/map-events-20261124.json) binds real Riemann 
 
 ## What each event costs
 
-These are final synchronous EventDispatch p95 values, including nested handlers. Counts and chronological dispatches are in each capture’s `events.csv` and `summary.json`; `events.md` also separates inclusive layout, paint, animation-frame and timer work.
+These are final synchronous EventDispatch p95 values, including nested handlers. Event-type counts are in each capture’s `events.csv`; chronological dispatches are in `summary.json`. `events.md` also separates inclusive layout, paint, animation-frame and timer work.
 
 | Action                 | Riemann p95 (ms) | EthLib p95 (ms) |
 | ---------------------- | ---------------: | --------------: |

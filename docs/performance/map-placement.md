@@ -23,7 +23,7 @@ Before deployment, a candidate-asset diagnostic reached the same file and observ
 
 ## Interaction handlers
 
-Inclusive synchronous EventDispatch p95 in milliseconds. Individual counts/distributions and separate input/two-rAF observations are in the record; all 13 phase traces and per-event CSVs stay local with committed digests. Two-rAF is not physical presentation or field INP.
+Inclusive synchronous EventDispatch p95 in milliseconds. Individual counts/distributions and separate input/two-rAF observations are in the record; all 13 phase traces and event-type summary CSVs stay local with committed digests. Two-rAF is not physical presentation or field INP.
 
 | Action                 | Riemann | EthLib |
 | ---------------------- | ------: | -----: |

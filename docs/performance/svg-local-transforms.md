@@ -23,8 +23,9 @@ Existing OS/project caches remain available; ordinary desktop background activit
 is not controlled.
 
 Each capture covers thirteen operation windows, including three idle windows.
-The private `events.csv` and `events.md` retain every delivered event with its
-original document thread and dispatch duration. The numeric record retains
+The private `summary.json` retains every delivered event's dispatch duration and
+the original document thread; `events.csv` and `events.md` summarize event types.
+The numeric record retains
 raw trace/profile hashes, per-window timings, native stages and the comparison.
 
 Current renderer's synchronous dispatch p95, in milliseconds, runs 1 / 2:

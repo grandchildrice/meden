@@ -149,9 +149,11 @@ try {
     "perf.data",
     "perf-report.txt",
     "trace.json",
+    "trace-status.json",
     "native-metrics.json",
     "preparation.json",
     "events.csv",
+    "dispatch-events.csv",
     "events.md",
     "summary.json",
     ...(process.env.MEDEN_GUI_PAINT_OBSERVATIONS === "1"
