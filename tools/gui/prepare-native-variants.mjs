@@ -94,6 +94,7 @@ for (const name of [
     if (boundary < 0) throw Error("Lexical declaration boundary missing");
     const prefix = current
       .slice(0, boundary)
+      .replace("use std::borrow::Cow;\n", "")
       .replace("use std::collections::BTreeSet;\n", "");
     const oracle = (
       await readFile(

@@ -62,6 +62,12 @@ copy. Sampling/quiet runs distinguish population, unchanged refresh and sealed
 resume. Indexing accounts for most measured collection-thread CPU; this is a
 diagnosis on the declared corpus, not a faster cache algorithm or proof of I/O.
 
+The [borrowed-reference index](../performance/borrowed-reference-index.md) removes
+ordinary per-occurrence token allocation before deduplication. Complete-source
+ABBA observations reduce index-thread CPU by about 7.1%, with all original file
+values equal. Cold-cache wall intervals overlap, and the quiet pair's difference
+is small; this does not close the startup-latency or prepared-input wait targets.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

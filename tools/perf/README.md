@@ -558,6 +558,12 @@ directory to calibrate the observer; warm OS/tool caches remain. Do not run othe
 builds, tests or samplers during either measurement. Keep corpora/raw records local.
 See [the phase record](../../docs/performance/navigation-cache-phases.md).
 
+The [borrowed-reference comparison](../../docs/performance/borrowed-reference-index.md)
+uses fixed old/new executables in ABBA order with separate fresh namespaces,
+then a quiet pair. It compares the complete 175,187-file original observations
+after every phase and separates reduced indexing CPU from overlapping cache-wall
+intervals. Keep those scopes distinct when evaluating another indexer change.
+
 For separate duplicate-background diagnostics, set
 `MEDEN_GUI_PAINT_OBSERVATIONS=1` when running either profiler. The optional
 `area-paints.json` records bounded ordered-command agreement and is included in

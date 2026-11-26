@@ -1,6 +1,7 @@
 //! Shared pure source navigation and explanation preview; no elaboration or proof.
 use crate::navigation::collection::Indexed;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::collections::BTreeSet;
 
 /// Lexical navigation formats; source readability is independent of support.
@@ -99,18 +100,8 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
         } else if declaration {
             let local = words.next().unwrap_or("").trim_end_matches(':');
             if !local.is_empty() {
-                let namespace = namespaces
-                    .iter()
-                    .filter(|x| !x.is_empty())
-                    .cloned()
-                    .collect::<Vec<_>>()
-                    .join(".");
                 current = Some(Symbol {
-                    name: if namespace.is_empty() {
-                        local.into()
-                    } else {
-                        format!("{namespace}.{local}")
-                    },
+                    name: qualified_name(&namespaces, local),
                     line: index.saturating_add(1),
                     declaration: kind.into(),
                     kind: (if matches!(kind, "theorem" | "lemma") {
@@ -138,7 +129,11 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
                     .next()
                     .is_some_and(|c| c.is_alphabetic() || c == '_')
                 {
-                    references.insert(token.replace("::", "."));
+                    references.insert(if token.contains("::") {
+                        Cow::Owned(token.replace("::", "."))
+                    } else {
+                        Cow::Borrowed(token)
+                    });
                 }
             }
         }
@@ -152,13 +147,30 @@ pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
     }
 }
 
+fn qualified_name(namespaces: &[String], local: &str) -> String {
+    let namespace = namespaces
+        .iter()
+        .filter(|x| !x.is_empty())
+        .cloned()
+        .collect::<Vec<_>>()
+        .join(".");
+    if namespace.is_empty() {
+        local.into()
+    } else {
+        format!("{namespace}.{local}")
+    }
+}
+
 fn finish_symbol(
     current: Option<Symbol>,
-    references: &mut BTreeSet<String>,
+    references: &mut BTreeSet<Cow<'_, str>>,
     result: &mut Vec<Symbol>,
 ) {
     if let Some(mut symbol) = current {
-        symbol.references = std::mem::take(references).into_iter().collect();
+        symbol.references = std::mem::take(references)
+            .into_iter()
+            .map(Cow::into_owned)
+            .collect();
         result.push(symbol);
     }
 }

@@ -27,6 +27,7 @@ fn malformed_names_imports_modifiers_and_namespace_edges_keep_original_observati
         "def a := b\nimport A\nend\nnamespace 末端\nprivate axiom x : Prop\n",
         "def\nlemma\nconstant\nopaque\nstructure\n",
         "namespace A\n/- nested /- def hidden -/ -- still hidden\n-/\ndef visible : String := \"end A\\\"\"\nend A\n",
+        "fn repeated() { crate::path(); crate.path(); crate::path(); ::末端::x(); 末端.x(); a::::b(); a..b(); }\n",
     ] {
         for lean in [false, true] {
             assert!(current(source, lean) == original(source, lean), "{source}");

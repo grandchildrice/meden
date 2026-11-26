@@ -1,0 +1,3159 @@
+{
+  "date": "2026-11-26",
+  "baseline_commit": "1cd7c04",
+  "candidate_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+  "indexer_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+  "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90",
+  "source_files": [
+    {
+      "path": "crates/meden-app/src/adapters/source.rs",
+      "sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/source/tests.rs",
+      "sha256": "2e053ec543ccd4d8e75c08e0047aa55a8ebda19d889bd6352d0180be82544948"
+    },
+    {
+      "path": "tools/gui/prepare-native-variants.mjs",
+      "sha256": "3469ddfa85dcfb09a1f16ad15348cf54856b6d57e53127cb3e881c7b4e36163b"
+    },
+    {
+      "path": "crates/meden-app/examples/profile-navigation-cache.rs",
+      "sha256": "ca18830d7eae8d1e1cc8d8a69fb3a378a4669266bc6e338ed8d63db473bd8309"
+    }
+  ],
+  "original_source": {
+    "path": "target/reference-index-final-experiment/original-source.rs",
+    "sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+  },
+  "corpus": {
+    "files": 175187,
+    "bytes": 1030531854,
+    "manifest_sha256": "2f0a006b48e63734d68d0589bc32ac3a0eaef4d06a8a55bccaca6d30e7078578",
+    "complete_source_and_original_expected_bytes_checked": true
+  },
+  "measurement": {
+    "status": "complete",
+    "rows": [
+      {
+        "order": 0,
+        "name": "original",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/sample-0-original.json",
+        "sha256": "95b636f2344ad4aa2836306c00ca9d31c784134d32caf1fafbad4e0d17440f20",
+        "indexer_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+        "worker_sha256": "6bcd32804c243e808b98f5032060dd684d9001295af1f72941baf8e761b93454",
+        "record_count": 189582,
+        "phases": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 54838.024621000004,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 54838.013,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 38884.974,
+                "summed_thread_cpu_ms": 5010.731
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 2198.549,
+                "summed_thread_cpu_ms": 2167.665
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 685,
+                "summed_wall_ms": 136395.879,
+                "summed_thread_cpu_ms": 439.244
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 685,
+                "summed_wall_ms": 35662.679,
+                "summed_thread_cpu_ms": 34304.369
+              },
+              {
+                "name": "navigation.index",
+                "count": 175187,
+                "summed_wall_ms": 238015.757,
+                "summed_thread_cpu_ms": 231635.945
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 2740,
+                "summed_wall_ms": 485970.344,
+                "summed_thread_cpu_ms": 255528.982
+              },
+              {
+                "name": "process.run",
+                "count": 6160,
+                "summed_wall_ms": 259326.402,
+                "summed_thread_cpu_ms": 3297.886
+              }
+            ]
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 14119.123826,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 14119.114,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 34467.787,
+                "summed_thread_cpu_ms": 4383.313
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 19367.511,
+                "summed_thread_cpu_ms": 19280.605
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 685,
+                "summed_wall_ms": 30245.095,
+                "summed_thread_cpu_ms": 190.741
+              }
+            ]
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 617.767866,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 617.757,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "order": 1,
+        "name": "updated",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/sample-1-updated.json",
+        "sha256": "b7ee7795dd4667968468cb9cad9c258e3695044871a0f1191e34aa73139b795d",
+        "indexer_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+        "worker_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+        "record_count": 189582,
+        "phases": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 53830.959172999996,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 53830.948,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 39133.155,
+                "summed_thread_cpu_ms": 5052.274
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 2254.646,
+                "summed_thread_cpu_ms": 2212.017
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 685,
+                "summed_wall_ms": 133123.919,
+                "summed_thread_cpu_ms": 441.02
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 685,
+                "summed_wall_ms": 34876.853,
+                "summed_thread_cpu_ms": 34183.072
+              },
+              {
+                "name": "navigation.index",
+                "count": 175187,
+                "summed_wall_ms": 223147.481,
+                "summed_thread_cpu_ms": 217206.854
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 2740,
+                "summed_wall_ms": 473777.504,
+                "summed_thread_cpu_ms": 241068.884
+              },
+              {
+                "name": "process.run",
+                "count": 6160,
+                "summed_wall_ms": 262183.408,
+                "summed_thread_cpu_ms": 3197.591
+              }
+            ]
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 14243.938815,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 14243.928,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 34423.533,
+                "summed_thread_cpu_ms": 4376.205
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 19866.1,
+                "summed_thread_cpu_ms": 19771.413
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 685,
+                "summed_wall_ms": 30213.425,
+                "summed_thread_cpu_ms": 194.996
+              }
+            ]
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 623.942805,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 623.933,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "name": "updated",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/sample-2-updated.json",
+        "sha256": "daa123e5cf836e5ecda953a188c712ba0dd87b9326179b8d88b88ad38cd2af97",
+        "indexer_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+        "worker_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+        "record_count": 189582,
+        "phases": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 54840.197639000005,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 54840.185,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 39885.373,
+                "summed_thread_cpu_ms": 5193.916
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 2275.94,
+                "summed_thread_cpu_ms": 2233.813
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 685,
+                "summed_wall_ms": 135782.717,
+                "summed_thread_cpu_ms": 445.535
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 685,
+                "summed_wall_ms": 35462.937,
+                "summed_thread_cpu_ms": 34707.696
+              },
+              {
+                "name": "navigation.index",
+                "count": 175187,
+                "summed_wall_ms": 219198.821,
+                "summed_thread_cpu_ms": 214399.886
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 2740,
+                "summed_wall_ms": 481766.021,
+                "summed_thread_cpu_ms": 237852.514
+              },
+              {
+                "name": "process.run",
+                "count": 6160,
+                "summed_wall_ms": 275588.19,
+                "summed_thread_cpu_ms": 3189.467
+              }
+            ]
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 14234.171819000001,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 14234.161,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 34491.001,
+                "summed_thread_cpu_ms": 4321.661
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 19802.995,
+                "summed_thread_cpu_ms": 19717.62
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 685,
+                "summed_wall_ms": 30335.465,
+                "summed_thread_cpu_ms": 190.649
+              }
+            ]
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 619.7763219999999,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 619.767,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "name": "original",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/sample-3-original.json",
+        "sha256": "359dbe0c2ab2700372068172488a05ae5b0ebf53f3a3933739006bfd9ffe2a7c",
+        "indexer_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+        "worker_sha256": "6bcd32804c243e808b98f5032060dd684d9001295af1f72941baf8e761b93454",
+        "record_count": 189582,
+        "phases": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 54902.169114000004,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 54902.157,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 38811.368,
+                "summed_thread_cpu_ms": 5032.905
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 2257.705,
+                "summed_thread_cpu_ms": 2223.019
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 685,
+                "summed_wall_ms": 137842.896,
+                "summed_thread_cpu_ms": 439.586
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 685,
+                "summed_wall_ms": 34801.086,
+                "summed_thread_cpu_ms": 34041.363
+              },
+              {
+                "name": "navigation.index",
+                "count": 175187,
+                "summed_wall_ms": 239804.08,
+                "summed_thread_cpu_ms": 233130.982
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 2740,
+                "summed_wall_ms": 490233.88,
+                "summed_thread_cpu_ms": 256986.225
+              },
+              {
+                "name": "process.run",
+                "count": 6160,
+                "summed_wall_ms": 261693.836,
+                "summed_thread_cpu_ms": 3290.46
+              }
+            ]
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 13946.60131,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 13946.591,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 685,
+                "summed_wall_ms": 34063.172,
+                "summed_thread_cpu_ms": 4310.031
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 685,
+                "summed_wall_ms": 19075.567,
+                "summed_thread_cpu_ms": 18994.182
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 685,
+                "summed_wall_ms": 29918.953,
+                "summed_thread_cpu_ms": 192.76
+              }
+            ]
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 614.353752,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1,
+            "coordinator_wall_ms": 614.344,
+            "stages": [
+              {
+                "name": "navigation.cache.metadata",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.lookup",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.sources",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.cache.persist",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.index",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "navigation.collect.worker",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              },
+              {
+                "name": "process.run",
+                "count": 0,
+                "summed_wall_ms": 0,
+                "summed_thread_cpu_ms": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "methods": [
+      {
+        "name": "original",
+        "n": 2,
+        "cold_ms": 54870.096867500004,
+        "index_thread_cpu_ms": 232383.4635,
+        "refresh_ms": 14032.862568,
+        "resume_ms": 616.0608090000001
+      },
+      {
+        "name": "updated",
+        "n": 2,
+        "cold_ms": 54335.578406,
+        "index_thread_cpu_ms": 215803.37,
+        "refresh_ms": 14239.055317,
+        "resume_ms": 621.8595634999999
+      }
+    ],
+    "scope": "ABBA serial sampling runs on the exact same complete 175187-file source corpus and original expected observations. Each run has a fresh private host-data namespace; actual offline workers, fixed reader counts and unchanged policy/bounds. OS/tool caches warm; output comparison/setup excluded from measured phase intervals. Whole-run observations include diagnostic overhead. Nested/parallel walls and CPU are not additive. No compiler/model/physical presentation/cold-install claim.",
+    "quiet": [
+      {
+        "name": "updated",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/quiet-0-updated.json",
+        "sha256": "3e65172bacc0b7ca4ec014651928a2e43f904fa8a96477a5fb16b89e887ad81d",
+        "indexer_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+        "worker_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+        "samples": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 53931.820027999995,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 14108.449491,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 620.965893,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          }
+        ]
+      },
+      {
+        "name": "original",
+        "path": "/home/gohan/workspace/meden/target/reference-index-final-experiment/quiet-1-original.json",
+        "sha256": "56adeed085251576ac8e966071338b6f09e16978ea3b58aa0856ab8ed9e9c7fe",
+        "indexer_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+        "worker_sha256": "6bcd32804c243e808b98f5032060dd684d9001295af1f72941baf8e761b93454",
+        "samples": [
+          {
+            "phase": "cold",
+            "elapsed_ms": 53967.479656,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          },
+          {
+            "phase": "refresh",
+            "elapsed_ms": 14013.028439,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          },
+          {
+            "phase": "resume",
+            "elapsed_ms": 617.512166,
+            "files": 175187,
+            "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+            "all_original_fields_equal": true,
+            "generation": 1
+          }
+        ]
+      }
+    ],
+    "measure_status": {
+      "phase": "complete",
+      "rows": [
+        {
+          "name": "run",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "quiet",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "all_complete_file_fields_equal": true,
+    "phase_outcomes": 18,
+    "canonical_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+    "cpu_reduction_fraction": 0.07134799202267683,
+    "no_reliable_startup_wall_improvement_claim": true
+  },
+  "prototype": {
+    "source": {
+      "path": "target/borrowed-reference-experiment/pilot-source.rs",
+      "sha256": "3fa2ad0247036b3fc2fd90672fc7e43396d8badef6069742b8a8fed11c3530f2"
+    },
+    "analysis": {
+      "status": "complete",
+      "rows": [
+        {
+          "order": 0,
+          "name": "original",
+          "path": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/sample-0-original.json",
+          "sha256": "be41f9e9bb7d692eb25ffad7db63106475f1f5e65843475f96e18aab6e44933a",
+          "indexer_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+          "worker_sha256": "6bcd32804c243e808b98f5032060dd684d9001295af1f72941baf8e761b93454",
+          "record_count": 189582,
+          "phases": [
+            {
+              "phase": "cold",
+              "elapsed_ms": 61724.03471,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 61724.002,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 41054.97,
+                  "summed_thread_cpu_ms": 5327.325
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 2402.735,
+                  "summed_thread_cpu_ms": 2330.355
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 685,
+                  "summed_wall_ms": 158033.91,
+                  "summed_thread_cpu_ms": 469.786
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 685,
+                  "summed_wall_ms": 38806.342,
+                  "summed_thread_cpu_ms": 38244.693
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 175187,
+                  "summed_wall_ms": 265252.511,
+                  "summed_thread_cpu_ms": 251511.532
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 2740,
+                  "summed_wall_ms": 564252.65,
+                  "summed_thread_cpu_ms": 277448.646
+                },
+                {
+                  "name": "process.run",
+                  "count": 6160,
+                  "summed_wall_ms": 308056.999,
+                  "summed_thread_cpu_ms": 3657.737
+                }
+              ]
+            },
+            {
+              "phase": "refresh",
+              "elapsed_ms": 14713.265542000001,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 14713.252,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 35656.559,
+                  "summed_thread_cpu_ms": 4706.709
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 20574.424,
+                  "summed_thread_cpu_ms": 20449.647
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 685,
+                  "summed_wall_ms": 31126.079,
+                  "summed_thread_cpu_ms": 216.695
+                }
+              ]
+            },
+            {
+              "phase": "resume",
+              "elapsed_ms": 616.934617,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 616.925,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 1,
+          "name": "updated",
+          "path": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/sample-1-updated.json",
+          "sha256": "17e69da1e782d0203c845f1ba5ead8f2a47bb83f608fca98269fde01f40754b2",
+          "indexer_sha256": "3fa2ad0247036b3fc2fd90672fc7e43396d8badef6069742b8a8fed11c3530f2",
+          "worker_sha256": "7e1901ddb42ec5c57d7e514e18135abea623a664a5087d4c200316d412fc6b91",
+          "record_count": 189582,
+          "phases": [
+            {
+              "phase": "cold",
+              "elapsed_ms": 57345.483386,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 57345.47,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 40790.349,
+                  "summed_thread_cpu_ms": 5491.932
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 2370.792,
+                  "summed_thread_cpu_ms": 2334.519
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 685,
+                  "summed_wall_ms": 142269.536,
+                  "summed_thread_cpu_ms": 462.298
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 685,
+                  "summed_wall_ms": 37881.568,
+                  "summed_thread_cpu_ms": 37441.85
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 175187,
+                  "summed_wall_ms": 231185.512,
+                  "summed_thread_cpu_ms": 224698.046
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 2740,
+                  "summed_wall_ms": 507392.183,
+                  "summed_thread_cpu_ms": 249690.809
+                },
+                {
+                  "name": "process.run",
+                  "count": 6160,
+                  "summed_wall_ms": 287885.292,
+                  "summed_thread_cpu_ms": 3512.652
+                }
+              ]
+            },
+            {
+              "phase": "refresh",
+              "elapsed_ms": 14927.785591,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 14927.772,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 35701.895,
+                  "summed_thread_cpu_ms": 4700.374
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 21041.526,
+                  "summed_thread_cpu_ms": 20927.225
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 685,
+                  "summed_wall_ms": 31159.953,
+                  "summed_thread_cpu_ms": 204.953
+                }
+              ]
+            },
+            {
+              "phase": "resume",
+              "elapsed_ms": 626.720663,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 626.711,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "name": "updated",
+          "path": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/sample-2-updated.json",
+          "sha256": "1ff781d5426618786ae2b39153e8ba9adb37488f18bf069f72fc3cba50fc1e4c",
+          "indexer_sha256": "3fa2ad0247036b3fc2fd90672fc7e43396d8badef6069742b8a8fed11c3530f2",
+          "worker_sha256": "7e1901ddb42ec5c57d7e514e18135abea623a664a5087d4c200316d412fc6b91",
+          "record_count": 189582,
+          "phases": [
+            {
+              "phase": "cold",
+              "elapsed_ms": 58644.04064,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 58644.03,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 42174.993,
+                  "summed_thread_cpu_ms": 5120.255
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 2256.991,
+                  "summed_thread_cpu_ms": 2224.248
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 685,
+                  "summed_wall_ms": 149446.576,
+                  "summed_thread_cpu_ms": 448.452
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 685,
+                  "summed_wall_ms": 34575.479,
+                  "summed_thread_cpu_ms": 34132.675
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 175187,
+                  "summed_wall_ms": 225481.547,
+                  "summed_thread_cpu_ms": 219047.777
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 2740,
+                  "summed_wall_ms": 534836.717,
+                  "summed_thread_cpu_ms": 243154.828
+                },
+                {
+                  "name": "process.run",
+                  "count": 6160,
+                  "summed_wall_ms": 323681.493,
+                  "summed_thread_cpu_ms": 3419.237
+                }
+              ]
+            },
+            {
+              "phase": "refresh",
+              "elapsed_ms": 14094.264854000001,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 14094.254,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 34204.651,
+                  "summed_thread_cpu_ms": 4373.617
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 19504.723,
+                  "summed_thread_cpu_ms": 19413.799
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 685,
+                  "summed_wall_ms": 29995.291,
+                  "summed_thread_cpu_ms": 195.679
+                }
+              ]
+            },
+            {
+              "phase": "resume",
+              "elapsed_ms": 623.56565,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 623.557,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "name": "original",
+          "path": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/sample-3-original.json",
+          "sha256": "b7f2cbc488a1c4cb2d71fac34023deb05d37975d1a06f389a287afa849b892d2",
+          "indexer_sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918",
+          "worker_sha256": "6bcd32804c243e808b98f5032060dd684d9001295af1f72941baf8e761b93454",
+          "record_count": 189582,
+          "phases": [
+            {
+              "phase": "cold",
+              "elapsed_ms": 55421.650847000004,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 55421.639,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 38798.789,
+                  "summed_thread_cpu_ms": 5010.724
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 2203.016,
+                  "summed_thread_cpu_ms": 2176.322
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 685,
+                  "summed_wall_ms": 139779.92,
+                  "summed_thread_cpu_ms": 437.951
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 685,
+                  "summed_wall_ms": 34844.267,
+                  "summed_thread_cpu_ms": 34196.668
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 175187,
+                  "summed_wall_ms": 240841.795,
+                  "summed_thread_cpu_ms": 233965.549
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 2740,
+                  "summed_wall_ms": 496761.421,
+                  "summed_thread_cpu_ms": 257831.458
+                },
+                {
+                  "name": "process.run",
+                  "count": 6160,
+                  "summed_wall_ms": 267097.657,
+                  "summed_thread_cpu_ms": 3284.232
+                }
+              ]
+            },
+            {
+              "phase": "refresh",
+              "elapsed_ms": 14103.875892,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 14103.865,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 685,
+                  "summed_wall_ms": 34389.104,
+                  "summed_thread_cpu_ms": 4337.831
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 685,
+                  "summed_wall_ms": 19365.474,
+                  "summed_thread_cpu_ms": 19273.656
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 685,
+                  "summed_wall_ms": 30218.314,
+                  "summed_thread_cpu_ms": 191.317
+                }
+              ]
+            },
+            {
+              "phase": "resume",
+              "elapsed_ms": 620.651413,
+              "files": 175187,
+              "complete_file_values_sha256": "4604096b4bd13696de57f4e10d0055a6444d33d8c07c1f635e4977a77422ee5d",
+              "all_original_fields_equal": true,
+              "generation": 1,
+              "coordinator_wall_ms": 620.642,
+              "stages": [
+                {
+                  "name": "navigation.cache.metadata",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.lookup",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.sources",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.cache.persist",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.index",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "navigation.collect.worker",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                },
+                {
+                  "name": "process.run",
+                  "count": 0,
+                  "summed_wall_ms": 0,
+                  "summed_thread_cpu_ms": 0
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "name": "original",
+          "n": 2,
+          "cold_ms": 58572.8427785,
+          "index_thread_cpu_ms": 242738.5405,
+          "refresh_ms": 14408.570717,
+          "resume_ms": 618.793015
+        },
+        {
+          "name": "updated",
+          "n": 2,
+          "cold_ms": 57994.762013,
+          "index_thread_cpu_ms": 221872.9115,
+          "refresh_ms": 14511.0252225,
+          "resume_ms": 625.1431565
+        }
+      ],
+      "scope": "ABBA serial sampling runs on the exact same complete 175187-file source corpus and original expected observations. Each run has a fresh private host-data namespace; actual offline workers, fixed reader counts and unchanged policy/bounds. OS/tool caches warm; output comparison/setup excluded from measured phase intervals. Whole-run observations include diagnostic overhead. Nested/parallel walls and CPU are not additive. No compiler/model/physical presentation/cold-install claim."
+    },
+    "quiet_state": {
+      "phase": "complete",
+      "rows": [
+        {
+          "order": 0,
+          "name": "updated",
+          "code": 0,
+          "signal": null,
+          "output": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/quiet-0-updated.json"
+        },
+        {
+          "order": 1,
+          "name": "original",
+          "code": 0,
+          "signal": null,
+          "output": "/home/gohan/workspace/meden/target/borrowed-reference-experiment/quiet-1-original.json"
+        }
+      ]
+    },
+    "gate": {
+      "phase": "failed",
+      "rows": [
+        {
+          "name": "app",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "oracle",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "example",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "clippy",
+          "code": 101,
+          "signal": null
+        }
+      ]
+    },
+    "clippy_log": {
+      "path": "/tmp/meden-borrowed-gate-clippy.log",
+      "sha256": "2c104518b429653d7f84ced42e5c71c6ce7f1e1d75619c55f5d7917bde93427c"
+    },
+    "outcome": "Initial allocation prototype has complete original-output comparisons but fails the strict function-length lint. Namespace construction was extracted without changing its algorithm; final code was built and fully remeasured separately. Prototype figures are not final-code performance evidence."
+  },
+  "validation": {
+    "preflight": {
+      "source_indexer": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+      "commands": [
+        {
+          "name": "clippy",
+          "exit_code": 0
+        },
+        {
+          "name": "oracle",
+          "cases": 2000,
+          "seed": "20261126",
+          "exit_code": 0
+        },
+        {
+          "name": "application",
+          "cases": 192,
+          "exit_code": 0
+        },
+        {
+          "name": "cargo-fmt",
+          "exit_code": 0
+        }
+      ],
+      "logs": [
+        {
+          "path": "/tmp/meden-borrowed-final-clippy.log",
+          "sha256": "596fb4c86f60d037e9b99800c5134a4b0e21e20503e032734dff091a5262a788"
+        },
+        {
+          "path": "/tmp/meden-borrowed-final-oracle.log",
+          "sha256": "ca3a40f839a0ec4ecaa9d9df9c22bbbd8ff832e4922c2a684f9dc284cb81d286"
+        },
+        {
+          "path": "/tmp/meden-borrowed-final-preflight-app.log",
+          "sha256": "34467b71928605a7453ef0ba75205344e15dd5cb658ae431784dfdaf5540bfe1"
+        }
+      ]
+    },
+    "fast": {
+      "phase": "complete",
+      "rows": [
+        {
+          "name": "architecture",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "format",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "schema",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "tui",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "browser": {
+      "phase": "complete",
+      "rows": [
+        {
+          "name": "browser-reduce",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "decode-reduce",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "browser-no-preference",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "decode-no-preference",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "review": {
+      "phase": "complete",
+      "binary_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+      "manually_read_journeys": 9,
+      "observations": 21,
+      "screen_review_sha256": "5d650b8e832dd0aa394b09a7fcdd804965037fc727529c326ced2fd296750a4d",
+      "reports": [
+        {
+          "motion": "reduce",
+          "stats": {
+            "total": 5,
+            "expected": 5,
+            "unexpected": 0,
+            "flaky": 0,
+            "skipped": 0,
+            "ok": true
+          },
+          "tab_p95_ms": 25.900000005960464
+        },
+        {
+          "motion": "no-preference",
+          "stats": {
+            "total": 5,
+            "expected": 5,
+            "unexpected": 0,
+            "flaky": 0,
+            "skipped": 0,
+            "ok": true
+          },
+          "tab_p95_ms": 31.5
+        }
+      ],
+      "reviewed_browser_screens": [
+        "finite-source-reopened",
+        "saved-map-before-discovery",
+        "navigation-update-reused-original-artifacts"
+      ],
+      "scope": "Current decoded terminal screens manually read; three current reduced-motion screenshots visually inspected. Cases use actual installed offline tools and scripted providers; no live inference or cold-install claim."
+    },
+    "status": {
+      "phase": "complete",
+      "rows": [
+        {
+          "name": "fast-gates",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "browser-gates",
+          "code": 0,
+          "signal": null
+        }
+      ]
+    },
+    "application_cases": 192,
+    "seeded_oracle_cases": 2000,
+    "architecture_cases": 64,
+    "tui_cases": 37,
+    "manually_inspected_decoded_journeys": 9,
+    "decoded_observations": 21,
+    "reports": [
+      {
+        "motion": "reduce",
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "cases": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "outcome": "expected"
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "outcome": "expected"
+          },
+          {
+            "title": "a combined lexical index refreshes navigation identity while reusing compiler, search and English artifacts",
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "outcome": "expected"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "interleaved-wheel-and-node-hover",
+            "data": {
+              "node_entries": 15,
+              "viewport_elements": 1,
+              "truncated": false,
+              "sampled_scales": 321,
+              "minimum_scale": 0.259783,
+              "maximum_scale": 0.472824,
+              "probes": 32,
+              "maximum_anchor_error_px": 0.025468398783519097
+            }
+          },
+          {
+            "name": "hidden-file-layout.json",
+            "data": {
+              "hidden_textarea_style_reads": 0,
+              "maximum_hidden_reads": 0,
+              "real_compiled_editor_input": true,
+              "held_original_navigation_applied": true,
+              "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+            }
+          },
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 32866.8334,
+              "warm_tab_two_raf_ms": [
+                20.899999991059303, 20.700000002980232, 24.30000001192093,
+                21.700000002980232, 22.299999997019768, 19.600000008940697,
+                25.100000008940697, 25.900000005960464, 22, 17.100000008940697
+              ],
+              "p95_ms": 25.900000005960464,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "actual-discovery-held",
+            "data": {
+              "overview": {
+                "state": "loading",
+                "scanned": 0,
+                "total": 1,
+                "revision": "sha256:4d861a998b71a081d461a7d9efc2c1e635978eeed442553db3593cf4f17355a0",
+                "error": null
+              },
+              "running": true,
+              "authorized": false,
+              "current_source": null,
+              "prepared_files": 0
+            }
+          },
+          {
+            "name": "saved-map-before-discovery",
+            "data": {
+              "saved_while_discovery_held": true,
+              "same_camera_after_changed_source": true,
+              "wheel_over_saved_status_reaches_map": true,
+              "inference_requests": 0
+            }
+          },
+          {
+            "name": "unchanged-restart-reuse",
+            "data": {
+              "complete_observation": true,
+              "materializations": 1,
+              "rewrites": 0
+            }
+          },
+          {
+            "name": "navigation-update-and-worker-timings",
+            "data": {
+              "variants": {
+                "original": {
+                  "binary": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/8c019b30dfedcc770b747b6bc242b06ccbdf8a623c8db4e21c9b1e01bf8a5d04/meden",
+                  "sha256": "8c019b30dfedcc770b747b6bc242b06ccbdf8a623c8db4e21c9b1e01bf8a5d04",
+                  "changed_sources": [
+                    {
+                      "path": "crates/meden-app/src/adapters/source.rs",
+                      "sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+                    }
+                  ],
+                  "implementation_sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+                },
+                "updated": {
+                  "binary": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/7ff0333cd623abc15ddce4d64b37ff2f0ca1bb6da20aad5697bb9be27268ea23/meden",
+                  "sha256": "7ff0333cd623abc15ddce4d64b37ff2f0ca1bb6da20aad5697bb9be27268ea23",
+                  "changed_sources": [
+                    {
+                      "path": "crates/meden-app/src/adapters/source.rs",
+                      "sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2"
+                    }
+                  ],
+                  "implementation_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2"
+                },
+                "source": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/source-Lr7l4W",
+                "kind": "navigation"
+              },
+              "metrics": {
+                "capacity": 4096,
+                "evicted": 0,
+                "retained_records": 216,
+                "span_names": [
+                  "sandbox.public_tools",
+                  "sandbox.libraries",
+                  "sandbox.nix_closure",
+                  "sandbox.prepare",
+                  "view.evidence.materialize",
+                  "view.analysis_history.materialize",
+                  "view.history.materialize",
+                  "atlas.resources.select",
+                  "atlas.resources.validate",
+                  "gui.enqueue",
+                  "job.queue",
+                  "navigation.saved.load",
+                  "view.inventory.materialize",
+                  "process.run",
+                  "navigation.collect.paths",
+                  "navigation.collect.worker",
+                  "navigation.index",
+                  "navigation.collect.sources",
+                  "analysis.cache.validate",
+                  "navigation.annotations.load",
+                  "navigation.annotations.overlay",
+                  "navigation.annotations",
+                  "navigation.saved.retain",
+                  "gui.job",
+                  "gui.serialize_respond",
+                  "gui.state",
+                  "gui.command",
+                  "gui.history_respond",
+                  "gui.analysis_history_respond",
+                  "gui.evidence_respond",
+                  "gui.inventory_respond",
+                  "view.directory.observe",
+                  "gui.directory_respond",
+                  "gui.inventory_chunk_respond",
+                  "gui.reader_prepare",
+                  "analysis.capture_sources",
+                  "gui.reader_respond",
+                  "analysis.cache.load_rendering",
+                  "analysis.saved_view",
+                  "view.preparation_log.materialize",
+                  "gui.source_respond",
+                  "gui.preparation_log_respond",
+                  "atlas.lake_configuration.reuse",
+                  "atlas.lake_configuration.resolve",
+                  "analysis.discover_layout",
+                  "analysis.select_roots",
+                  "analysis.metadata.directory_batch",
+                  "analysis.metadata.file_batch",
+                  "analysis.metadata.validate",
+                  "atlas.project.query",
+                  "atlas.project.fingerprint",
+                  "analysis.cache.retain_observation",
+                  "analysis.search",
+                  "analysis.extract",
+                  "analysis.bind_backend",
+                  "analysis.materialize_view"
+                ]
+              },
+              "original_artifacts": {
+                "observations/6231c5086cb00f341a023707f1afc5b712a1b49a39f18b6590118bd3e33c5cf1.json": "6231c5086cb00f341a023707f1afc5b712a1b49a39f18b6590118bd3e33c5cf1",
+                "observations-index.json": "680203a55f28517a15fd094a0e002d18cec6209f83304fb9f7d22b85f386cc48",
+                "renderings/68600e9c060e86e643a4d2810cd337507d6347ccfb3d7cc2dcc7ee89b028d99f.json": "68600e9c060e86e643a4d2810cd337507d6347ccfb3d7cc2dcc7ee89b028d99f",
+                "renderings-index.json": "6b0a024cb2d613bda67aa542b29c885b056e45d7b4973f1d9e9dc839743b30c4",
+                "searches/94714b364f521fde27ffee0a8a867d6f4a4024a6a191dc3ca9ce174b90545ac3.json": "94714b364f521fde27ffee0a8a867d6f4a4024a6a191dc3ca9ce174b90545ac3",
+                "searches-index.json": "586e11a7ddd4c15a688ebfa1075549dec48c0c7cc57d231011c8d60b1b62645f"
+              },
+              "inventory": {
+                "before": {
+                  "revision": "sha256:ec25000b0b8c891fd571ff3c65028164314824ea0724c4857063a277af09004d",
+                  "data": {
+                    "generation": "0",
+                    "files": [
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "Entry.lean",
+                        "sha256": "28b7a978cb7f1786bcb9429fcaa8333f58c2711752d09231291dff12778a9268",
+                        "bytes": "688",
+                        "declarations": 2,
+                        "theorems": 2,
+                        "imports": ["Lean"],
+                        "headers": [
+                          {
+                            "name": "stableMeaning",
+                            "line": 12,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          },
+                          {
+                            "name": "counterexample",
+                            "line": 13,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          }
+                        ]
+                      },
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "lakefile.lean",
+                        "sha256": "5770df228ae7218a54ec0aa3bd38f61b5cde8b57398c0b3504698f740e36fa9b",
+                        "bytes": "331",
+                        "declarations": 0,
+                        "theorems": 0,
+                        "imports": ["Lake"],
+                        "headers": []
+                      }
+                    ],
+                    "navigation": "sha256:c3d83272aad6adfaa8d6337fb58725927d9d018e59d9e438502fadfbebe6a1d1",
+                    "indexer": "sha256:9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445",
+                    "excluded": [
+                      "node_modules",
+                      "target",
+                      "dist",
+                      "__pycache__"
+                    ],
+                    "inventory_only": false
+                  }
+                },
+                "after": {
+                  "revision": "sha256:26ff5cedf168035109e38b4125377634b4d835923751153ed191e23b0c2fa972",
+                  "data": {
+                    "generation": "0",
+                    "files": [
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "Entry.lean",
+                        "sha256": "28b7a978cb7f1786bcb9429fcaa8333f58c2711752d09231291dff12778a9268",
+                        "bytes": "688",
+                        "declarations": 2,
+                        "theorems": 2,
+                        "imports": ["Lean"],
+                        "headers": [
+                          {
+                            "name": "stableMeaning",
+                            "line": 12,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          },
+                          {
+                            "name": "counterexample",
+                            "line": 13,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          }
+                        ]
+                      },
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "lakefile.lean",
+                        "sha256": "5770df228ae7218a54ec0aa3bd38f61b5cde8b57398c0b3504698f740e36fa9b",
+                        "bytes": "331",
+                        "declarations": 0,
+                        "theorems": 0,
+                        "imports": ["Lake"],
+                        "headers": []
+                      }
+                    ],
+                    "navigation": "sha256:c3d83272aad6adfaa8d6337fb58725927d9d018e59d9e438502fadfbebe6a1d1",
+                    "indexer": "sha256:cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+                    "excluded": [
+                      "node_modules",
+                      "target",
+                      "dist",
+                      "__pycache__"
+                    ],
+                    "inventory_only": false
+                  }
+                }
+              },
+              "scope": "Two actual native builds with the fixed metadata, repair/composition, orchestration or lexical-index update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Lexical-index inventories preserve every data field except their new implementation/generation attribution. Scripted provider unused; no inference or cold-install claim."
+            }
+          },
+          {
+            "name": "navigation-cache-repaired-through-refresh",
+            "data": {
+              "same_stamp": true,
+              "changed_inventory": true,
+              "declaration_visible": true,
+              "camera_retained": true
+            }
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "cases": [
+          {
+            "title": "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+            "outcome": "expected"
+          },
+          {
+            "title": "open file tabs restore source, graph camera and explanations without another inspection",
+            "outcome": "expected"
+          },
+          {
+            "title": "saved project map appears before real discovery, keeps its camera and recovers from corrupt saved data",
+            "outcome": "expected"
+          },
+          {
+            "title": "a combined lexical index refreshes navigation identity while reusing compiler, search and English artifacts",
+            "outcome": "expected"
+          },
+          {
+            "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+            "outcome": "expected"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "interleaved-wheel-and-node-hover",
+            "data": {
+              "node_entries": 15,
+              "viewport_elements": 1,
+              "truncated": false,
+              "sampled_scales": 328,
+              "minimum_scale": 0.259783,
+              "maximum_scale": 0.472824,
+              "probes": 32,
+              "maximum_anchor_error_px": 0.025468398783519097
+            }
+          },
+          {
+            "name": "hidden-file-layout.json",
+            "data": {
+              "hidden_textarea_style_reads": 0,
+              "maximum_hidden_reads": 0,
+              "real_compiled_editor_input": true,
+              "held_original_navigation_applied": true,
+              "scope": "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation."
+            }
+          },
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "no-preference",
+              "cold_analysis_store_preparation_ms": 32549.329649,
+              "warm_tab_two_raf_ms": [
+                17.5, 24.399999991059303, 21.799999997019768,
+                25.700000002980232, 26.200000002980232, 31.5,
+                26.599999994039536, 25.599999994039536, 28.700000002980232,
+                24.299999997019768
+              ],
+              "p95_ms": 31.5,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "actual-discovery-held",
+            "data": {
+              "overview": {
+                "state": "loading",
+                "scanned": 0,
+                "total": 1,
+                "revision": "sha256:4d861a998b71a081d461a7d9efc2c1e635978eeed442553db3593cf4f17355a0",
+                "error": null
+              },
+              "running": true,
+              "authorized": false,
+              "current_source": null,
+              "prepared_files": 0
+            }
+          },
+          {
+            "name": "saved-map-before-discovery",
+            "data": {
+              "saved_while_discovery_held": true,
+              "same_camera_after_changed_source": true,
+              "wheel_over_saved_status_reaches_map": true,
+              "inference_requests": 0
+            }
+          },
+          {
+            "name": "unchanged-restart-reuse",
+            "data": {
+              "complete_observation": true,
+              "materializations": 1,
+              "rewrites": 0
+            }
+          },
+          {
+            "name": "navigation-update-and-worker-timings",
+            "data": {
+              "variants": {
+                "original": {
+                  "binary": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/b24a2e72de86eab7caba91ac35c1a18d6cf39969aaff903a39c928c18638963a/meden",
+                  "sha256": "b24a2e72de86eab7caba91ac35c1a18d6cf39969aaff903a39c928c18638963a",
+                  "changed_sources": [
+                    {
+                      "path": "crates/meden-app/src/adapters/source.rs",
+                      "sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+                    }
+                  ],
+                  "implementation_sha256": "9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445"
+                },
+                "updated": {
+                  "binary": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/47527b78e1769cd743dae108e65b1ab369b4316c5a4e34f3e768eacef7d5afa0/meden",
+                  "sha256": "47527b78e1769cd743dae108e65b1ab369b4316c5a4e34f3e768eacef7d5afa0",
+                  "changed_sources": [
+                    {
+                      "path": "crates/meden-app/src/adapters/source.rs",
+                      "sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2"
+                    }
+                  ],
+                  "implementation_sha256": "cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2"
+                },
+                "source": "/home/gohan/workspace/meden/target/gui-native-variants/navigation/source-9wBxPN",
+                "kind": "navigation"
+              },
+              "metrics": {
+                "capacity": 4096,
+                "evicted": 0,
+                "retained_records": 215,
+                "span_names": [
+                  "sandbox.public_tools",
+                  "sandbox.libraries",
+                  "sandbox.nix_closure",
+                  "sandbox.prepare",
+                  "view.evidence.materialize",
+                  "view.analysis_history.materialize",
+                  "view.history.materialize",
+                  "atlas.resources.select",
+                  "atlas.resources.validate",
+                  "gui.enqueue",
+                  "job.queue",
+                  "navigation.saved.load",
+                  "view.inventory.materialize",
+                  "process.run",
+                  "navigation.collect.paths",
+                  "navigation.collect.worker",
+                  "navigation.index",
+                  "navigation.collect.sources",
+                  "analysis.cache.validate",
+                  "navigation.annotations.load",
+                  "navigation.annotations.overlay",
+                  "navigation.annotations",
+                  "navigation.saved.retain",
+                  "gui.job",
+                  "gui.serialize_respond",
+                  "gui.state",
+                  "gui.command",
+                  "gui.history_respond",
+                  "gui.analysis_history_respond",
+                  "gui.evidence_respond",
+                  "gui.inventory_respond",
+                  "view.directory.observe",
+                  "gui.directory_respond",
+                  "gui.inventory_chunk_respond",
+                  "gui.reader_prepare",
+                  "analysis.capture_sources",
+                  "gui.reader_respond",
+                  "analysis.cache.load_rendering",
+                  "analysis.saved_view",
+                  "view.preparation_log.materialize",
+                  "gui.source_respond",
+                  "gui.preparation_log_respond",
+                  "atlas.lake_configuration.reuse",
+                  "atlas.lake_configuration.resolve",
+                  "analysis.discover_layout",
+                  "analysis.select_roots",
+                  "analysis.metadata.directory_batch",
+                  "analysis.metadata.file_batch",
+                  "analysis.metadata.validate",
+                  "atlas.project.query",
+                  "atlas.project.fingerprint",
+                  "analysis.cache.retain_observation",
+                  "analysis.search",
+                  "analysis.extract",
+                  "analysis.bind_backend",
+                  "analysis.materialize_view"
+                ]
+              },
+              "original_artifacts": {
+                "observations/6231c5086cb00f341a023707f1afc5b712a1b49a39f18b6590118bd3e33c5cf1.json": "6231c5086cb00f341a023707f1afc5b712a1b49a39f18b6590118bd3e33c5cf1",
+                "observations-index.json": "680203a55f28517a15fd094a0e002d18cec6209f83304fb9f7d22b85f386cc48",
+                "renderings/68600e9c060e86e643a4d2810cd337507d6347ccfb3d7cc2dcc7ee89b028d99f.json": "68600e9c060e86e643a4d2810cd337507d6347ccfb3d7cc2dcc7ee89b028d99f",
+                "renderings-index.json": "6b0a024cb2d613bda67aa542b29c885b056e45d7b4973f1d9e9dc839743b30c4",
+                "searches/94714b364f521fde27ffee0a8a867d6f4a4024a6a191dc3ca9ce174b90545ac3.json": "94714b364f521fde27ffee0a8a867d6f4a4024a6a191dc3ca9ce174b90545ac3",
+                "searches-index.json": "586e11a7ddd4c15a688ebfa1075549dec48c0c7cc57d231011c8d60b1b62645f"
+              },
+              "inventory": {
+                "before": {
+                  "revision": "sha256:ec25000b0b8c891fd571ff3c65028164314824ea0724c4857063a277af09004d",
+                  "data": {
+                    "generation": "0",
+                    "files": [
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "Entry.lean",
+                        "sha256": "28b7a978cb7f1786bcb9429fcaa8333f58c2711752d09231291dff12778a9268",
+                        "bytes": "688",
+                        "declarations": 2,
+                        "theorems": 2,
+                        "imports": ["Lean"],
+                        "headers": [
+                          {
+                            "name": "stableMeaning",
+                            "line": 12,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          },
+                          {
+                            "name": "counterexample",
+                            "line": 13,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          }
+                        ]
+                      },
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "lakefile.lean",
+                        "sha256": "5770df228ae7218a54ec0aa3bd38f61b5cde8b57398c0b3504698f740e36fa9b",
+                        "bytes": "331",
+                        "declarations": 0,
+                        "theorems": 0,
+                        "imports": ["Lake"],
+                        "headers": []
+                      }
+                    ],
+                    "navigation": "sha256:c3d83272aad6adfaa8d6337fb58725927d9d018e59d9e438502fadfbebe6a1d1",
+                    "indexer": "sha256:9848ee40b51f13e56f27cba95430b5149b14f37b44f6a1ea54adda787fdb7445",
+                    "excluded": [
+                      "node_modules",
+                      "target",
+                      "dist",
+                      "__pycache__"
+                    ],
+                    "inventory_only": false
+                  }
+                },
+                "after": {
+                  "revision": "sha256:26ff5cedf168035109e38b4125377634b4d835923751153ed191e23b0c2fa972",
+                  "data": {
+                    "generation": "0",
+                    "files": [
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "Entry.lean",
+                        "sha256": "28b7a978cb7f1786bcb9429fcaa8333f58c2711752d09231291dff12778a9268",
+                        "bytes": "688",
+                        "declarations": 2,
+                        "theorems": 2,
+                        "imports": ["Lean"],
+                        "headers": [
+                          {
+                            "name": "stableMeaning",
+                            "line": 12,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          },
+                          {
+                            "name": "counterexample",
+                            "line": 13,
+                            "kind": "theorem",
+                            "declaration": "theorem",
+                            "private": false,
+                            "main_theorem": false
+                          }
+                        ]
+                      },
+                      {
+                        "state": "indexed",
+                        "entry": false,
+                        "path": "lakefile.lean",
+                        "sha256": "5770df228ae7218a54ec0aa3bd38f61b5cde8b57398c0b3504698f740e36fa9b",
+                        "bytes": "331",
+                        "declarations": 0,
+                        "theorems": 0,
+                        "imports": ["Lake"],
+                        "headers": []
+                      }
+                    ],
+                    "navigation": "sha256:c3d83272aad6adfaa8d6337fb58725927d9d018e59d9e438502fadfbebe6a1d1",
+                    "indexer": "sha256:cab8091e69ad7b5fe65830b91f8aafb15fbb5b99981d3478bbce85da850744d2",
+                    "excluded": [
+                      "node_modules",
+                      "target",
+                      "dist",
+                      "__pycache__"
+                    ],
+                    "inventory_only": false
+                  }
+                }
+              },
+              "scope": "Two actual native builds with the fixed metadata, repair/composition, orchestration or lexical-index update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Lexical-index inventories preserve every data field except their new implementation/generation attribution. Scripted provider unused; no inference or cold-install claim."
+            }
+          },
+          {
+            "name": "navigation-cache-repaired-through-refresh",
+            "data": {
+              "same_stamp": true,
+              "changed_inventory": true,
+              "declaration_visible": true,
+              "camera_retained": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "deployment": {
+    "fidelity": [
+      {
+        "project": "riemann",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 68496,
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017634,
+            "sha256": "4a19276b22c783abfb7bfc644fe457dfbf5227ba2901329503b1c3d78da7bfaa",
+            "comparison": "all original data equal except new indexer/generation; complete envelope digest rechecked"
+          },
+          {
+            "name": "nav",
+            "bytes": 13881,
+            "sha256": "5b3eb0d86548a422f36d7bd9c7fca3556e21e28a022b17dabdf0d5a7b6e6d8af",
+            "comparison": "all original files equal; exact new parent inventory and complete chunk digest checked"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 184500,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "not claimed after ring eviction"
+      },
+      {
+        "project": "ethlib",
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 7343437,
+            "sha256": "477cdb314263c3db7d19a6681b3727356ab382ec4da5eb5b71a3c4b9c652aac0",
+            "comparison": "all original data equal except new indexer/generation; complete envelope digest rechecked"
+          },
+          {
+            "name": "nav",
+            "bytes": 1530,
+            "sha256": "ddf16c2543f96c021412147a095c3285f861a8bc5b052a083dabd69593ccd929",
+            "comparison": "all original files equal; exact new parent inventory and complete chunk digest checked"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "complete retained ring"
+      }
+    ],
+    "retained_semantic_files": [
+      {
+        "project": "riemann",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 2547,
+            "sha256": "c83d739e2443e8aa2110c52a230bbf7301e657b600ec10e3d60600475c6760b8"
+          },
+          {
+            "path": "observations/1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454.json",
+            "bytes": 143826,
+            "sha256": "1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454"
+          },
+          {
+            "path": "observations/1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd.json",
+            "bytes": 143826,
+            "sha256": "1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd"
+          },
+          {
+            "path": "observations/44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2.json",
+            "bytes": 143826,
+            "sha256": "44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2"
+          },
+          {
+            "path": "observations/4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f.json",
+            "bytes": 182398,
+            "sha256": "4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f"
+          },
+          {
+            "path": "observations/4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca.json",
+            "bytes": 143826,
+            "sha256": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca"
+          },
+          {
+            "path": "observations/5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664.json",
+            "bytes": 143870,
+            "sha256": "5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664"
+          },
+          {
+            "path": "observations/79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4.json",
+            "bytes": 143870,
+            "sha256": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4"
+          },
+          {
+            "path": "observations/80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c.json",
+            "bytes": 143826,
+            "sha256": "80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c"
+          },
+          {
+            "path": "observations/9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00.json",
+            "bytes": 146872,
+            "sha256": "9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00"
+          },
+          {
+            "path": "observations/9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267.json",
+            "bytes": 147323,
+            "sha256": "9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267"
+          },
+          {
+            "path": "observations/9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28.json",
+            "bytes": 143826,
+            "sha256": "9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28"
+          },
+          {
+            "path": "observations/add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa.json",
+            "bytes": 143870,
+            "sha256": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa"
+          },
+          {
+            "path": "observations/c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b.json",
+            "bytes": 143826,
+            "sha256": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b"
+          },
+          {
+            "path": "observations/ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875.json",
+            "bytes": 143870,
+            "sha256": "ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875"
+          },
+          {
+            "path": "observations/cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda.json",
+            "bytes": 143826,
+            "sha256": "cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda"
+          },
+          {
+            "path": "observations/dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424.json",
+            "bytes": 143826,
+            "sha256": "dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424"
+          },
+          {
+            "path": "observations/e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3.json",
+            "bytes": 143826,
+            "sha256": "e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3"
+          },
+          {
+            "path": "observations/e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e.json",
+            "bytes": 143826,
+            "sha256": "e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e"
+          },
+          {
+            "path": "observations/f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80.json",
+            "bytes": 143826,
+            "sha256": "f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 2547,
+            "sha256": "2282e1be5524b637e12dc60d0871ddbc4093b451f46dbe1a456b55a2ff9db254"
+          },
+          {
+            "path": "renderings/083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815.json",
+            "bytes": 16851,
+            "sha256": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815"
+          },
+          {
+            "path": "renderings/09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274.json",
+            "bytes": 16851,
+            "sha256": "09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274"
+          },
+          {
+            "path": "renderings/0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb.json",
+            "bytes": 16851,
+            "sha256": "0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb"
+          },
+          {
+            "path": "renderings/19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3.json",
+            "bytes": 19534,
+            "sha256": "19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3"
+          },
+          {
+            "path": "renderings/1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89.json",
+            "bytes": 16851,
+            "sha256": "1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89"
+          },
+          {
+            "path": "renderings/6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a.json",
+            "bytes": 16851,
+            "sha256": "6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a"
+          },
+          {
+            "path": "renderings/713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9.json",
+            "bytes": 16851,
+            "sha256": "713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9"
+          },
+          {
+            "path": "renderings/77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c.json",
+            "bytes": 16851,
+            "sha256": "77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c"
+          },
+          {
+            "path": "renderings/7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f.json",
+            "bytes": 16851,
+            "sha256": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f"
+          },
+          {
+            "path": "renderings/933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e.json",
+            "bytes": 16851,
+            "sha256": "933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e"
+          },
+          {
+            "path": "renderings/a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537.json",
+            "bytes": 16851,
+            "sha256": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537"
+          },
+          {
+            "path": "renderings/b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7.json",
+            "bytes": 16851,
+            "sha256": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7"
+          },
+          {
+            "path": "renderings/c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7.json",
+            "bytes": 16851,
+            "sha256": "c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7"
+          },
+          {
+            "path": "renderings/d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78.json",
+            "bytes": 16851,
+            "sha256": "d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78"
+          },
+          {
+            "path": "renderings/da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e.json",
+            "bytes": 16851,
+            "sha256": "da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e"
+          },
+          {
+            "path": "renderings/e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a.json",
+            "bytes": 16851,
+            "sha256": "e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a"
+          },
+          {
+            "path": "renderings/f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38.json",
+            "bytes": 16851,
+            "sha256": "f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38"
+          },
+          {
+            "path": "renderings/f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304.json",
+            "bytes": 16851,
+            "sha256": "f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304"
+          },
+          {
+            "path": "renderings/f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2.json",
+            "bytes": 16471,
+            "sha256": "f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2279,
+            "sha256": "c1bf6de4dab8395fd1c57f5e45958f198fe39cec855aa67fb8d991af0e9aec04"
+          },
+          {
+            "path": "searches/047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719.json",
+            "bytes": 4830,
+            "sha256": "047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719"
+          },
+          {
+            "path": "searches/0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73.json",
+            "bytes": 5081,
+            "sha256": "0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73"
+          },
+          {
+            "path": "searches/1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d.json",
+            "bytes": 4376,
+            "sha256": "1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d"
+          },
+          {
+            "path": "searches/15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5.json",
+            "bytes": 5081,
+            "sha256": "15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5"
+          },
+          {
+            "path": "searches/27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd.json",
+            "bytes": 5081,
+            "sha256": "27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd"
+          },
+          {
+            "path": "searches/2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9.json",
+            "bytes": 5081,
+            "sha256": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9"
+          },
+          {
+            "path": "searches/3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed.json",
+            "bytes": 5081,
+            "sha256": "3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed"
+          },
+          {
+            "path": "searches/42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750.json",
+            "bytes": 5081,
+            "sha256": "42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750"
+          },
+          {
+            "path": "searches/4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a.json",
+            "bytes": 5081,
+            "sha256": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a"
+          },
+          {
+            "path": "searches/6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c.json",
+            "bytes": 4376,
+            "sha256": "6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c"
+          },
+          {
+            "path": "searches/784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07.json",
+            "bytes": 3874,
+            "sha256": "784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07"
+          },
+          {
+            "path": "searches/7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f.json",
+            "bytes": 4375,
+            "sha256": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f"
+          },
+          {
+            "path": "searches/8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45.json",
+            "bytes": 5081,
+            "sha256": "8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45"
+          },
+          {
+            "path": "searches/b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5.json",
+            "bytes": 5081,
+            "sha256": "b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5"
+          },
+          {
+            "path": "searches/c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2.json",
+            "bytes": 4376,
+            "sha256": "c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2"
+          },
+          {
+            "path": "searches/e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8.json",
+            "bytes": 5081,
+            "sha256": "e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8"
+          },
+          {
+            "path": "searches/ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb.json",
+            "bytes": 5081,
+            "sha256": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 1877,
+            "sha256": "cc267bbbaf33884f982af784a4db6d4d87b6ac637542d6fcc7426791a6bf9b60"
+          },
+          {
+            "path": "observations/2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded.json",
+            "bytes": 215991,
+            "sha256": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded"
+          },
+          {
+            "path": "observations/547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc.json",
+            "bytes": 215991,
+            "sha256": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc"
+          },
+          {
+            "path": "observations/697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9.json",
+            "bytes": 215957,
+            "sha256": "697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9"
+          },
+          {
+            "path": "observations/7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e.json",
+            "bytes": 215957,
+            "sha256": "7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e"
+          },
+          {
+            "path": "observations/81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011.json",
+            "bytes": 215991,
+            "sha256": "81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011"
+          },
+          {
+            "path": "observations/8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376.json",
+            "bytes": 215991,
+            "sha256": "8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376"
+          },
+          {
+            "path": "observations/9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7.json",
+            "bytes": 215957,
+            "sha256": "9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7"
+          },
+          {
+            "path": "observations/9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1.json",
+            "bytes": 215957,
+            "sha256": "9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1"
+          },
+          {
+            "path": "observations/b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97.json",
+            "bytes": 215957,
+            "sha256": "b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97"
+          },
+          {
+            "path": "observations/c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28.json",
+            "bytes": 215957,
+            "sha256": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28"
+          },
+          {
+            "path": "observations/cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7.json",
+            "bytes": 215957,
+            "sha256": "cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7"
+          },
+          {
+            "path": "observations/d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b.json",
+            "bytes": 215957,
+            "sha256": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b"
+          },
+          {
+            "path": "observations/db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a.json",
+            "bytes": 215957,
+            "sha256": "db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a"
+          },
+          {
+            "path": "observations/f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e.json",
+            "bytes": 215957,
+            "sha256": "f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 1877,
+            "sha256": "1581b6522d07c1658d2cea7cf44bdb6bcca7c0331f45517d414cd6872ab64e23"
+          },
+          {
+            "path": "renderings/180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8.json",
+            "bytes": 54382,
+            "sha256": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8"
+          },
+          {
+            "path": "renderings/543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2.json",
+            "bytes": 54382,
+            "sha256": "543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2"
+          },
+          {
+            "path": "renderings/6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905.json",
+            "bytes": 54382,
+            "sha256": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905"
+          },
+          {
+            "path": "renderings/6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15.json",
+            "bytes": 54382,
+            "sha256": "6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15"
+          },
+          {
+            "path": "renderings/6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35.json",
+            "bytes": 54382,
+            "sha256": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35"
+          },
+          {
+            "path": "renderings/7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069.json",
+            "bytes": 54382,
+            "sha256": "7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069"
+          },
+          {
+            "path": "renderings/8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa.json",
+            "bytes": 54382,
+            "sha256": "8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa"
+          },
+          {
+            "path": "renderings/b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0.json",
+            "bytes": 54382,
+            "sha256": "b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0"
+          },
+          {
+            "path": "renderings/be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b.json",
+            "bytes": 54382,
+            "sha256": "be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b"
+          },
+          {
+            "path": "renderings/bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825.json",
+            "bytes": 54382,
+            "sha256": "bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825"
+          },
+          {
+            "path": "renderings/c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb.json",
+            "bytes": 54382,
+            "sha256": "c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb"
+          },
+          {
+            "path": "renderings/cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f.json",
+            "bytes": 54382,
+            "sha256": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f"
+          },
+          {
+            "path": "renderings/cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816.json",
+            "bytes": 54382,
+            "sha256": "cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816"
+          },
+          {
+            "path": "renderings/db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969.json",
+            "bytes": 54382,
+            "sha256": "db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2011,
+            "sha256": "865dd176a151bbbe13d566209739a674733dd4bdee7c5351e122d5cdb9f28b97"
+          },
+          {
+            "path": "searches/0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396.json",
+            "bytes": 18771,
+            "sha256": "0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396"
+          },
+          {
+            "path": "searches/225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19.json",
+            "bytes": 18771,
+            "sha256": "225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19"
+          },
+          {
+            "path": "searches/3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee.json",
+            "bytes": 18771,
+            "sha256": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee"
+          },
+          {
+            "path": "searches/4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0.json",
+            "bytes": 18771,
+            "sha256": "4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0"
+          },
+          {
+            "path": "searches/5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7.json",
+            "bytes": 18771,
+            "sha256": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7"
+          },
+          {
+            "path": "searches/5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c.json",
+            "bytes": 18771,
+            "sha256": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c"
+          },
+          {
+            "path": "searches/73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323.json",
+            "bytes": 18771,
+            "sha256": "73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323"
+          },
+          {
+            "path": "searches/7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999.json",
+            "bytes": 18771,
+            "sha256": "7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999"
+          },
+          {
+            "path": "searches/829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9.json",
+            "bytes": 18771,
+            "sha256": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9"
+          },
+          {
+            "path": "searches/bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff.json",
+            "bytes": 18771,
+            "sha256": "bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff"
+          },
+          {
+            "path": "searches/c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509.json",
+            "bytes": 18771,
+            "sha256": "c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509"
+          },
+          {
+            "path": "searches/e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b.json",
+            "bytes": 18771,
+            "sha256": "e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b"
+          },
+          {
+            "path": "searches/e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a.json",
+            "bytes": 18771,
+            "sha256": "e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a"
+          },
+          {
+            "path": "searches/f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37.json",
+            "bytes": 18771,
+            "sha256": "f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37"
+          },
+          {
+            "path": "searches/f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480.json",
+            "bytes": 18771,
+            "sha256": "f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480"
+          }
+        ]
+      }
+    ],
+    "integrity": {
+      "assets_match_dist_and_hidden_maps": 88,
+      "rows": [
+        {
+          "project": "riemann",
+          "pid": 916038,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+          "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90"
+        },
+        {
+          "project": "ethlib",
+          "pid": 916209,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "2b44768f409278e82ecd7494ba981e160ae4573f0b268018a89b13fdb497ee56",
+          "assets_sha256": "23b6f97e84025ae01ce2a991736a44fbda0b234995769f159d5c6a3ad3a2cd90"
+        }
+      ]
+    }
+  },
+  "artifact_hashes": [
+    {
+      "path": "/tmp/meden-borrowed-final-reviewed.json",
+      "sha256": "39f0b45b8fa8f93af19e3ecd55f5b08bae5a2810d7d37d09aa6fb164e65ca851"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-analysis.json",
+      "sha256": "5aab7f4569cb81b1f44e7d169b96e6c64b09763f73a29b9cca98c5ebb9e390cd"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-preflight-gates.json",
+      "sha256": "e8424f3a5648cbdf0d4a047e4d4e362c86ed1e19f3ad8c80186f6ace26d70154"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-measure.json",
+      "sha256": "d3b2d284c6bcad954cb6a9874f24e970e93a52a70b7e6f4bb58cc1ccd6b1f431"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-quiet-state.json",
+      "sha256": "5aa23276e04f947f18f14ca3537c8121e14868f6f8ca2a9d084b9bdeb666e446"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-preflight.json",
+      "sha256": "1be42cea453bf27a192773206b6e2ad1d2866fc00e5c5f8e6729d0448731e64a"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-fast-gates.json",
+      "sha256": "c28b51679cf954f5eea2be1c82e84332b91abd5a3c442bcc6cd1282d0c9e4baa"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-browser-gates.json",
+      "sha256": "96b73a4397a028e95c352dcbe1ab9007d6b8c1ebe6674b6e7a50691e92850ca3"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-validation.json",
+      "sha256": "0b2f95b6e3fb5137cc28095888642aedbb492af162e8e13b9c0159fb248247e3"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-decoded-screens.json",
+      "sha256": "28115cfa3423fac6f1043b31f57d8ace2cf27f71985cd36f092d2a3e18cc1fb9"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-screen-review.txt",
+      "sha256": "5d650b8e832dd0aa394b09a7fcdd804965037fc727529c326ced2fd296750a4d"
+    },
+    {
+      "path": "/tmp/meden-ux-borrowed-final-20261126/summary.json",
+      "sha256": "9294109a2974bc81a9f37ba8e38686dff6c4a8d71cd9b69c1b58e5212f5d9795"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-reduce-decoded.json",
+      "sha256": "4bcb459ab5616755caaff02fdb761d9b50d707ed01194edfb23fbf558180ca48"
+    },
+    {
+      "path": "/tmp/meden-borrowed-final-no-preference-decoded.json",
+      "sha256": "31c6f6d50fec8ea006dc8d39bf1d03a063406a3528dc1cc934f56de29e3baf64"
+    }
+  ],
+  "scope": "Development-profile diagnostic and native executables, matching the deployed service; no release-profile claim. Final compiled source and initial prototype are distinct observations. Complete frozen actual Riemann source copy, exact original File fields after every cold/refresh/resume interval; no truncated/generated source substitution. Four serial ABBA sampling runs plus one subsequent candidate/original quiet pair, warm OS/tool caches, fresh private namespaces, actual unchanged confined worker protocol/policy/bounds. Setup, output comparison and hashing excluded. No concurrent test, build or other metric sampler during measurement. CPU excludes child processes; nested/parallel spans are not additive. Only scoped CPU/allocation reduction is established, not universal startup or physical-presentation latency. Compiler/search/render, source freshness, approval and evidence kernels remain independent; installed-tool/scripted-provider journeys are not cold-install/live-model validation or new refinement."
+}
