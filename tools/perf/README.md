@@ -564,6 +564,12 @@ then a quiet pair. It compares the complete 175,187-file original observations
 after every phase and separates reduced indexing CPU from overlapping cache-wall
 intervals. Keep those scopes distinct when evaluating another indexer change.
 
+The [source-read packing comparison](../../docs/performance/source-read-packing.md)
+keeps the lexical identity and all existing file/frame/time budgets, comparing
+the old/new confined reader with complete original values after all 18 phase
+outcomes. Worker-count reduction and quiet-run wall time establish the scoped
+I/O result; refresh/resume do not exercise the changed path.
+
 For separate duplicate-background diagnostics, set
 `MEDEN_GUI_PAINT_OBSERVATIONS=1` when running either profiler. The optional
 `area-paints.json` records bounded ordered-command agreement and is included in

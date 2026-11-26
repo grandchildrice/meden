@@ -1,8 +1,11 @@
 //! Host observation/progress adapters for the application's syntax cache.
-use super::{source_files, File, View};
+use super::{File, View};
 use crate::gui::lock;
 use anyhow::Result;
-use meden_app::navigation::cache::{self, Scope};
+use meden_app::navigation::{
+    cache::{self, Scope},
+    collection,
+};
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde_json::Value;
 use std::{sync::Mutex, time::Instant};
@@ -34,7 +37,6 @@ pub(super) fn prepare(
     }
     store(workspace)?.prepare(
         &Reader {
-            view,
             workspace,
             control,
             started,
@@ -54,7 +56,6 @@ pub(super) fn prepare(
     )
 }
 struct Reader<'a> {
-    view: &'a Mutex<View>,
     workspace: &'a Workspace,
     control: &'a Control,
     started: Instant,
@@ -66,8 +67,18 @@ impl cache::Reader for Reader<'_> {
         crate::adapters::navigation_io::Reader::new(self.workspace, self.control, self.started)
             .stamps(paths)
     }
-    fn sources(&self, paths: &[String]) -> Result<Vec<File>> {
-        source_files(self.view, self.workspace, self.control, paths, self.started)
+    fn sources(&self, paths: &[String], hints: &[&Value]) -> Result<Vec<File>> {
+        collection::sources(
+            &crate::adapters::navigation_io::Reader::new(
+                self.workspace,
+                self.control,
+                self.started,
+            )
+            .with_hints(paths, hints)?,
+            &crate::adapters::navigation::Syntax,
+            paths,
+            || {},
+        )
     }
     fn active(&self) -> Result<()> {
         Ok(self.control.with_active(|| Ok(()))?)

@@ -27,7 +27,11 @@ impl Reader for Source {
             _ => Ok(vec![7; paths.len()]),
         }
     }
-    fn sources(&self, paths: &[String]) -> Result<Vec<File<String>>> {
+    fn sources(&self, paths: &[String], hints: &[&u64]) -> Result<Vec<File<String>>> {
+        anyhow::ensure!(
+            hints.len() == paths.len() && hints.iter().all(|h| **h == 7),
+            "Original metadata hints changed"
+        );
         self.reads
             .lock()
             .map_err(|_| anyhow::anyhow!("test reader unavailable"))?
@@ -227,5 +231,45 @@ fn additional_provider_changes_reindex_only_the_original_affected_format() -> Re
     );
     assert_eq!(std::fs::read(original)?, bytes);
     assert_eq!(store.generation()?, 2);
+    Ok(())
+}
+
+#[test]
+fn original_hints_follow_their_paths_through_sorting_and_single_file_recovery() -> Result<()> {
+    struct Hints;
+    impl Reader for Hints {
+        type Symbol = String;
+        type Stamp = String;
+        fn stamps(&self, paths: &[String]) -> Result<Vec<String>> {
+            Ok(paths.iter().map(|p| format!("observed:{p}")).collect())
+        }
+        fn sources(&self, paths: &[String], hints: &[&String]) -> Result<Vec<File<String>>> {
+            anyhow::ensure!(paths.len() == hints.len(), "Missing original hints");
+            for (path, hint) in paths.iter().zip(hints) {
+                anyhow::ensure!(**hint == format!("observed:{path}"), "Foreign source hint");
+            }
+            anyhow::ensure!(paths.len() == 1, "Recover one file at a time");
+            Ok(paths
+                .iter()
+                .map(|p| File::unindexed(p.clone(), 8))
+                .collect())
+        }
+        fn active(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+    let root = tempfile::tempdir()?;
+    let store = Store::<String, String> {
+        directory: root.path().into(),
+        additional: |_| None,
+        types: PhantomData,
+    };
+    let paths = vec!["z.v".into(), "a.smt2".into(), "名.v".into()];
+    store.prepare(&Hints, &paths, false, Scope::Inventory, |_| {})?;
+    for path in paths {
+        let entry = store.entry(&path)?.context("Missing recovered entry")?;
+        assert_eq!(entry.stamp, format!("observed:{path}"));
+        assert_eq!(entry.file.context("Missing source")?.path, path);
+    }
     Ok(())
 }

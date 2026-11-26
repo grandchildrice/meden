@@ -68,6 +68,13 @@ ABBA observations reduce index-thread CPU by about 7.1%, with all original file
 values equal. Cold-cache wall intervals overlap, and the quiet pair's difference
 is small; this does not close the startup-latency or prepared-input wait targets.
 
+The [source-read packing](../performance/source-read-packing.md) uses original
+metadata only to size confined source frames, preserving actual content/digest
+checks and the original limits. Full-corpus cold population falls about 13% in
+the single quiet pair; physical worker invocations fall from 6,160 to 3,423.
+The parser and cache identities remain unchanged. This advances fresh navigation
+preparation, not the separate prepared-input or first-detail rendering targets.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

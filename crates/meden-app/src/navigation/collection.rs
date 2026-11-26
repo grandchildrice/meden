@@ -73,6 +73,8 @@ pub trait Indexer: Sync {
 /// Complete, position-preserving observations from the existing file worker.
 /// A reader cannot substitute another operation via an untyped operation label.
 pub trait Reader: Sync {
+    /// Desired source request width; collection enforces the worker's 256-path bound.
+    fn source_batch(&self) -> usize;
     /// One complete listing per original requested directory, in request order.
     fn list(&self, paths: &[String]) -> Result<Vec<Vec<Entry>>>;
     /// One complete availability observation per requested source, in request order.
@@ -215,7 +217,7 @@ fn source<I: Indexer>(
     }
     Ok((file, observed))
 }
-/// Four bounded readers, batches of 32 and a complete 128 MiB observation budget.
+/// Four bounded readers and a complete 128 MiB observation budget.
 /// The observer reports completed items only, without publishing partial results.
 pub fn sources<I: Indexer>(
     reader: &impl Reader,
@@ -258,6 +260,8 @@ fn read_all<I: Indexer>(
     if paths.is_empty() {
         return Ok(Vec::new());
     }
+    let width = reader.source_batch();
+    anyhow::ensure!((1..=256).contains(&width), "Invalid source request width");
     let cursor = AtomicUsize::new(0);
     let bytes = AtomicUsize::new(0);
     let files = Mutex::new(BTreeMap::new());
@@ -270,12 +274,12 @@ fn read_all<I: Indexer>(
                         Some(parent),
                     );
                     loop {
-                        let index = cursor.fetch_add(32, Ordering::SeqCst);
+                        let index = cursor.fetch_add(width, Ordering::SeqCst);
                         if index >= paths.len() {
                             break;
                         }
                         let batch = paths
-                            .get(index..index.saturating_add(32).min(paths.len()))
+                            .get(index..index.saturating_add(width).min(paths.len()))
                             .context("Invalid source batch")?;
                         let values = reader.read(batch)?;
                         anyhow::ensure!(

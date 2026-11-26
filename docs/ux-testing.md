@@ -60,6 +60,13 @@ lost records, compare all original cached file fields after cold population,
 unchanged refresh and sealed resume, and calibrate sampling against a quiet run.
 Nested/parallel intervals and child-process CPU require separate attribution.
 
+Hinted source grouping must preserve every original path/hint association and
+complete content field. Actual confined frames must handle JSON control escapes
+and unknown sizes, refuse an understated hint's oversized frame, reject a later
+invalid path before any split-frame dispatch and stop cancellation. The small
+source journey must demonstrate fewer actual worker invocations without changing
+data. Size hints never replace content digests or compiler-input validation.
+
 Navigation-policy changes keep entry selection and import-name interpretation
 outside the CLI/browser. A filename ending in `Main.lean`, such as `NotMain.lean`,
 must not start compilation on startup or restart; explicit explorer opening must

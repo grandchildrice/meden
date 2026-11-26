@@ -30,9 +30,14 @@ impl cache::Reader for Reader<'_> {
     fn stamps(&self, paths: &[String]) -> Result<Vec<Self::Stamp>> {
         navigation_io::Reader::new(self.workspace, self.control, self.started).stamps(paths)
     }
-    fn sources(&self, paths: &[String]) -> Result<Vec<collection::File<Self::Symbol>>> {
+    fn sources(
+        &self,
+        paths: &[String],
+        hints: &[&Self::Stamp],
+    ) -> Result<Vec<collection::File<Self::Symbol>>> {
         collection::sources(
-            &navigation_io::Reader::new(self.workspace, self.control, self.started),
+            &navigation_io::Reader::new(self.workspace, self.control, self.started)
+                .with_hints(paths, hints)?,
             &Syntax,
             paths,
             || {},

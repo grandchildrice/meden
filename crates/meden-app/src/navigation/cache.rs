@@ -19,8 +19,8 @@ pub trait Reader: Sync {
     type Stamp: Serialize + DeserializeOwned + PartialEq;
     /// Complete position-preserving hints for the original requested paths.
     fn stamps(&self, paths: &[String]) -> Result<Vec<Self::Stamp>>;
-    /// Complete syntax/availability records for exactly the requested paths.
-    fn sources(&self, paths: &[String]) -> Result<Vec<File<Self::Symbol>>>;
+    /// Complete records with their original metadata hints, used only to size I/O.
+    fn sources(&self, paths: &[String], hints: &[&Self::Stamp]) -> Result<Vec<File<Self::Symbol>>>;
     /// Report cancellation or a host stop before retry/publication.
     fn active(&self) -> Result<()>;
 }
@@ -270,15 +270,17 @@ impl<S: Serialize + DeserializeOwned, M: Serialize + DeserializeOwned + PartialE
             return Ok(());
         }
         let paths = pending.keys().cloned().collect::<Vec<_>>();
+        let hints = pending.values().collect::<Vec<_>>();
         let source_timing = meden_runtime::metrics::Span::start("navigation.cache.sources");
-        let files = if let Ok(files) = reader.sources(&paths) {
+        let files = if let Ok(files) = reader.sources(&paths, &hints) {
             check_files(&paths, &files)?;
             files
         } else {
             reader.active()?;
             let mut files = Vec::new();
             for path in &paths {
-                match reader.sources(std::slice::from_ref(path)) {
+                let hint = pending.get(path).context("Missing source hint")?;
+                match reader.sources(std::slice::from_ref(path), &[hint]) {
                     Ok(batch) => {
                         check_files(std::slice::from_ref(path), &batch)?;
                         files.extend(batch);

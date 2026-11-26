@@ -25,11 +25,15 @@ impl Indexer for Syntax {
 }
 #[derive(Default)]
 struct Memory {
+    width: Option<usize>,
     directories: BTreeMap<String, Vec<Entry>>,
     contents: BTreeMap<String, Content>,
     reads: Mutex<Vec<Vec<String>>>,
 }
 impl Reader for Memory {
+    fn source_batch(&self) -> usize {
+        self.width.unwrap_or(32)
+    }
     fn list(&self, paths: &[String]) -> Result<Vec<Vec<Entry>>> {
         paths
             .iter()
@@ -56,6 +60,22 @@ impl Reader for Memory {
             })
             .collect()
     }
+}
+#[test]
+fn an_invalid_reader_width_stops_before_any_source_dispatch() -> Result<()> {
+    for width in [0, 257, usize::MAX] {
+        let memory = Memory {
+            width: Some(width),
+            ..Memory::default()
+        };
+        assert!(sources(&memory, &Syntax, &["original.v".into()], || {}).is_err());
+        assert!(memory
+            .reads
+            .lock()
+            .map_err(|_| anyhow::anyhow!("reader log"))?
+            .is_empty());
+    }
+    Ok(())
 }
 fn entry(name: &str, kind: Kind) -> Entry {
     Entry {
@@ -256,6 +276,9 @@ struct Mismatch {
     extra: bool,
 }
 impl Reader for Mismatch {
+    fn source_batch(&self) -> usize {
+        32
+    }
     fn list(&self, _: &[String]) -> Result<Vec<Vec<Entry>>> {
         Ok(if self.extra {
             vec![vec![], vec![]]
@@ -343,6 +366,9 @@ fn unsupported_text_stays_unindexed_without_executing_a_parser() -> Result<()> {
 fn recursive_directory_observations_stop_at_the_original_depth_bound() {
     struct Cycle(AtomicUsize);
     impl Reader for Cycle {
+        fn source_batch(&self) -> usize {
+            32
+        }
         fn list(&self, paths: &[String]) -> Result<Vec<Vec<Entry>>> {
             self.0.fetch_add(1, Ordering::SeqCst);
             Ok(paths
