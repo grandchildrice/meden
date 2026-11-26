@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [startup/retirement comparison](../../docs/performance/bootstrap-splitting.md)
+rejects lazy splitting of both browser entries. Direct native-server observations
+show later usable controls despite fewer downloaded JavaScript bytes. The accepted
+cleanup instead removes ten unused standalone generated models/schemas while
+preserving every production asset. Entry-size reduction is not a latency result.
+
 The [target-batch comparison](../../docs/performance/map-target-batches.md)
 reduces individual SVG cloning/insertion and removes two test-only coordinate
 attributes. Actual Riemann wheel/worst-task observations improve; an additional

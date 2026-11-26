@@ -566,6 +566,13 @@ Perform the migration in reviewable vertical slices:
    negative tests have a replacement. Prototype Worker/WASM/Canvas only for a
    measured residual bottleneck, compare the same corpus, then keep one path.
 
+The [exit audit](migration-status.md) maps all five implementation exits to their
+current paths and bounded evidence. The [final retirement audit](retirement-audit.md)
+keeps both live browser contexts, removes ten duplicated generated outputs and
+rejects an entry-splitting trial that delays usable controls. The separate
+first-detail/current-input waits and assurance gaps remain explicitly scoped;
+they are not silently counted as solved by this migration.
+
 Step 2 now has bounded correlated native spans, an authenticated local query,
 real perf captures, a shrinkable differential camera/inventory corpus, a paired
 large-map performance budget with a rejected full-scan mutation, and serialized

@@ -264,7 +264,9 @@ test("candidate output schemas retain required nulls, opaque provenance and loss
   assert.throws(() =>
     current.parse({ ...publication, data: { history: [record] } }),
   );
-  const status = owned("analyses-status");
+  // Check the actual browser status boundary; the nested model has no separate
+  // endpoint or generated module.
+  const status = owned("session-state").shape.analyses;
   assert.throws(() =>
     status.parse({
       current: { state: "empty", revision: publication.revision },

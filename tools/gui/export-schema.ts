@@ -32,7 +32,6 @@ for (const [key, rust, symbol, type, owner = "view"] of [
     "exportOutcomeSchema",
     "ExportOutcome",
   ],
-  ["preview-status", "preview::Status", "previewStatusSchema", "PreviewStatus"],
   [
     "preview-publication",
     "preview::Snapshot",
@@ -40,22 +39,10 @@ for (const [key, rust, symbol, type, owner = "view"] of [
     "PreviewPublication",
   ],
   [
-    "verification-job-status",
-    "verification_jobs::Status",
-    "verificationJobStatusSchema",
-    "VerificationJobStatus",
-  ],
-  [
     "verification-job-publication",
     "verification_jobs::Snapshot",
     "verificationJobPublicationSchema",
     "VerificationJobPublication",
-  ],
-  [
-    "evidence-status",
-    "evidence::Status",
-    "evidenceStatusSchema",
-    "EvidenceStatus",
   ],
   [
     "evidence-publication",
@@ -78,12 +65,6 @@ for (const [key, rust, symbol, type, owner = "view"] of [
     "analysis",
   ],
   [
-    "analyses-status",
-    "analyses::Status",
-    "analysesStatusSchema",
-    "AnalysesStatus",
-  ],
-  [
     "analysis-current",
     "analyses::CurrentPublication",
     "analysisCurrentSchema",
@@ -103,22 +84,10 @@ for (const [key, rust, symbol, type, owner = "view"] of [
   ],
   ["meaning-input", "Input", "meaningInputSchema", "MeaningInput", "semantic"],
   [
-    "preparation-index",
-    "jobs::Index",
-    "preparationIndexSchema",
-    "PreparationIndex",
-  ],
-  [
     "preparation-log",
     "publication::Envelope<jobs::Log>",
     "preparationLogSchema",
     "PreparationLogPublication",
-  ],
-  [
-    "directory-index",
-    "directory::Index",
-    "directoryIndexSchema",
-    "DirectoryIndex",
   ],
   [
     "directory-publication",
@@ -131,12 +100,6 @@ for (const [key, rust, symbol, type, owner = "view"] of [
     "inventory::Snapshot",
     "inventorySnapshotSchema",
     "InventorySnapshot",
-  ],
-  [
-    "inventory-status",
-    "inventory::Status",
-    "inventoryStatusSchema",
-    "InventoryStatus",
   ],
   [
     "inventory-publication",
@@ -152,14 +115,12 @@ for (const [key, rust, symbol, type, owner = "view"] of [
   ],
   ["source", "SourcePage", "sourcePageSchema", "SourcePage"],
   ["file", "file::FileView", "fileViewSchema", "FileView"],
-  ["reader-index", "readers::Index", "readerIndexSchema", "ReaderIndex"],
   [
     "reader-publication",
     "publication::Envelope<file::FileView>",
     "readerPublicationSchema",
     "ReaderPublication",
   ],
-  ["source-index", "sources::Index", "sourceIndexSchema", "SourceIndex"],
   [
     "source-publication",
     "publication::Envelope<SourcePage>",
@@ -167,12 +128,6 @@ for (const [key, rust, symbol, type, owner = "view"] of [
     "SourcePublication",
   ],
   ["history", "history::Snapshot", "historySnapshotSchema", "HistorySnapshot"],
-  [
-    "history-reference",
-    "history::Reference",
-    "historyReferenceSchema",
-    "HistoryReference",
-  ],
 ]) {
   const source = JSON.parse(
     execFileSync(
