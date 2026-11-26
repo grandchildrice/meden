@@ -33,9 +33,13 @@ const changes =
               "\n// Orchestration-only implementation update.\n",
             ],
           ]
-        : null;
+        : kind === "navigation"
+          ? [["crates/meden-app/src/adapters/source.rs", ""]]
+          : null;
 if (!changes)
-  throw new Error("Choose the fixed metadata, repair or pipeline test variant");
+  throw new Error(
+    "Choose the fixed metadata, repair, pipeline or navigation test variant",
+  );
 const directory = resolve("target/gui-native-variants/" + kind);
 await mkdir(directory, { recursive: true });
 const source = await mkdtemp(resolve(directory, "source-"));
@@ -73,6 +77,38 @@ const originals = await Promise.all(
 const target = resolve(directory, "build");
 const result = {};
 for (const name of ["original", "updated"]) {
+  if (kind === "navigation" && name === "original") {
+    // Private counterfactual only: the original independent two-pass algorithm
+    // implements the current typed port. Production has only the combined pass.
+    const current = originals[0].text;
+    const boundary = current.indexOf("fn is_declaration(");
+    if (boundary < 0) throw Error("Lexical declaration boundary missing");
+    const prefix = current
+      .slice(0, boundary)
+      .replace("use std::collections::BTreeSet;\n", "");
+    const oracle = (
+      await readFile(
+        resolve(source, "crates/meden-app/src/adapters/source/oracle.rs"),
+        "utf8",
+      )
+    )
+      .split("\n")
+      .filter(
+        (line) => !line.startsWith("//!") && line !== "use super::Symbol;",
+      )
+      .join("\n");
+    await writeFile(
+      helper,
+      prefix +
+        oracle +
+        `
+pub fn index(source: &str, lean: bool) -> Indexed<Symbol> {
+    let (declarations, theorems, imports) = headers(source, lean);
+    Indexed { declarations, theorems, imports, symbols: symbols(source, lean) }
+}
+`,
+    );
+  }
   if (name === "updated")
     for (const change of originals)
       await writeFile(

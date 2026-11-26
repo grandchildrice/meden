@@ -45,6 +45,10 @@ this extraction does not intentionally invalidate prepared observations or
 reindex an existing source cache. The generated native wire schemas also stay
 unchanged. There is no fallback collector or compatibility decoder.
 
+The later [combined lexical pass](lexical-index.md) changes the syntax identity
+separately: it rebuilds lexical records once while retaining semantic peer
+artifacts. The measurements below describe the preceding collection extraction.
+
 Bounded native spans now distinguish `navigation.collect.paths`,
 `navigation.collect.sources` and `navigation.collect.worker`. Each worker retains
 its source coordinator's trace and parent span. Worker current-thread CPU covers

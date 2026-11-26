@@ -4211,6 +4211,11 @@ theorem slow : True := fast
       title:
         "orchestration-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
     },
+    {
+      kind: "navigation",
+      title:
+        "a combined lexical index refreshes navigation identity while reusing compiler, search and English artifacts",
+    },
   ]) {
     test(variant.title, async ({ page }, info) => {
       test.setTimeout(300000);
@@ -4286,8 +4291,11 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
           )
           .toBe("ready");
         await expect
-          .poll(async () => (await nativeState(page)).running)
-          .toBe(false);
+          .poll(async () => {
+            const state = await nativeState(page);
+            return !state.running && state.overview.state === "ready";
+          })
+          .toBe(true);
         return nativeState(page);
       };
       const artifacts = async () => {
@@ -4328,6 +4336,25 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
         return files;
       };
       const first = await open(variants.original.binary);
+      const inventory = async (state: any) =>
+        page.evaluate(async (revision) => {
+          const response = await fetch(
+            "/api/inventory?revision=" + encodeURIComponent(revision),
+            {
+              headers: {
+                Authorization:
+                  "Bearer " + sessionStorage.getItem("meden-native-session"),
+              },
+            },
+          );
+          if (!response.ok) throw Error("Original inventory unavailable");
+          const value = await response.json();
+          if (value.revision !== revision)
+            throw Error("Inventory publication changed");
+          return value;
+        }, state.overview.revision);
+      const beforeInventory =
+        variant.kind === "navigation" ? await inventory(first) : undefined;
       const original = await nativeSource(page, first);
       expect(
         original.graph.declarations
@@ -4341,6 +4368,24 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       expect(Object.keys(stored).length).toBeGreaterThan(3);
       await stop();
       const second = await open(variants.updated.binary);
+      const afterInventory =
+        variant.kind === "navigation" ? await inventory(second) : undefined;
+      if (beforeInventory && afterInventory) {
+        const {
+          indexer: beforeIndexer,
+          generation: beforeGeneration,
+          ...beforeData
+        } = beforeInventory.data;
+        const {
+          indexer: afterIndexer,
+          generation: afterGeneration,
+          ...afterData
+        } = afterInventory.data;
+        expect(afterIndexer).not.toBe(beforeIndexer);
+        expect(beforeGeneration).toMatch(/^(0|[1-9][0-9]*)$/);
+        expect(afterGeneration).toMatch(/^(0|[1-9][0-9]*)$/);
+        expect(afterData).toEqual(beforeData);
+      }
       expect(second.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
         true,
       );
@@ -4356,6 +4401,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
           })
         ).json(),
       );
+      expect(metrics.evicted).toBe(0);
       const names = metrics.records.map((r: any) => r.name);
       expect(names).toContain("atlas.project.query");
       expect(names).toContain("atlas.project.fingerprint");
@@ -4379,8 +4425,9 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
             variants,
             metrics,
             original_artifacts: stored,
+            inventory: { before: beforeInventory, after: afterInventory },
             scope:
-              "Two actual native builds with the fixed metadata, repair/composition or orchestration-only update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
+              "Two actual native builds with the fixed metadata, repair/composition, orchestration or lexical-index update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Lexical-index inventories preserve every data field except their new implementation/generation attribution. Scripted provider unused; no inference or cold-install claim.",
           },
           null,
           2,

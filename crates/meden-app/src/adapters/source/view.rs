@@ -49,12 +49,14 @@ fn lexical(snapshot: &crate::analysis::sources::Snapshot) -> Result<Graph> {
             continue;
         }
         let lines = source.lines().collect::<Vec<_>>();
-        for symbol in crate::adapters::source::symbols(
+        for symbol in crate::adapters::source::index(
             source,
             std::path::Path::new(file)
                 .extension()
                 .is_some_and(|e| e == "lean"),
-        ) {
+        )
+        .symbols
+        {
             let name = symbol
                 .name
                 .split('(')

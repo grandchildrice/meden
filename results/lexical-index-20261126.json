@@ -1,0 +1,1359 @@
+{
+  "date": "2026-11-26",
+  "baseline_commit": "3a6e6cbdb5cb8d345fcedcdc717127c8ceb305a0",
+  "production_before_sha256": "f20fefca8d38a4f0e5d2b42c69bb4567346cda9531390f0b8dd95c7033faa283",
+  "candidate_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+  "diagnostic_sha256": "78fe071c6011df2c5fab94f183648fb9f59f1db817496a46b632e8adc42171a4",
+  "source_files": [
+    {
+      "path": "crates/meden-app/src/adapters/source.rs",
+      "sha256": "49be78c36e9eee073123e49fb97c037cb38c0f8138597ddd2e71b09e0a452918"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/source/oracle.rs",
+      "sha256": "8832b7139d83d4bfa275e4cd58af6df22e3da1197c0a13e6cae90d6a589246fb"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/source/tests.rs",
+      "sha256": "7046c340e81968a8076dbc61cdcdd43b07f0004812bf2fe8d9f1c959f5f93350"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/source/view.rs",
+      "sha256": "7fd5e31fb58052c2bfd43ffbe59abb27654d3d1beb41db3e472f8b83b9b34cb0"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/navigation.rs",
+      "sha256": "155e351c2703b5e19746e8069308ba8fa906323b43e7371810c25e16807515cc"
+    },
+    {
+      "path": "crates/meden-app/src/navigation/collection.rs",
+      "sha256": "db945a16982831be893d2e62ced46b486bf0eafbdb65a83c99c78f43206103ad"
+    },
+    {
+      "path": "crates/meden-app/examples/profile-navigation-index.rs",
+      "sha256": "22691d98df44c0f9161db62fa16a3c269f55b9ae46e58042052133574f600309"
+    },
+    {
+      "path": "tools/gui/prepare-native-variants.mjs",
+      "sha256": "fd6f4c24c6fa4b85e9f8b8ec241e6fef65633338b1c02a7964ad49a9f605deb8"
+    },
+    {
+      "path": "apps/web/e2e/native.spec.ts",
+      "sha256": "93c6876c7d8976d2f18666c0eeb1264d37f9d599e1dd5ff26551f274ce773580"
+    }
+  ],
+  "measurements": [
+    {
+      "project": "riemann",
+      "total_inventory_files": 175187,
+      "indexed_sources": 3,
+      "source_bytes": 14817,
+      "original_inventory_revision": "sha256:493601369223e6813ce2cf31cdd9329d80aa2beb31f12923b3c3fc2f2d3521d5",
+      "complete_source_manifest_sha256": "f815bf8591cb8496bb9da6b6920a3a32206bc35a1388a8ca5b8d6e76b860bd4b",
+      "measurement_path": "target/navigation-index-experiment/riemann-native-timings.json",
+      "measurement_sha256": "b65fb7d421015fa9f206cd161f21c411272231dee582824ee167cc45f6831b6d",
+      "corpus_sha256": "11700a740fd02d2c4485863b72a799e289ee79dc1a69f8fc896f9dc1be803495",
+      "files": 3,
+      "complete_outputs_equal": true,
+      "samples": [
+        {
+          "order": 0,
+          "combined": false,
+          "index_and_drop_ms": 7.071661
+        },
+        {
+          "order": 1,
+          "combined": true,
+          "index_and_drop_ms": 5.560022
+        },
+        {
+          "order": 2,
+          "combined": true,
+          "index_and_drop_ms": 4.960654999999999
+        },
+        {
+          "order": 3,
+          "combined": false,
+          "index_and_drop_ms": 4.193947
+        },
+        {
+          "order": 4,
+          "combined": false,
+          "index_and_drop_ms": 3.088688
+        },
+        {
+          "order": 5,
+          "combined": true,
+          "index_and_drop_ms": 2.470783
+        },
+        {
+          "order": 6,
+          "combined": true,
+          "index_and_drop_ms": 2.461272
+        },
+        {
+          "order": 7,
+          "combined": false,
+          "index_and_drop_ms": 3.096609
+        },
+        {
+          "order": 8,
+          "combined": false,
+          "index_and_drop_ms": 3.084974
+        },
+        {
+          "order": 9,
+          "combined": true,
+          "index_and_drop_ms": 2.459053
+        },
+        {
+          "order": 10,
+          "combined": true,
+          "index_and_drop_ms": 2.467388
+        },
+        {
+          "order": 11,
+          "combined": false,
+          "index_and_drop_ms": 3.0908770000000003
+        }
+      ],
+      "native_samples": [
+        {
+          "combined": false,
+          "native_collection_ms": 40.531784,
+          "index_thread_cpu_us": 7855,
+          "index_spans": 3,
+          "complete_outputs_equal": true,
+          "ring_evicted": 0
+        },
+        {
+          "combined": true,
+          "native_collection_ms": 38.127717,
+          "index_thread_cpu_us": 5873,
+          "index_spans": 3,
+          "complete_outputs_equal": true,
+          "ring_evicted": 0
+        },
+        {
+          "combined": true,
+          "native_collection_ms": 39.822199000000005,
+          "index_thread_cpu_us": 7252,
+          "index_spans": 3,
+          "complete_outputs_equal": true,
+          "ring_evicted": 0
+        },
+        {
+          "combined": false,
+          "native_collection_ms": 40.381558999999996,
+          "index_thread_cpu_us": 7649,
+          "index_spans": 3,
+          "complete_outputs_equal": true,
+          "ring_evicted": 0
+        }
+      ],
+      "native_setup_ms": 152.04733000000002,
+      "worker_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+      "scope": "Frozen UTF-8 corpus, exact counts/imports/ordered symbol fields against the independent original two-pass implementation. Standalone index plus drop excludes input I/O, equivalence and warmups. Native samples use the same actual confined file worker, four-reader complete source collection and unchanged policy/limits on a private complete-text copy; they include I/O and indexing, but exclude setup/output comparison and warmups. OS/tool caches remain warm. Neither measures complete GUI navigation, compilation, proof, cold installation or live inference.",
+      "medians": [
+        {
+          "combined": false,
+          "standalone_index_and_drop_ms": 3.093743,
+          "native_collection_ms": 40.4566715,
+          "index_thread_cpu_us": 7752
+        },
+        {
+          "combined": true,
+          "standalone_index_and_drop_ms": 2.4690855000000003,
+          "native_collection_ms": 38.974958,
+          "index_thread_cpu_us": 6562.5
+        }
+      ]
+    },
+    {
+      "project": "ethlib",
+      "total_inventory_files": 2517,
+      "indexed_sources": 2517,
+      "source_bytes": 38466384,
+      "original_inventory_revision": "sha256:ae56d92a6dd157ffdaf9b09cc5c344a9c0483cd401db5e69fa06ca0c39f0eff8",
+      "complete_source_manifest_sha256": "b49f23073016c9c1fad175ebfa25ee54f6f70f1f7ca029e17de5d57571422ebb",
+      "measurement_path": "target/navigation-index-experiment/ethlib-native-timings.json",
+      "measurement_sha256": "4c659c6234ad8d9238883301147e0c3f1afe88de819efb081dfc61a99c604ef7",
+      "corpus_sha256": "30364eb95df2a34449d084ab06b9c40bd3284bacbde9539dba443f48006bab43",
+      "files": 2517,
+      "complete_outputs_equal": true,
+      "samples": [
+        {
+          "order": 0,
+          "combined": false,
+          "index_and_drop_ms": 7233.139175
+        },
+        {
+          "order": 1,
+          "combined": true,
+          "index_and_drop_ms": 5422.472422
+        },
+        {
+          "order": 2,
+          "combined": true,
+          "index_and_drop_ms": 5411.081814
+        },
+        {
+          "order": 3,
+          "combined": false,
+          "index_and_drop_ms": 7234.512055
+        },
+        {
+          "order": 4,
+          "combined": false,
+          "index_and_drop_ms": 7230.162608
+        },
+        {
+          "order": 5,
+          "combined": true,
+          "index_and_drop_ms": 5398.8175
+        },
+        {
+          "order": 6,
+          "combined": true,
+          "index_and_drop_ms": 5460.204777000001
+        },
+        {
+          "order": 7,
+          "combined": false,
+          "index_and_drop_ms": 7246.103456
+        },
+        {
+          "order": 8,
+          "combined": false,
+          "index_and_drop_ms": 7291.151673
+        },
+        {
+          "order": 9,
+          "combined": true,
+          "index_and_drop_ms": 5399.579383
+        },
+        {
+          "order": 10,
+          "combined": true,
+          "index_and_drop_ms": 5411.730651
+        },
+        {
+          "order": 11,
+          "combined": false,
+          "index_and_drop_ms": 7228.356807
+        }
+      ],
+      "native_samples": [
+        {
+          "combined": false,
+          "native_collection_ms": 2687.571073,
+          "index_thread_cpu_us": 7257787,
+          "index_spans": 2517,
+          "complete_outputs_equal": true,
+          "ring_evicted": 2601
+        },
+        {
+          "combined": true,
+          "native_collection_ms": 2239.405392,
+          "index_thread_cpu_us": 5504132,
+          "index_spans": 2517,
+          "complete_outputs_equal": true,
+          "ring_evicted": 2601
+        },
+        {
+          "combined": true,
+          "native_collection_ms": 2257.644301,
+          "index_thread_cpu_us": 5537674,
+          "index_spans": 2517,
+          "complete_outputs_equal": true,
+          "ring_evicted": 2601
+        },
+        {
+          "combined": false,
+          "native_collection_ms": 2700.1592809999997,
+          "index_thread_cpu_us": 7300188,
+          "index_spans": 2517,
+          "complete_outputs_equal": true,
+          "ring_evicted": 2601
+        }
+      ],
+      "native_setup_ms": 136.54239900000002,
+      "worker_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+      "scope": "Frozen UTF-8 corpus, exact counts/imports/ordered symbol fields against the independent original two-pass implementation. Standalone index plus drop excludes input I/O, equivalence and warmups. Native samples use the same actual confined file worker, four-reader complete source collection and unchanged policy/limits on a private complete-text copy; they include I/O and indexing, but exclude setup/output comparison and warmups. OS/tool caches remain warm. Neither measures complete GUI navigation, compilation, proof, cold installation or live inference.",
+      "medians": [
+        {
+          "combined": false,
+          "standalone_index_and_drop_ms": 7233.825615,
+          "native_collection_ms": 2693.8651769999997,
+          "index_thread_cpu_us": 7278987.5
+        },
+        {
+          "combined": true,
+          "standalone_index_and_drop_ms": 5411.4062324999995,
+          "native_collection_ms": 2248.5248465,
+          "index_thread_cpu_us": 5520903
+        }
+      ]
+    }
+  ],
+  "scope": "Actual publication-indexed Lean/Rust texts only; the private Riemann cache contains additional records; complete byte sizes/SHA checked against original frozen inventories, exact complete original two-pass index output required before timing and for every native result. Twelve standalone and four actual confined four-reader collection samples interleave original/combined, exclude setup/equivalence/warmups, retain warm OS/tool caches and use development-profile code. Both methods share the fixed current worker/policy and new span instrumentation. No concurrent build/test/sampler runs during measurement. Native index-thread CPU is summed across parallel readers, not additive elapsed time. Lifetime ring evictions remain explicit; every current file span/CPU must be present. Not complete GUI navigation, cold installation, compilation, model quality or proof.",
+  "validation": {
+    "state": "complete",
+    "phase": "complete",
+    "app_tests": 191,
+    "seeded_generated_index_cases": 2000,
+    "seed": "20261126",
+    "architecture": 64,
+    "tui": {
+      "selected": 37,
+      "manually_inspected_journeys": 9,
+      "decoded_observations": 21,
+      "binary": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542"
+    },
+    "browser": [
+      {
+        "stats": {
+          "total": 7,
+          "expected": 7,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "titles": [
+          "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+          "open file tabs restore source, graph camera and explanations without another inspection",
+          "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+          "a combined lexical index refreshes navigation identity while reusing compiler, search and English artifacts",
+          "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "large project map loads declaration nodes on zoom without opening files or changing chat",
+          "prepared map annotations retain exact locations, retire after source changes and reopen without inference"
+        ]
+      },
+      {
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "titles": [
+          "registered finite source graph prepares real counterexamples, caches, repairs and reopens without Lean",
+          "open file tabs restore source, graph camera and explanations without another inspection",
+          "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+          "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "large project map loads declaration nodes on zoom without opening files or changing chat",
+          "prepared map annotations retain exact locations, retire after source changes and reopen without inference"
+        ]
+      },
+      {
+        "stats": {
+          "total": 5,
+          "expected": 5,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "titles": [
+          "prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart",
+          "a combined lexical index refreshes navigation identity while reusing compiler, search and English artifacts",
+          "prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure",
+          "declaration kinds and highlighted source stay independent of chat until the user sends",
+          "local source graph follows exact code, refreshes after development and rejects unavailable inputs"
+        ]
+      }
+    ],
+    "variant_complete_ring": true,
+    "variant_artifact_files": 6,
+    "scope": "Actual installed Lean/Lake/Plausible/GF/Z3 and confined file workers; scripted model fixtures, no live-model or cold-install validation. Map/source cases run under both motion settings. Five additional source/update runs include a repeated lexical-update case after adding the complete-ring guard; 18 executions are not 18 distinct test titles.",
+    "gates": [
+      {
+        "name": "app",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "browser-reduce",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "decode-reduce",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "browser-no-preference",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "decode-no-preference",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "additional_gates": [
+      {
+        "name": "source",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "decode",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "rust-format",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "clippy": {
+      "command": "cargo clippy -p meden-app --all-targets --offline -- -D warnings",
+      "passed": true
+    },
+    "fuzz": {
+      "command": "PROPTEST_CASES=2000 PROPTEST_RNG_SEED=20261126 cargo test -p meden-app --offline adapters::source::",
+      "passed": 5,
+      "failed": 0,
+      "cases": 2000,
+      "seed": "20261126"
+    }
+  },
+  "deployment": {
+    "state": "complete",
+    "binary_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+    "assets_sha256": "e037478f6631291ca42bdcdc667e361d25aee0fb40d8164d7a3dbf1939b68b47",
+    "unchanged_browser_assets": 88,
+    "integrity": {
+      "assets_match_dist_and_hidden_maps": 88,
+      "rows": [
+        {
+          "project": "riemann",
+          "pid": 266215,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+          "assets_sha256": "e037478f6631291ca42bdcdc667e361d25aee0fb40d8164d7a3dbf1939b68b47"
+        },
+        {
+          "project": "ethlib",
+          "pid": 266425,
+          "served_assets": 88,
+          "idle_unapproved": true,
+          "binary_sha256": "96871bc6c9d8ec8571965f65abecfd3502533d393fb07dbebaa9c820a0d5d542",
+          "assets_sha256": "e037478f6631291ca42bdcdc667e361d25aee0fb40d8164d7a3dbf1939b68b47"
+        }
+      ]
+    },
+    "fidelity": [
+      {
+        "project": "riemann",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 68496,
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017634,
+            "sha256": "56c1c6680fc742514e9b57ca72100a0aea3f0086e1719ba4ddda914836aebb17",
+            "comparison": "all original data equal except new indexer/generation; complete envelope digest rechecked"
+          },
+          {
+            "name": "nav",
+            "bytes": 13881,
+            "sha256": "ce0b919939f8ab3efaed3ea8f73899f0abce1bde2f9022c5b729bcccd6fb1025",
+            "comparison": "all original files equal; exact new parent inventory and complete chunk digest checked"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 181972,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "not claimed after ring eviction"
+      },
+      {
+        "project": "ethlib",
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "views": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4",
+            "comparison": "complete original bytes equal"
+          },
+          {
+            "name": "inventory",
+            "bytes": 7343437,
+            "sha256": "deb7fb171818a1aaa7963a8b5b065742fe0d715fc0eef550dcfd4bba4dd4b3aa",
+            "comparison": "all original data equal except new indexer/generation; complete envelope digest rechecked"
+          },
+          {
+            "name": "nav",
+            "bytes": 1530,
+            "sha256": "617bd71856563301ef49475207074d4c5c018d73680ebdc803fffd75414532a4",
+            "comparison": "all original files equal; exact new parent inventory and complete chunk digest checked"
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "comparison": "complete original bytes equal"
+          }
+        ],
+        "running": false,
+        "authorized": false,
+        "cache_hit": true,
+        "history_candidates_unchanged": true,
+        "native_ring_evicted": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "directory": false
+          }
+        ],
+        "observed_semantic_spans": [],
+        "semantic_absence_claim": "complete retained ring"
+      }
+    ],
+    "retained_semantic_files": [
+      {
+        "project": "riemann",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 2547,
+            "sha256": "c83d739e2443e8aa2110c52a230bbf7301e657b600ec10e3d60600475c6760b8"
+          },
+          {
+            "path": "observations/1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454.json",
+            "bytes": 143826,
+            "sha256": "1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454"
+          },
+          {
+            "path": "observations/1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd.json",
+            "bytes": 143826,
+            "sha256": "1b536f69c9b699554f1a061ba6afa20e205f17ba577fe9121924b13d64037ddd"
+          },
+          {
+            "path": "observations/44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2.json",
+            "bytes": 143826,
+            "sha256": "44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2"
+          },
+          {
+            "path": "observations/4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f.json",
+            "bytes": 182398,
+            "sha256": "4d87f24c6464eca8b8af308c10bf1f56a79a806febb2ba9d7a64db392202894f"
+          },
+          {
+            "path": "observations/4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca.json",
+            "bytes": 143826,
+            "sha256": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca"
+          },
+          {
+            "path": "observations/5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664.json",
+            "bytes": 143870,
+            "sha256": "5328cc08f10ec2523f913683d9fd5278f9930162829ba082b7ccd4a7a5b64664"
+          },
+          {
+            "path": "observations/79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4.json",
+            "bytes": 143870,
+            "sha256": "79418efe6a0ea2068a9ca219e7ab8b436568d5556648b091a8a5d0f2d50ca1c4"
+          },
+          {
+            "path": "observations/80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c.json",
+            "bytes": 143826,
+            "sha256": "80cf45bf339cf7a93d9c1aa77d2ce07c5f9c8380318c4fcd9a16940673e1a99c"
+          },
+          {
+            "path": "observations/9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00.json",
+            "bytes": 146872,
+            "sha256": "9447efd88204d50d1750b851251d3b763459a5d43ebccf0360541bc861ca2f00"
+          },
+          {
+            "path": "observations/9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267.json",
+            "bytes": 147323,
+            "sha256": "9ce536b5ac3679ac77e66da38fd5d81fd5f66426232d64232b602dd34e903267"
+          },
+          {
+            "path": "observations/9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28.json",
+            "bytes": 143826,
+            "sha256": "9e0a09c46b6e791f2236cf60fc820e20e3004a25f840f8bbbdb8f160022cfb28"
+          },
+          {
+            "path": "observations/add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa.json",
+            "bytes": 143870,
+            "sha256": "add3abd8d51144d4df937863d8770dd1abc38919e16cb2c51b3b721609a724aa"
+          },
+          {
+            "path": "observations/c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b.json",
+            "bytes": 143826,
+            "sha256": "c76efe9b522e9a25c53c0215305f3af64d186004ff9ccd69796898f2a1fde17b"
+          },
+          {
+            "path": "observations/ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875.json",
+            "bytes": 143870,
+            "sha256": "ce24eca78c60b73b05de9bfa165f88a3f0ab21be25fc348c83711d582b4ae875"
+          },
+          {
+            "path": "observations/cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda.json",
+            "bytes": 143826,
+            "sha256": "cf188a5ffe268af175b16f940696d772f5afd92d70b0686f1d720a0503d53fda"
+          },
+          {
+            "path": "observations/dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424.json",
+            "bytes": 143826,
+            "sha256": "dc6fb4eb7972d9eb5750f73a95f8d2b8ecddfa570abec8ebc606b79a030dd424"
+          },
+          {
+            "path": "observations/e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3.json",
+            "bytes": 143826,
+            "sha256": "e266e30a9ef4d2174d8015d8185f4b2ccaf64a4815ab042c090c8eca309128f3"
+          },
+          {
+            "path": "observations/e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e.json",
+            "bytes": 143826,
+            "sha256": "e33a197a33a653fcdd4fe3ddecca98d5e3258167e56c287e3ed82f5b5eaff22e"
+          },
+          {
+            "path": "observations/f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80.json",
+            "bytes": 143826,
+            "sha256": "f8fa8d0529626f28521aa1d729a3a445427d06b85f0da5f5215c39d78f0a6f80"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 2547,
+            "sha256": "2282e1be5524b637e12dc60d0871ddbc4093b451f46dbe1a456b55a2ff9db254"
+          },
+          {
+            "path": "renderings/083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815.json",
+            "bytes": 16851,
+            "sha256": "083b37abe64314f3540280d45b741170b7955abe5e62e0433468bb2619df5815"
+          },
+          {
+            "path": "renderings/09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274.json",
+            "bytes": 16851,
+            "sha256": "09fdecd5d75bb036d624f53485c45b780e91c642ed99c0554fc121e9589c8274"
+          },
+          {
+            "path": "renderings/0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb.json",
+            "bytes": 16851,
+            "sha256": "0ad0fffc446c85cc538036f3eec86a004ae2b77cd29fa7eacffe95f0c8ac85eb"
+          },
+          {
+            "path": "renderings/19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3.json",
+            "bytes": 19534,
+            "sha256": "19aaae974441b72c26e1c7f94791844ea7c03d832f7df94330146e64cc7a49f3"
+          },
+          {
+            "path": "renderings/1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89.json",
+            "bytes": 16851,
+            "sha256": "1ec1e473627cae40bc2b2efdfc4d5f5ec2cb5990df14b064cd6201bec89ebb89"
+          },
+          {
+            "path": "renderings/6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a.json",
+            "bytes": 16851,
+            "sha256": "6eafd27a49e9785d561fcf484d45aaef9813c2a1ddcd40db84f7cfb70977f16a"
+          },
+          {
+            "path": "renderings/713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9.json",
+            "bytes": 16851,
+            "sha256": "713e21ac89ee0e7e5a89fbdee5cb3946b1e2faa8609f75b5606564433d3fb4b9"
+          },
+          {
+            "path": "renderings/77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c.json",
+            "bytes": 16851,
+            "sha256": "77f87ee4919460cec406d34996b9e3a9d18b3b93d876cf344fc5b1a3538e3b4c"
+          },
+          {
+            "path": "renderings/7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f.json",
+            "bytes": 16851,
+            "sha256": "7f2996f2acd4506b9261eff6ccc30055730e6c3e4f992b46d1a66bbdc347699f"
+          },
+          {
+            "path": "renderings/933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e.json",
+            "bytes": 16851,
+            "sha256": "933123a62dcc8d926d9dc2870c96d8211b3716335d7efd3950ea50f63d9f877e"
+          },
+          {
+            "path": "renderings/a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537.json",
+            "bytes": 16851,
+            "sha256": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537"
+          },
+          {
+            "path": "renderings/b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7.json",
+            "bytes": 16851,
+            "sha256": "b95345bc31c8a2ea1b1aaaeff2f300add9e53143df78dffe0f2b76f30144f6e7"
+          },
+          {
+            "path": "renderings/c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7.json",
+            "bytes": 16851,
+            "sha256": "c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7"
+          },
+          {
+            "path": "renderings/d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78.json",
+            "bytes": 16851,
+            "sha256": "d376d9c01675be39d74ae818137fdd651bc9a07c3556de2a526fb388b216fa78"
+          },
+          {
+            "path": "renderings/da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e.json",
+            "bytes": 16851,
+            "sha256": "da72aa904b23938b1da9ef55e38ef18ed03d6a7485573d5dcb40c0e0475f716e"
+          },
+          {
+            "path": "renderings/e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a.json",
+            "bytes": 16851,
+            "sha256": "e16ebe8afe7702f4a3e59db8aac4e257653efced63566f7b84d8d9b6249ea38a"
+          },
+          {
+            "path": "renderings/f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38.json",
+            "bytes": 16851,
+            "sha256": "f289efe4c5b25a33784819b6216a1d266428c3db42497e1b69b0aa7dfd4bcb38"
+          },
+          {
+            "path": "renderings/f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304.json",
+            "bytes": 16851,
+            "sha256": "f5ce8196d8c42f2be75e87087a3cea875eed8d5c06bd857673098c6a73eb4304"
+          },
+          {
+            "path": "renderings/f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2.json",
+            "bytes": 16471,
+            "sha256": "f7d8b13d7df219b01346c9d31c5a08d964e20fc4e28aa182133ed9544568ced2"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2279,
+            "sha256": "c1bf6de4dab8395fd1c57f5e45958f198fe39cec855aa67fb8d991af0e9aec04"
+          },
+          {
+            "path": "searches/047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719.json",
+            "bytes": 4830,
+            "sha256": "047a2db052025f36ccf4488b14963a2f16e6437177a0f688dea05a4b66cc0719"
+          },
+          {
+            "path": "searches/0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73.json",
+            "bytes": 5081,
+            "sha256": "0513dbbd9517fa8979695a4b39cf154ea5067037faf0b89a80baa432187b8a73"
+          },
+          {
+            "path": "searches/1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d.json",
+            "bytes": 4376,
+            "sha256": "1207f546ab6998ccb366bf140d6470208198b95a9f07a09018e17c098ddb235d"
+          },
+          {
+            "path": "searches/15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5.json",
+            "bytes": 5081,
+            "sha256": "15ac5e4f98ebf7fb7ae1e1b40ec4cfb0847d118427293e031cece76c1a617ba5"
+          },
+          {
+            "path": "searches/27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd.json",
+            "bytes": 5081,
+            "sha256": "27bb0c3393825ff2afbfdcd6c2ff9d922e8a7473c4ae571d752351740175aabd"
+          },
+          {
+            "path": "searches/2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9.json",
+            "bytes": 5081,
+            "sha256": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9"
+          },
+          {
+            "path": "searches/3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed.json",
+            "bytes": 5081,
+            "sha256": "3b6dd60a16a5810df553f42728ba36676657d5ee14f13b71024dee1fe47003ed"
+          },
+          {
+            "path": "searches/42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750.json",
+            "bytes": 5081,
+            "sha256": "42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750"
+          },
+          {
+            "path": "searches/4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a.json",
+            "bytes": 5081,
+            "sha256": "4751654ef158a9211d2ed4a938432f8b28020931a1763a378a3c91b9bbbb085a"
+          },
+          {
+            "path": "searches/6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c.json",
+            "bytes": 4376,
+            "sha256": "6b19cd89665716fda8e30584567fadc0ff5e135b631576a95a9fb5c390179f7c"
+          },
+          {
+            "path": "searches/784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07.json",
+            "bytes": 3874,
+            "sha256": "784efad2b8eb48791df103a88d1f7b27bc0b148f51728c849bfbfc1c54b9da07"
+          },
+          {
+            "path": "searches/7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f.json",
+            "bytes": 4375,
+            "sha256": "7f9ce068ef94a9f7f649ae7fc1b6c86cb49a55e9734b4c1513b7b404dc68eb4f"
+          },
+          {
+            "path": "searches/8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45.json",
+            "bytes": 5081,
+            "sha256": "8e56c98ce82f48799913d8532e9774d090397e63baa7161c4e1593aa84facd45"
+          },
+          {
+            "path": "searches/b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5.json",
+            "bytes": 5081,
+            "sha256": "b80ad31938b5d36f7df9b00871998bec4c79c82295f7b16232c27b969de1b5d5"
+          },
+          {
+            "path": "searches/c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2.json",
+            "bytes": 4376,
+            "sha256": "c8f35535e6d13cbf2c4649dcbb5635c9cfb1d77410fc0d595609179d5ebfaec2"
+          },
+          {
+            "path": "searches/e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8.json",
+            "bytes": 5081,
+            "sha256": "e7798b9c9786899443f84a2699968c2b3c1660266eaa7391c7f0c8ad3f9e19b8"
+          },
+          {
+            "path": "searches/ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb.json",
+            "bytes": 5081,
+            "sha256": "ff72b3c2d92377a86963bc392ac974f6b5f98e4b0b1c58f0ebcb2a5f3ecba4fb"
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "files": [
+          {
+            "path": "observations-index.json",
+            "bytes": 1877,
+            "sha256": "cc267bbbaf33884f982af784a4db6d4d87b6ac637542d6fcc7426791a6bf9b60"
+          },
+          {
+            "path": "observations/2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded.json",
+            "bytes": 215991,
+            "sha256": "2c060185743246b8c9d0e77b9292d4d1564b7801560a42fdffb6166f6e009ded"
+          },
+          {
+            "path": "observations/547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc.json",
+            "bytes": 215991,
+            "sha256": "547b5f150a0f977f3c7e59cb308db4a3812603d57f463adb1232e7fb82be3acc"
+          },
+          {
+            "path": "observations/697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9.json",
+            "bytes": 215957,
+            "sha256": "697d7de2bee1f0c0e6b6666481b1960be30497e5cd9ec96bd25c590ca7a32ba9"
+          },
+          {
+            "path": "observations/7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e.json",
+            "bytes": 215957,
+            "sha256": "7d29fa8ad8f6730e30ad7c53b7fe3d713714ed2e84e8217b1fb6229969a0099e"
+          },
+          {
+            "path": "observations/81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011.json",
+            "bytes": 215991,
+            "sha256": "81f5e5944ed99b59bd540eee736cffcc4e9b263486feecc3f03994ffb71d2011"
+          },
+          {
+            "path": "observations/8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376.json",
+            "bytes": 215991,
+            "sha256": "8f89194521e7a0d1638b0de621fa7525223aca97b20108cf6fa721862e62e376"
+          },
+          {
+            "path": "observations/9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7.json",
+            "bytes": 215957,
+            "sha256": "9846d27e439a71dc6d1c542d5d71b27af7d64ea2507fa83e535ffac48cf5d7d7"
+          },
+          {
+            "path": "observations/9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1.json",
+            "bytes": 215957,
+            "sha256": "9ff877a861be201afa8c878e6cf74e4fe6e0af8ee70a0dd57ec9c85e2ab926f1"
+          },
+          {
+            "path": "observations/b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97.json",
+            "bytes": 215957,
+            "sha256": "b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97"
+          },
+          {
+            "path": "observations/c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28.json",
+            "bytes": 215957,
+            "sha256": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28"
+          },
+          {
+            "path": "observations/cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7.json",
+            "bytes": 215957,
+            "sha256": "cfb0d72166e30c98383890ce81432a4f5fddc6e48d052f821525ef6895d7f1d7"
+          },
+          {
+            "path": "observations/d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b.json",
+            "bytes": 215957,
+            "sha256": "d329cdba5ef7d78514785bce02a31a3375556e859685f8673d6face24ad30a3b"
+          },
+          {
+            "path": "observations/db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a.json",
+            "bytes": 215957,
+            "sha256": "db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a"
+          },
+          {
+            "path": "observations/f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e.json",
+            "bytes": 215957,
+            "sha256": "f38b26893bffd6a3d3fb775c56bfe19618b51eacea1d89c14d935ca0cb14595e"
+          },
+          {
+            "path": "renderings-index.json",
+            "bytes": 1877,
+            "sha256": "1581b6522d07c1658d2cea7cf44bdb6bcca7c0331f45517d414cd6872ab64e23"
+          },
+          {
+            "path": "renderings/180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8.json",
+            "bytes": 54382,
+            "sha256": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8"
+          },
+          {
+            "path": "renderings/543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2.json",
+            "bytes": 54382,
+            "sha256": "543b30fbc23667027a3ee9e1905d26af9e1e3d58925380c430814ff5377c6ba2"
+          },
+          {
+            "path": "renderings/6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905.json",
+            "bytes": 54382,
+            "sha256": "6221e9d746d32e8b2598b7408dee428858c49a5a41a0b8c85dd04f47210f5905"
+          },
+          {
+            "path": "renderings/6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15.json",
+            "bytes": 54382,
+            "sha256": "6756dc348c94cf3f5bd3be8a6d98e13c8ac15e9d3193236aeb99dc4416382f15"
+          },
+          {
+            "path": "renderings/6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35.json",
+            "bytes": 54382,
+            "sha256": "6a628972645527dbfa1beddfbb8674d546d3a8ebd453c1bd247d4c7d1361ec35"
+          },
+          {
+            "path": "renderings/7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069.json",
+            "bytes": 54382,
+            "sha256": "7a48e36c9b0fa6be50a64a16f77a02049fc223659e66da3508349a5c9df65069"
+          },
+          {
+            "path": "renderings/8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa.json",
+            "bytes": 54382,
+            "sha256": "8a13fc6c6c3e3e4a0ea5eccd781b3bd8a61dca6fa5c3befe445e70720e9336fa"
+          },
+          {
+            "path": "renderings/b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0.json",
+            "bytes": 54382,
+            "sha256": "b3c3ddf5a8312e0ca466efde687b7fa12de246e3df1982d77050d75eb73b95d0"
+          },
+          {
+            "path": "renderings/be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b.json",
+            "bytes": 54382,
+            "sha256": "be898425622561d76e72ad37d3a3a2978ec52b074526fac8185c8bf93820877b"
+          },
+          {
+            "path": "renderings/bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825.json",
+            "bytes": 54382,
+            "sha256": "bfddffe1a8552d7204c05e2a0f1007d33ba8961b7aa79190a7d7f0a99ec5b825"
+          },
+          {
+            "path": "renderings/c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb.json",
+            "bytes": 54382,
+            "sha256": "c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb"
+          },
+          {
+            "path": "renderings/cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f.json",
+            "bytes": 54382,
+            "sha256": "cdb24bb4ed6d215f94be5e9b634965cb45a4b77480cbf562948ecc5061a4829f"
+          },
+          {
+            "path": "renderings/cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816.json",
+            "bytes": 54382,
+            "sha256": "cf1afe6ad04e5162c24104342260b03e0e3e23b6e3f5937cd951fa27893cf816"
+          },
+          {
+            "path": "renderings/db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969.json",
+            "bytes": 54382,
+            "sha256": "db04382120626a94737a62567b8a7e3ce8afc72531ab739822f474ba32b35969"
+          },
+          {
+            "path": "searches-index.json",
+            "bytes": 2011,
+            "sha256": "865dd176a151bbbe13d566209739a674733dd4bdee7c5351e122d5cdb9f28b97"
+          },
+          {
+            "path": "searches/0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396.json",
+            "bytes": 18771,
+            "sha256": "0d99f41275d8499c4b60392e468e757a674c6c147b2691cc271989a50a83e396"
+          },
+          {
+            "path": "searches/225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19.json",
+            "bytes": 18771,
+            "sha256": "225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19"
+          },
+          {
+            "path": "searches/3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee.json",
+            "bytes": 18771,
+            "sha256": "3bbd2306196c35be87803882966ce552be51bb56cb1b5109ef339dc175184cee"
+          },
+          {
+            "path": "searches/4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0.json",
+            "bytes": 18771,
+            "sha256": "4801ef6002f9ba7ccb4177b113edf95811d920eb2aee27c8f156abd617cf73f0"
+          },
+          {
+            "path": "searches/5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7.json",
+            "bytes": 18771,
+            "sha256": "5426aefb13fa799908896ed4dd26a32e8f01bffe42be1bf789134eca0cd4c5e7"
+          },
+          {
+            "path": "searches/5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c.json",
+            "bytes": 18771,
+            "sha256": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c"
+          },
+          {
+            "path": "searches/73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323.json",
+            "bytes": 18771,
+            "sha256": "73a53309ea379dca696514bbcd5715f380a9dfdaa3aa51f5022e0174c831d323"
+          },
+          {
+            "path": "searches/7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999.json",
+            "bytes": 18771,
+            "sha256": "7a142ef849cf87aca6b748423c20fc3d84ee12bdc64ee9e5b7b04bf91504f999"
+          },
+          {
+            "path": "searches/829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9.json",
+            "bytes": 18771,
+            "sha256": "829fda7dbe319725d609ce289ba3884ea3694eec61bd4989808c9d16399a59a9"
+          },
+          {
+            "path": "searches/bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff.json",
+            "bytes": 18771,
+            "sha256": "bf6d23f9a7a7ad68407eb594eda91be3db16a98aaaab3d38f003b2c538f481ff"
+          },
+          {
+            "path": "searches/c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509.json",
+            "bytes": 18771,
+            "sha256": "c012ee1ca82f7a56b2513dbe597f469e7f720052a984961f53ba5803c2f03509"
+          },
+          {
+            "path": "searches/e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b.json",
+            "bytes": 18771,
+            "sha256": "e04a72bdfc31f4f26a4da2e15db41aa64c78d0e91e3eda930dc68569519e227b"
+          },
+          {
+            "path": "searches/e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a.json",
+            "bytes": 18771,
+            "sha256": "e894469b90aea712068e6eb30f5c102690c4ab4ad5bba2b0e563833e583f4d4a"
+          },
+          {
+            "path": "searches/f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37.json",
+            "bytes": 18771,
+            "sha256": "f5e36a67fac7e268f8a4203358426f108832cfa31de0aabd4e60950446078f37"
+          },
+          {
+            "path": "searches/f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480.json",
+            "bytes": 18771,
+            "sha256": "f7fc9201b875ea79e0d89b65f83b97bdbb048a06189d80977a8414ad1a71c480"
+          }
+        ]
+      }
+    ],
+    "startup_coordinators": [
+      {
+        "project": "riemann",
+        "evicted": 181975,
+        "coordinators": [
+          {
+            "name": "navigation.cache.prepare",
+            "parent": 13,
+            "start_us": 5759026,
+            "wall_us": 99832679,
+            "thread_cpu_us": 1443062
+          },
+          {
+            "name": "view.inventory.materialize",
+            "parent": 13,
+            "start_us": 105990742,
+            "wall_us": 771571,
+            "thread_cpu_us": 769121
+          },
+          {
+            "name": "gui.job",
+            "parent": 11,
+            "start_us": 1249456,
+            "wall_us": 107278181,
+            "thread_cpu_us": 5646108
+          },
+          {
+            "name": "gui.job",
+            "parent": 185541,
+            "start_us": 108618861,
+            "wall_us": 41485,
+            "thread_cpu_us": 985
+          },
+          {
+            "name": "gui.job",
+            "parent": 185557,
+            "start_us": 109589787,
+            "wall_us": 41638,
+            "thread_cpu_us": 1134
+          },
+          {
+            "name": "gui.job",
+            "parent": 185574,
+            "start_us": 110420766,
+            "wall_us": 42230,
+            "thread_cpu_us": 1647
+          },
+          {
+            "name": "gui.job",
+            "parent": 185589,
+            "start_us": 111292739,
+            "wall_us": 131354,
+            "thread_cpu_us": 5211
+          },
+          {
+            "name": "gui.job",
+            "parent": 185606,
+            "start_us": 112207179,
+            "wall_us": 56316,
+            "thread_cpu_us": 5629
+          },
+          {
+            "name": "gui.job",
+            "parent": 185621,
+            "start_us": 113082634,
+            "wall_us": 41856,
+            "thread_cpu_us": 1342
+          },
+          {
+            "name": "navigation.cache.prepare",
+            "parent": 185636,
+            "start_us": 134634115,
+            "wall_us": 42482,
+            "thread_cpu_us": 188
+          },
+          {
+            "name": "view.inventory.materialize",
+            "parent": 185636,
+            "start_us": 134913971,
+            "wall_us": 764880,
+            "thread_cpu_us": 761919
+          },
+          {
+            "name": "gui.job",
+            "parent": 185634,
+            "start_us": 113363199,
+            "wall_us": 22348688,
+            "thread_cpu_us": 2551558
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "evicted": 0,
+        "coordinators": [
+          {
+            "name": "navigation.collect.paths",
+            "parent": 15,
+            "start_us": 835787,
+            "wall_us": 15765562,
+            "thread_cpu_us": 951580
+          },
+          {
+            "name": "view.inventory.materialize",
+            "parent": 15,
+            "start_us": 22948677,
+            "wall_us": 1183819,
+            "thread_cpu_us": 1180445
+          },
+          {
+            "name": "gui.job",
+            "parent": 13,
+            "start_us": 835591,
+            "wall_us": 25733875,
+            "thread_cpu_us": 4625382
+          },
+          {
+            "name": "gui.job",
+            "parent": 2963,
+            "start_us": 135056936,
+            "wall_us": 41688,
+            "thread_cpu_us": 1235
+          },
+          {
+            "name": "gui.job",
+            "parent": 2983,
+            "start_us": 136189169,
+            "wall_us": 41848,
+            "thread_cpu_us": 1152
+          },
+          {
+            "name": "gui.job",
+            "parent": 3001,
+            "start_us": 137041555,
+            "wall_us": 62446,
+            "thread_cpu_us": 1711
+          },
+          {
+            "name": "gui.job",
+            "parent": 3014,
+            "start_us": 137406643,
+            "wall_us": 52115,
+            "thread_cpu_us": 1449
+          },
+          {
+            "name": "gui.job",
+            "parent": 3028,
+            "start_us": 137763523,
+            "wall_us": 2029100,
+            "thread_cpu_us": 970014
+          }
+        ]
+      }
+    ],
+    "scope": "Actual host restart/new syntax namespace, original source/reader/evidence bytes and inventory data preserved except honest indexer/generation/parent attribution. Exact complete raw inventory/chunk digests and new chunk parent checked. All original compiler/search/render/index file lengths and SHA-256 match. Both selected files report cache hits; histories/candidates unchanged and no restored model approval. Riemann cold syntax-namespace population is 99.832679 s inside a 107.278181 s startup job; both hosts start during this unpaired observation. Not first-visible-map latency or a paired startup speed comparison. Riemann ring eviction prevents a complete initial per-file CPU breakdown or semantic-absence claim; EthLib retained ring is complete. This remains a startup/upgrade wait target."
+  },
+  "original_source_sha256": "36faafbca4d79c6b3553eb90d97ccbc8d2a68efd34bcae1e8826c45ddf9722fa",
+  "validation_artifacts": [
+    {
+      "path": "/tmp/meden-one-pass-reviewed-validation.json",
+      "sha256": "9811abdcfa2d4f182ba2d1e46438d2e55b8530c65fc8f9e835b81d13a11822a1"
+    },
+    {
+      "path": "/tmp/meden-one-pass-decoded-screens.json",
+      "sha256": "84f7edd2cc6176da21e43aee6ed3734994e388cb0d2a1cd083de5529bfc95b91"
+    },
+    {
+      "path": "/tmp/meden-ux-one-pass-20261126/summary.json",
+      "sha256": "3e3d72b2ff89d727691dd1db26c9808ef03249c99253bf8f3c9af20fed8e6b97"
+    },
+    {
+      "path": "/tmp/meden-source-index-fuzz.log",
+      "sha256": "619ad639a979e3102f2c1e6afa138854817bf458f535d7dba1fa1c4de4cd7d81"
+    },
+    {
+      "path": "/tmp/meden-one-pass-app.log",
+      "sha256": "07e0f4cdb58eecbe5a4a1d245d253409f3683773db6de4240bc616d5e1aae0eb"
+    },
+    {
+      "path": "/tmp/meden-one-pass-architecture.log",
+      "sha256": "4ce1dc99c85d7e3b00cdf17279eb1d1ba70a814088a7139d29edd231c9383052"
+    },
+    {
+      "path": "/tmp/meden-one-pass-reduce-decoded.json",
+      "sha256": "8d54a0e2f6f0eeeb100c167b6a51964dacfd439b44e789fffe6a1dda4ef1ae6e"
+    },
+    {
+      "path": "/tmp/meden-one-pass-no-preference-decoded.json",
+      "sha256": "e5aed99857cc358a463686786aec64c5d572f7a59b70c73926fd9dc2bf289968"
+    },
+    {
+      "path": "/tmp/meden-one-pass-source-decoded.json",
+      "sha256": "5c06eca0f930cfc1fd7ae2b48c808c9e2f9450c98d682cecb16ff2857f49ed88"
+    },
+    {
+      "path": "target/native-profile/one-pass-deploy-20261126/riemann-after.png",
+      "sha256": "d3eb8fc688933877e564c94228a98407c9c25c0fb07b746fd8ed2fd7e934bdef"
+    },
+    {
+      "path": "target/native-profile/one-pass-deploy-20261126/ethlib-after.png",
+      "sha256": "24065ca6948d0c8ddd897b325bfd3adb5a4a7892fbac1d601910fd82f792d98d"
+    }
+  ]
+}

@@ -10,16 +10,6 @@ pub fn supports(path: &str) -> bool {
 pub fn additional_identity(path: &str) -> Option<String> {
     super::finite::navigation::supports(path).then(super::finite::navigation::identity)
 }
-pub fn index(path: &str, text: &str) -> (usize, usize, Vec<String>, Vec<Symbol>) {
-    if super::finite::navigation::supports(path) {
-        let symbols = super::finite::navigation::symbols(path, text).unwrap_or_default();
-        let theorems = symbols.iter().filter(|s| s.kind == "theorem").count();
-        return (symbols.len(), theorems, vec![], symbols);
-    }
-    let lean = Path::new(path).extension().is_some_and(|e| e == "lean");
-    let (count, theorems, imports) = source::headers(text, lean);
-    (count, theorems, imports, source::symbols(text, lean))
-}
 
 fn lean_annotations(
     context: &super::Context<'_>,
@@ -103,13 +93,18 @@ impl crate::navigation::collection::Indexer for Syntax {
         path: &str,
         text: &str,
     ) -> anyhow::Result<crate::navigation::collection::Indexed<Symbol>> {
-        let (declarations, theorems, imports, symbols) = index(path, text);
-        Ok(crate::navigation::collection::Indexed {
-            declarations,
-            theorems,
-            imports,
-            symbols,
-        })
+        if super::finite::navigation::supports(path) {
+            let symbols = super::finite::navigation::symbols(path, text).unwrap_or_default();
+            let theorems = symbols.iter().filter(|s| s.kind == "theorem").count();
+            return Ok(crate::navigation::collection::Indexed {
+                declarations: symbols.len(),
+                theorems,
+                imports: vec![],
+                symbols,
+            });
+        }
+        let lean = Path::new(path).extension().is_some_and(|e| e == "lean");
+        Ok(source::index(text, lean))
     }
 }
 

@@ -104,6 +104,14 @@ HTTP 202 rather than a startup/prerequisite error. Backend definition changes
 require fresh bound artifacts once; subsequent restart must reuse them without
 compilation/search/rendering. Old artifacts must not be relabeled.
 
+A lexical-index update must rebuild its navigation identity without changing
+original counts/imports/ordered symbol fields or rerunning peer semantic stages.
+The combined-index native journey builds two actual executables, prepares real
+Lake/Plausible/GF results, restarts under the new indexer and checks complete
+inventory data plus byte-identical compiler/search/English artifacts after full
+input validation. A local oracle or timing fixture alone does not establish this
+restart/cache behavior.
+
 Plain source and complete Lean compiler observations have separate types. Every
 Lean observation owns either frozen module content or a
 prepared-Lake fingerprint; display graphs carry neither execution reference.

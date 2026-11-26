@@ -501,6 +501,33 @@ warm-byte reads from cold installation/startup. The
 the original numeric-array reader against the existing encoded snapshot mode;
 the production loader retains only the latter.
 
+## Isolate lexical indexing
+
+```sh
+cargo build -p meden-app --example profile-navigation-index --offline
+target/debug/examples/profile-navigation-index /absolute/private-corpus.json \
+  /absolute/installed/meden > /tmp/navigation-index.json
+```
+
+The bounded JSON input is `{ "files": [{ "path": "Entry.lean", "lean": true,
+"text": "complete original UTF-8 source" }] }`. Use unique canonical relative
+paths and complete original bytes; do not commit source corpora. The diagnostic
+compares the independent original two-pass algorithm with the sole production
+indexer and refuses any difference in counts/imports/ordered symbol fields. It
+then writes a fresh private copy and calls actual four-reader collection through
+the ordinary confined file worker, without bypassing a live workspace lease.
+Every native result must retain original file order, bytes, digest and all index
+fields. Complete per-file `navigation.index` spans are required; unavailable CPU
+and incomplete samples fail rather than becoming zero.
+
+The report separates in-memory index/drop, native collection wall, summed
+index-thread CPU and initial worker preparation. Equivalence, setup and warmups
+are excluded from measured intervals; OS/tool caches remain warm. Input byte and
+file limits still apply. This performs no compiler, search, inference or evidence
+work and does not time complete GUI navigation. Interleave on a quiet host with
+fixed executables and complete input hashes. See the
+[actual-source comparison](../../docs/performance/lexical-index.md).
+
 For separate duplicate-background diagnostics, set
 `MEDEN_GUI_PAINT_OBSERVATIONS=1` when running either profiler. The optional
 `area-paints.json` records bounded ordered-command agreement and is included in

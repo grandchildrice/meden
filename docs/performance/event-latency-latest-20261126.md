@@ -1,7 +1,7 @@
 # Deployed event timings after navigation cache extraction
 
 The [numeric record](../../results/event-latency-latest-20261126.json) measures
-`d09eb9e`, the currently deployed native executable, with its immutable browser
+`d09eb9e`, the native executable deployed for these captures, with its immutable browser
 assets. EthLib and Riemann each have two sequential captures in fresh Chrome
 149 browsers, at 1440 × 960 with normal motion and no throttling. All seven
 JavaScript bundles match a separately built hidden-source-map copy byte for

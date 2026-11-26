@@ -39,6 +39,16 @@ a chronological per-dispatch export to the local profiler. Isolated reference
 stroke and background grouping trials are rejected; reducing attribute writes
 does not by itself establish faster detail exposure.
 
+The [combined lexical index](../performance/lexical-index.md) removes a duplicate
+production masking/line pass through the existing typed navigation port. Actual
+EthLib source collection falls from 2.694 to 2.249 seconds in an interleaved
+confined-worker comparison with exact original index observations. Its new
+lexical identity stays separate from retained compiler/search/render artifacts.
+This does not measure complete GUI loading, deep-wheel rendering or prepared
+compiler-input validation.
+The actual Riemann method update additionally spends 99.833 seconds populating
+its large private syntax cache; reducing that upgrade/startup wait remains work.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

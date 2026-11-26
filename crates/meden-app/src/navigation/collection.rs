@@ -196,12 +196,16 @@ fn source<I: Indexer>(
         if !indexer.supports(path) {
             return Ok((file, observed));
         }
+        let syntax = {
+            let _timing = meden_runtime::metrics::Span::start("navigation.index");
+            indexer.index(path, &text)?
+        };
         let Indexed {
             declarations,
             theorems,
             imports,
             symbols,
-        } = indexer.index(path, &text)?;
+        } = syntax;
         file.sha256 = format!("{:x}", Sha256::digest(text.as_bytes()));
         file.declarations = declarations;
         file.theorems = theorems;
