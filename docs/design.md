@@ -5,6 +5,9 @@ we are building, not functionality already shipped. Current checks and
 implementation limits are in [verification.md](verification.md) and
 [SECURITY.md](../SECURITY.md).
 
+The [product roadmap](roadmap.md) sets the next priorities, completion criteria
+and task-level measures after the typed-core and project-map work.
+
 ## Problem and product promise
 
 A developer can describe a feature to a coding agent, but still has to

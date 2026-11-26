@@ -18,6 +18,7 @@
 <p align="center">
   <a href="#getting-started">Getting started</a> ·
   <a href="docs/design.md">Design</a> ·
+  <a href="docs/roadmap.md">Roadmap</a> ·
   <a href="docs/verification.md">Formal verification</a> ·
   <a href="results/README.md">Benchmarks</a>
 </p>
