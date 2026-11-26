@@ -53,6 +53,13 @@ oversized frames, and stop invalid/expired requests before worker dispatch.
 The public map failure/retry, saved-map, large-map and retained-tab restart
 journeys must retain their original data and camera without model work.
 
+Cache-phase observations must remain linked to the actual cache worker's trace
+and parent span in the public large-map journey. Retained ring records do not
+establish complete lifetime coverage. Complete-corpus diagnostics must refuse
+lost records, compare all original cached file fields after cold population,
+unchanged refresh and sealed resume, and calibrate sampling against a quiet run.
+Nested/parallel intervals and child-process CPU require separate attribution.
+
 Navigation-policy changes keep entry selection and import-name interpretation
 outside the CLI/browser. A filename ending in `Main.lean`, such as `NotMain.lean`,
 must not start compilation on startup or restart; explicit explorer opening must

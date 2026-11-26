@@ -55,6 +55,13 @@ indexer/composition while a new observation runs. Failed discovery can be retrie
 inside the map. Current file inspection cannot relabel that former view. This
 advances read-model separation; it does not shorten full cache population.
 
+The [complete cache-phase profile](../performance/navigation-cache-phases.md)
+adds correlated metadata/lookup/collection/persistence observations and compares
+every original cached file value across the full 175,187-file Riemann source
+copy. Sampling/quiet runs distinguish population, unchanged refresh and sealed
+resume. Indexing accounts for most measured collection-thread CPU; this is a
+diagnosis on the declared corpus, not a faster cache algorithm or proof of I/O.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

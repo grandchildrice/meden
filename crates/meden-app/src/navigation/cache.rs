@@ -244,25 +244,33 @@ impl<S: Serialize + DeserializeOwned, M: Serialize + DeserializeOwned + PartialE
         paths: &[String],
         changed: &AtomicBool,
     ) -> Result<()> {
-        let stamps = reader.stamps(paths)?;
+        let stamps = {
+            let _timing = meden_runtime::metrics::Span::start("navigation.cache.metadata");
+            reader.stamps(paths)?
+        };
         anyhow::ensure!(
             stamps.len() == paths.len(),
             "Incomplete navigation metadata observations"
         );
-        let mut pending = BTreeMap::new();
-        for (path, stamp) in paths.iter().zip(stamps) {
-            let previous = self.entry(path).ok().flatten();
-            // Failed or corrupt entries are retryable even with the same hint.
-            if previous.is_some_and(|e| e.stamp == stamp && e.file.is_some()) {
-                continue;
+        let mut pending = {
+            let _timing = meden_runtime::metrics::Span::start("navigation.cache.lookup");
+            let mut pending = BTreeMap::new();
+            for (path, stamp) in paths.iter().zip(stamps) {
+                let previous = self.entry(path).ok().flatten();
+                // Failed or corrupt entries are retryable even with the same hint.
+                if previous.is_some_and(|e| e.stamp == stamp && e.file.is_some()) {
+                    continue;
+                }
+                changed.store(true, Ordering::SeqCst);
+                pending.insert(path.clone(), stamp);
             }
-            changed.store(true, Ordering::SeqCst);
-            pending.insert(path.clone(), stamp);
-        }
+            pending
+        };
         if pending.is_empty() {
             return Ok(());
         }
         let paths = pending.keys().cloned().collect::<Vec<_>>();
+        let source_timing = meden_runtime::metrics::Span::start("navigation.cache.sources");
         let files = if let Ok(files) = reader.sources(&paths) {
             check_files(&paths, &files)?;
             files
@@ -288,6 +296,8 @@ impl<S: Serialize + DeserializeOwned, M: Serialize + DeserializeOwned + PartialE
             }
             files
         };
+        drop(source_timing);
+        let _timing = meden_runtime::metrics::Span::start("navigation.cache.persist");
         for file in files {
             let stamp = pending.remove(&file.path).context("Missing source stamp")?;
             self.retain(&Entry {

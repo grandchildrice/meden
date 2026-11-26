@@ -532,6 +532,32 @@ work and does not time complete GUI navigation. Interleave on a quiet host with
 fixed executables and complete input hashes. See the
 [actual-source comparison](../../docs/performance/lexical-index.md).
 
+## Isolate complete navigation-cache preparation
+
+```sh
+cargo build -p meden-app --example profile-navigation-cache --offline
+XDG_DATA_HOME=/absolute/fresh/private-host-data \
+  target/debug/examples/profile-navigation-cache /absolute/private-source-copy \
+  /absolute/installed/meden /absolute/complete-ordered-paths.json \
+  /absolute/original-cache-record-copy sampling > /tmp/navigation-cache.json
+```
+
+Use a complete source-only private copy when the original project is open; do not
+bypass its workspace lease. Preserve and check every original source byte and
+expected cache record before timing. The path list and diagnostic output are
+bounded, and an existing namespace refuses a purported cold run. Only Lean/Rust
+source indexing is selected; no compiler, model or evidence is dispatched.
+
+The diagnostic runs cold population, unchanged explicit refresh and sealed resume
+through the actual offline file worker. Complete original cached `File` values
+must match after each phase; physical inode/time hints are intentionally new.
+Setup, output comparison and hashing stay outside intervals. `sampling` captures
+the public bounded metrics, refuses missing records and limits local accumulation
+to one million records. Repeat with `quiet` and a separate fresh host-data
+directory to calibrate the observer; warm OS/tool caches remain. Do not run other
+builds, tests or samplers during either measurement. Keep corpora/raw records local.
+See [the phase record](../../docs/performance/navigation-cache-phases.md).
+
 For separate duplicate-background diagnostics, set
 `MEDEN_GUI_PAINT_OBSERVATIONS=1` when running either profiler. The optional
 `area-paints.json` records bounded ordered-command agreement and is included in

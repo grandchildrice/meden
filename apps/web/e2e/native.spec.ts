@@ -5650,6 +5650,48 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     );
     expect(inventory.files).toHaveLength(10001);
     expect(inventory.inventory_only).toBe(true);
+    const cacheTimings = await page.evaluate(async () => {
+      const r = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      if (!r.ok) throw Error("Cache timings unavailable");
+      return r.json();
+    });
+    const cacheStages = [
+      "navigation.cache.metadata",
+      "navigation.cache.lookup",
+      "navigation.cache.sources",
+      "navigation.cache.persist",
+    ];
+    const observedStages = cacheTimings.records.filter((r: any) =>
+      cacheStages.includes(r.name),
+    );
+    expect(new Set(observedStages.map((r: any) => r.name))).toEqual(
+      new Set(cacheStages),
+    );
+    const workers = cacheTimings.records.filter(
+      (r: any) => r.name === "navigation.cache.worker",
+    );
+    expect(
+      observedStages.every((r: any) =>
+        workers.some(
+          (p: any) =>
+            p.context.span === r.parent && p.context.trace === r.context.trace,
+        ),
+      ),
+    ).toBe(true);
+    await info.attach("cache-phase-observations", {
+      body: JSON.stringify({
+        retained_stages: observedStages,
+        lifetime_evicted: cacheTimings.evicted,
+        scope:
+          "Retained phase intervals remain linked to their cache worker. A bounded ring is not a complete lifetime capture; nested/parallel wall intervals overlap and host thread CPU excludes child processes.",
+      }),
+      contentType: "application/json",
+    });
     expect(
       inventory.files.every((f: { state: string }) => f.state === "unindexed"),
     ).toBe(true);
