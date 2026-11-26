@@ -1,5 +1,12 @@
 # Local profiling and regression workloads
 
+The [publication-camera record](../../docs/performance/graph-publication-camera.md)
+fixes a native viewer reset when valid graph updates reissue IDs. It separately
+records rejected border/path replays, an actual world-path-cache comparison and
+four/eight-reader full-input preparation measurements. Faster prebuilt-path
+replay does not establish faster initial map exposure; the production painter
+and four-reader bound remain unchanged.
+
 The [consolidated SVG comparison](../../docs/performance/svg-local-transforms.md)
 measures all thirteen operation windows on the deployed `5771462` executable.
 Each actual project runs current/prototype/prototype/current with matching hidden

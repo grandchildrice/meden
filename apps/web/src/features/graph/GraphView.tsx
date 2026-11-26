@@ -49,6 +49,7 @@ type RadarNode = Node<RadarData, "declaration">;
 const nodeTypes = { declaration: DeclarationNode };
 const edgeTypes = { dependency: DependencyEdge };
 export type GraphCamera = {
+  id: string;
   center: string;
   focus: string;
   viewport: Viewport;
@@ -56,6 +57,28 @@ export type GraphCamera = {
 export type GraphCameraStore = { current: GraphCamera | undefined };
 const centerKey = (declaration: Declaration) =>
   JSON.stringify([declaration.source?.file || "", declaration.name]);
+const choice = (declaration?: Declaration) => ({
+  id: declaration?.id || "",
+  key: declaration ? centerKey(declaration) : "",
+});
+// IDs belong to the current publication. Preserve an exact current selection,
+// then resolve a reissued ID only when its original source/name is unambiguous.
+function resolveCenter(
+  declarations: readonly Declaration[],
+  key: string,
+  id?: string,
+) {
+  const exact =
+    id && declarations.find((d) => d.id === id && centerKey(d) === key);
+  if (exact) return exact;
+  let found: Declaration | undefined;
+  for (const declaration of declarations) {
+    if (centerKey(declaration) !== key) continue;
+    if (found) return undefined;
+    found = declaration;
+  }
+  return found;
+}
 export function GraphView({
   workspace,
   focusId,
@@ -78,31 +101,34 @@ export function GraphView({
     workspace.declarations.find((d) => d.name === focusName);
   const focus = focusName || focused?.name || focusId || "";
   const preferred =
-    focused?.id ||
-    workspace.declarations.find((item) => item.isMainTheorem)?.id ||
-    workspace.declarations.find((item) => item.kind === "theorem")?.id ||
-    workspace.declarations[0]?.id ||
-    "";
+    focused ||
+    workspace.declarations.find((item) => item.isMainTheorem) ||
+    workspace.declarations.find((item) => item.kind === "theorem") ||
+    workspace.declarations[0];
   const [chosenRoot, setRoot] = useState(() => {
     const retained = camera?.current;
-    return (
+    return choice(
       (retained?.focus === focus &&
-        workspace.declarations.find((d) => centerKey(d) === retained.center)
-          ?.id) ||
-      preferred
+        resolveCenter(workspace.declarations, retained.center, retained.id)) ||
+        preferred,
     );
   });
-  const root = workspace.declarations.some((d) => d.id === chosenRoot)
-    ? chosenRoot
-    : preferred;
-  const centered = workspace.declarations.find((d) => d.id === root);
+  const centered = useMemo(
+    () =>
+      resolveCenter(workspace.declarations, chosenRoot.key, chosenRoot.id) ||
+      preferred,
+    [workspace.declarations, chosenRoot, preferred],
+  );
+  const root = centered?.id || "";
   const center = centered ? centerKey(centered) : "";
   const initialViewport = useMemo(() => {
     const retained = camera?.current;
-    return retained?.center === center && retained.focus === focus
+    return retained?.center === center &&
+      retained.focus === focus &&
+      resolveCenter(workspace.declarations, center, retained.id)?.id === root
       ? retained.viewport
       : undefined;
-  }, [camera, center, focus]);
+  }, [camera, center, focus, root, workspace.declarations]);
   const previousFocus = useRef(focus);
   const [hovered, setHovered] = useState<string>();
   const emphasized = hovered || selectedId;
@@ -115,12 +141,18 @@ export function GraphView({
   useEffect(() => {
     const changed = previousFocus.current !== focus;
     previousFocus.current = focus;
+    const next = choice(changed ? preferred : centered);
     setRoot((previous) =>
-      changed || !workspace.declarations.some((d) => d.id === previous)
-        ? preferred
-        : previous,
+      previous.id === next.id && previous.key === next.key ? previous : next,
     );
-  }, [focus, preferred, workspace.declarations]);
+    const retained = camera?.current;
+    if (
+      camera &&
+      retained?.focus === focus &&
+      !resolveCenter(workspace.declarations, retained.center, retained.id)
+    )
+      camera.current = undefined;
+  }, [camera, focus, preferred, centered, workspace.declarations]);
   const positions = useMemo(
     () => coneLayout(workspace, root),
     [workspace, root],
@@ -236,7 +268,12 @@ export function GraphView({
               );
             },
             onSelect,
-            onCenter: setRoot,
+            onCenter: (id) => {
+              const declaration = workspace.declarations.find(
+                (d) => d.id === id,
+              );
+              if (declaration) setRoot(choice(declaration));
+            },
           }}
         >
           <ReactFlowProvider>
@@ -256,9 +293,19 @@ export function GraphView({
                   camera &&
                   (event ||
                     (camera.current?.center === center &&
-                      camera.current.focus === focus))
+                      camera.current.focus === focus &&
+                      resolveCenter(
+                        workspace.declarations,
+                        center,
+                        camera.current.id,
+                      )?.id === root))
                 )
-                  camera.current = { center, focus, viewport: { ...viewport } };
+                  camera.current = {
+                    id: root,
+                    center,
+                    focus,
+                    viewport: { ...viewport },
+                  };
               }}
               fitViewOptions={{
                 padding: {

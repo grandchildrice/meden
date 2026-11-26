@@ -1,0 +1,77 @@
+diff --git a/apps/web/src/features/native/MapAreaCanvas.tsx b/apps/web/src/features/native/MapAreaCanvas.tsx
+index 6e307ca..9f794de 100644
+--- a/apps/web/src/features/native/MapAreaCanvas.tsx
++++ b/apps/web/src/features/native/MapAreaCanvas.tsx
+@@ -8,6 +8,19 @@ import {
+ import { mapAreaColor } from "./MapSceneElements";
+ 
+ const appearances = new WeakMap<MapArea, { color: string; name: string }>();
++// Immutable map areas own world coordinates. Retain only the latest radius's
++// path; small cells keep their capped corner geometry while the camera moves.
++const paths = new WeakMap<MapArea, { radius: number; path: Path2D }>();
++const areaPath = (area: MapArea, zoom: number) => {
++  const radius = Math.min(3 / zoom, area.width / 2, area.height / 2);
++  let cached = paths.get(area);
++  if (!cached || cached.radius !== radius) {
++    const path = new Path2D();
++    path.roundRect(area.x, area.y, area.width, area.height, radius);
++    paths.set(area, (cached = { radius, path }));
++  }
++  return cached.path;
++};
+ const appearance = (area: MapArea) => {
+   let value = appearances.get(area);
+   if (!value) {
+@@ -51,29 +64,42 @@ export const MapAreaCanvas = memo(function MapAreaCanvas({
+       context.font =
+         "14px " + (family.current ??= getComputedStyle(canvas).fontFamily);
+       context.textBaseline = "alphabetic";
++      const world = () =>
++        context.setTransform(
++          ratio * viewport.zoom,
++          0,
++          0,
++          ratio * viewport.zoom,
++          ratio * viewport.x,
++          ratio * viewport.y,
++        );
++      world();
++      context.lineWidth = 0.6 / viewport.zoom;
+       for (const { area, opacity } of visibleMapAreas(scene, viewport, {
+         width,
+         height,
+       })) {
+-        const x = viewport.x + area.x * viewport.zoom,
+-          y = viewport.y + area.y * viewport.zoom,
+-          w = area.width * viewport.zoom,
++        const w = area.width * viewport.zoom,
+           h = area.height * viewport.zoom;
+-        const paint = appearance(area);
+-        context.beginPath();
+-        context.roundRect(x, y, w, h, Math.min(3, w / 2, h / 2));
++        const paint = appearance(area),
++          path = areaPath(area, viewport.zoom);
+         context.fillStyle = paint.color;
+         context.globalAlpha = opacity;
+-        context.fill();
++        context.fill(path);
+         context.strokeStyle =
+           focused.current === area.path ? "#ffe59c" : "#c7d9ee";
+-        context.lineWidth = 0.6;
+         context.globalAlpha = 0.75 * opacity;
+-        context.stroke();
++        context.stroke(path);
+         if (opacity > 0.65 && w > 65 && h > 28) {
++          context.setTransform(ratio, 0, 0, ratio, 0, 0);
+           context.fillStyle = "white";
+           context.globalAlpha = 1;
+-          context.fillText(paint.name, x + 10, y + Math.min(h / 2, 25));
++          context.fillText(
++            paint.name,
++            viewport.x + area.x * viewport.zoom + 10,
++            viewport.y + area.y * viewport.zoom + Math.min(h / 2, 25),
++          );
++          world();
+         }
+       }
+       context.globalAlpha = 1;

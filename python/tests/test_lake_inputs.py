@@ -156,8 +156,9 @@ def test_original_identity_and_complete_canonical_inputs_remain_required(
         worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "prepare")
 
 
+@pytest.mark.parametrize("readers", [2, 4, 8])
 def test_parallel_completion_and_batch_boundaries_preserve_exact_order(
-    worker, tmp_path, monkeypatch
+    worker, tmp_path, monkeypatch, readers
 ):
     # More than one bounded batch, Unicode names, empty files and a multi-chunk
     # file. Build the reference from original bytes, independently of worker I/O.
@@ -183,7 +184,7 @@ def test_parallel_completion_and_batch_boundaries_preserve_exact_order(
 
     monkeypatch.setattr(worker, "HASH_WORKERS", 1)
     observe()
-    monkeypatch.setattr(worker, "HASH_WORKERS", 4)
+    monkeypatch.setattr(worker, "HASH_WORKERS", readers)
     original_hash = worker.file_hash
     second_finished = threading.Event()
     first, second, *_ = sorted(originals)

@@ -20,6 +20,13 @@ as a fix: Riemann's worst pause is not consistently shorter, while EthLib's
 style intervals grow. The production renderer stays unchanged. Canvas border/path
 work, style invalidation and complete native preparation remain separate targets.
 
+The [publication-camera fix](../performance/graph-publication-camera.md) retains
+the native file viewer's supplied camera and center across reissued declaration
+IDs, refuses ambiguous or differently named ID reuse, and selects current source
+locations. Isolated shared-component cases and public native journeys have
+different scopes. Rejected border/path-cache and eight-reader trials do not
+establish shorter initial map stalls or prepared-input waits.
+
 Current captures retain 94–95 ms first-detail wheel work, 138–140 ms overlapping
 long tasks, EthLib style invalidation and separate cached native preparation
 waits. The earlier [deployed event audit](../performance/event-latency-latest-20261126.md)
