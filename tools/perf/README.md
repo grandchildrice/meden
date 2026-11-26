@@ -1,5 +1,12 @@
 # Local profiling and regression workloads
 
+The [target-batch comparison](../../docs/performance/map-target-batches.md)
+reduces individual SVG cloning/insertion and removes two test-only coordinate
+attributes. Actual Riemann wheel/worst-task observations improve; an additional
+EthLib sequence retains its variable worst pauses without claiming an
+improvement. Independent attribute-only and original-asset controls fail their
+respective public work-count regressions after functional prerequisites.
+
 The [attribute-invalidation audit](../../docs/performance/attribute-invalidation.md)
 adds chronological `dispatch-events.csv` and an opt-in source of style/layout
 causes. Separate non-scaling-reference and background-grouping trials are

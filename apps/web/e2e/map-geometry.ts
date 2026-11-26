@@ -354,6 +354,28 @@ export function observeRetainedAreaWrites(svg: SVGSVGElement) {
 export function observeTargetCreation() {
   const writes = new WeakMap<Element, number>();
   (window as any).__targetAttributeWrites = writes;
+  const commits: Array<{ paths: Array<string | null> }> = [];
+  (window as any).__targetInitialCommits = commits;
+  const seen = new WeakSet<Node>();
+  new MutationObserver((records) => {
+    for (const record of records) {
+      const parent = record.target;
+      if (
+        !(parent instanceof SVGGElement) ||
+        !parent.parentElement?.matches('[data-map-layer="areas"]') ||
+        seen.has(parent)
+      )
+        continue;
+      const paths = [...record.addedNodes]
+        .filter(
+          (node): node is SVGRectElement => node instanceof SVGRectElement,
+        )
+        .map((node) => node.getAttribute("data-map-path"));
+      if (!paths.length) continue;
+      seen.add(parent);
+      commits.push({ paths });
+    }
+  }).observe(document, { childList: true, subtree: true });
   const original = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function (name, value) {
     if (this instanceof SVGRectElement)

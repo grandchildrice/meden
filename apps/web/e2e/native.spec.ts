@@ -4750,8 +4750,10 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       scene.locator("[data-map-path]").evaluateAll((elements) =>
         elements.map((e) => ({
           path: e.getAttribute("data-map-path"),
-          x: e.getAttribute("data-world-x"),
-          y: e.getAttribute("data-world-y"),
+          x: e.getAttribute("x"),
+          y: e.getAttribute("y"),
+          width: e.getAttribute("width"),
+          height: e.getAttribute("height"),
         })),
       );
     const original = await boxes();
@@ -5232,18 +5234,23 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
         (e) => e === (window as any).__retainedLiteralTarget,
       ),
     ).toBe(true);
+    const initialCommits = await page.evaluate(
+      () =>
+        (window as any).__targetInitialCommits as Array<{ paths: string[] }>,
+    );
     await info.attach("target-creation-and-literal-paths", {
       body: Buffer.from(
         JSON.stringify({
           observations,
-          maximum_creation_attribute_writes: 8,
+          maximum_creation_attribute_writes: 6,
           keyboard_activation: true,
           retained_element_and_focus: true,
+          initial_commits: initialCommits,
         }),
       ),
       contentType: "application/json",
     });
-    expect(observations.every((x) => x.javascript_attribute_writes <= 8)).toBe(
+    expect(observations.every((x) => x.javascript_attribute_writes <= 6)).toBe(
       true,
     );
     await page.screenshot({ path: info.outputPath("literal-map-targets.png") });
@@ -5272,6 +5279,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
         ),
       );
       await page.addInitScript(installMapPaintObserver);
+      await page.addInitScript(observeTargetCreation);
       await page.goto(await start());
       const map = page.getByRole("region", {
         name: "Project map",
@@ -5350,6 +5358,13 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       await expect(
         map.getByRole("navigation", { name: "Map location" }),
       ).toContainText(path.split("/").at(-1)!);
+      const initialCommits = await page.evaluate(
+        () =>
+          (window as any).__targetInitialCommits as Array<{ paths: string[] }>,
+      );
+      const siblingCommits = initialCommits.filter((commit) =>
+        commit.paths.some((p) => p.startsWith("Group/Inner/F")),
+      );
       await info.attach("fading-paint-and-focus", {
         contentType: "application/json",
         body: JSON.stringify({
@@ -5358,8 +5373,15 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
           geometry,
           focused_target_retained: true,
           keyboard_activation: true,
+          initial_sibling_commits: siblingCommits,
         }),
       });
+      expect(siblingCommits.some((commit) => commit.paths.length > 1)).toBe(
+        true,
+      );
+      expect(siblingCommits.every((commit) => commit.paths.length <= 128)).toBe(
+        true,
+      );
       await stop();
       await page.goto(await start());
       await expect
@@ -7587,7 +7609,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       name: "Category: Networking",
       exact: true,
     });
-    const originalWorld = await category.getAttribute("data-world-x");
+    const originalWorld = await category.getAttribute("x");
     const box = await category.boundingBox();
     await page.mouse.move(
       box!.x + box!.width * 0.5,
@@ -7599,7 +7621,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
       exact: true,
     });
     await expect(file).toBeVisible();
-    await expect(category).toHaveAttribute("data-world-x", originalWorld!);
+    await expect(category).toHaveAttribute("x", originalWorld!);
     expect(
       await map
         .locator(".continuous-map-scene")

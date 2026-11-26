@@ -88,6 +88,14 @@ still fails to establish lower worst pauses. Target creation/attribute work
 remains inside the slow wheel; whole-window Canvas totals are separate. This
 adds routine diagnostic coverage without adding an asynchronous runtime path.
 
+The [SVG target batches](../performance/map-target-batches.md) keep static
+templates outside source/observation ownership and insert complete new sibling
+groups once. Partial arrivals retain their original element/focus placement.
+Actual Riemann dispatch/worst-task observations improve; EthLib's variable worst
+pauses remain explicit. Original/attribute-only controls distinguish removed
+metadata writes from actual batching. This advances measured rendering work
+without adding a second engine or changing core authority or backend artifacts.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

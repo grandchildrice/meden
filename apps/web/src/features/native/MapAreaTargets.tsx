@@ -19,24 +19,16 @@ const geometry = (area: MapArea) => ({
   y: area.y,
   width: area.width,
   height: area.height,
-  "data-world-x": area.x,
-  "data-world-y": area.y,
 });
 
-/** One bounded SVG batch. React owns its parent; this disposable DOM adapter
- * retains exact targets and clones a fixed rectangle template. It owns no
- * layout, selection or source data and never replaces a retained element.
- */
-class Targets {
-  #parent: SVGGElement;
-  #targets = new Map<string, Target>();
-  #template: SVGRectElement;
-  constructor(parent: SVGGElement) {
-    this.#parent = parent;
-    this.#template = parent.ownerDocument.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "rect",
-    );
+// Static, source-free templates shared by this document. Powers of two retain
+// fewer than twice the largest sibling batch, without a template for every size.
+const templates = new WeakMap<Document, DocumentFragment[]>();
+function cloneTargets(owner: Document, count: number) {
+  let sizes = templates.get(owner);
+  if (!sizes) {
+    const first = owner.createDocumentFragment();
+    const element = owner.createElementNS("http://www.w3.org/2000/svg", "rect");
     for (const [name, value] of Object.entries({
       fill: "transparent",
       stroke: "none",
@@ -47,7 +39,32 @@ class Targets {
       tabindex: "0",
       "aria-hidden": "false",
     }))
-      this.#template.setAttribute(name, value);
+      element.setAttribute(name, value);
+    first.appendChild(element);
+    sizes = [first];
+    templates.set(owner, sizes);
+  }
+  const result = owner.createDocumentFragment();
+  for (let bit = 0; count; bit++, count >>>= 1) {
+    if (bit === sizes.length) {
+      const doubled = sizes[bit - 1]!.cloneNode(true) as DocumentFragment;
+      doubled.appendChild(sizes[bit - 1]!.cloneNode(true));
+      sizes.push(doubled);
+    }
+    if (count & 1) result.appendChild(sizes[bit]!.cloneNode(true));
+  }
+  return result;
+}
+
+/** One bounded SVG batch. React owns its parent; this disposable DOM adapter
+ * retains exact targets and clones a fixed rectangle template. It owns no
+ * layout, selection or source data and never replaces a retained element.
+ */
+class Targets {
+  #parent: SVGGElement;
+  #targets = new Map<string, Target>();
+  constructor(parent: SVGGElement) {
+    this.#parent = parent;
   }
   update(areas: Areas, focused?: string) {
     const wanted = new Set(areas.map(({ area }) => area.path));
@@ -56,22 +73,32 @@ class Targets {
         target.element.remove();
         this.#targets.delete(path);
       }
-    for (const { area } of areas)
-      if (!this.#targets.has(area.path)) {
-        const element = this.#template.cloneNode(false) as SVGRectElement;
-        for (const [name, value] of Object.entries({
-          ...geometry(area),
-          "data-map-path": area.path,
-          "aria-label": label(area),
-        }))
-          element.setAttribute(name, String(value));
-        this.#targets.set(area.path, {
-          element,
-          area,
-          pointer: true,
-          accessible: true,
-        });
-      }
+    const missing = areas.filter(({ area }) => !this.#targets.has(area.path));
+    const fragment = missing.length
+      ? cloneTargets(this.#parent.ownerDocument, missing.length)
+      : undefined;
+    const created = fragment
+      ? ([...fragment.children] as SVGRectElement[])
+      : [];
+    for (const [i, { area }] of missing.entries()) {
+      const element = created[i]!;
+      for (const [name, value] of Object.entries({
+        ...geometry(area),
+        "data-map-path": area.path,
+        "aria-label": label(area),
+      }))
+        element.setAttribute(name, String(value));
+      this.#targets.set(area.path, {
+        element,
+        area,
+        pointer: true,
+        accessible: true,
+      });
+    }
+    // Initial exposure commits the complete ordered batch once. Partial
+    // arrivals retain the existing successor/element placement below.
+    if (fragment && !this.#parent.hasChildNodes())
+      this.#parent.appendChild(fragment);
     let next: SVGRectElement | null = null;
     for (let i = areas.length - 1; i >= 0; i--) {
       const { area, opacity } = areas[i]!,
