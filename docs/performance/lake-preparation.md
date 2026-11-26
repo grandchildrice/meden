@@ -1,5 +1,10 @@
 # Prepared Lake input measurements
 
+The [November 26 reader-count comparison](lake-reader-count.md) additionally
+rejects reducing the current four hash readers to two or one. It separates Lake
+query, metadata/content validation and nested resolution/hashing observations,
+retaining the slower first warmup without treating it as an optimization gain.
+
 The [calibration record](../../results/lake-preparation-calibration-20261124.json)
 separates actual prepared-input work from GUI protocol time and native sampling.
 In that November 24 experiment, the production compiler, input validation,

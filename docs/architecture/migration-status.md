@@ -75,6 +75,12 @@ the single quiet pair; physical worker invocations fall from 6,160 to 3,423.
 The parser and cache identities remain unchanged. This advances fresh navigation
 preparation, not the separate prepared-input or first-detail rendering targets.
 
+The [prepared-input reader comparison](../performance/lake-reader-count.md)
+rejects reducing four hash readers to two or one. Complete-byte results match,
+but the interleaved actual preparation is slower; the first warmup is also much
+slower than the measured runs. This separates Lake query and content-validation
+costs without claiming a production speedup or weakening current-input checks.
+
 Next work must preserve the original camera, ordered coordinates/layers,
 keyboard targets, complete source bytes and exact semantic observations while
 addressing those measured intervals. Native preparation must preserve current

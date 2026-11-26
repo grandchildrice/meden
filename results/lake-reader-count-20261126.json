@@ -1,0 +1,843 @@
+{
+  "date": "2026-11-26",
+  "source_revision": "b0a74027e2ad4089e58d9c8a75285a601d6a23b6",
+  "scope": "Actual confined prepared-input diagnostic; reject fewer hash readers. No production source, resource identity, cache format, browser assets, deployed binary or native publication changed. No model invocation, graph extraction or evidence admission by the diagnostic.",
+  "environment": {
+    "system": "Linux",
+    "release": "6.12.92",
+    "arch": "x64"
+  },
+  "production": {
+    "binary_sha256": "df37370508ff564a3bdffb7998eceef56b06f6444dadcd666f971cbed3be0a7f",
+    "helper_sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9",
+    "source_unchanged": true,
+    "diagnostic_restored_sha256": "a356986f02b543a51712ba794a8ef995f483e5e298f137cec8b05c4423aec47d"
+  },
+  "comparison": {
+    "root_name": "Formalism.PeriodIntegrals.UnitaryGroupMassFormula.AdelicClassFiniteness.DictGen",
+    "root_file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+    "source_root": "src",
+    "plan": [4, 2, 1, 4, 2, 1, 1, 2, 4, 2, 4, 1],
+    "warmup_orders": [0, 1, 2],
+    "measured_orders": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "controls": "Fixed original bindings, complete exact result equality, same compute resources/public Python, no concurrent build/test/external sampler. No reset of installed project/OS caches; ordinary desktop background work uncontrolled. Each executable changes only HASH_WORKERS in the metadata helper. Entire helper source and binary digests checked; default diagnostic restored afterwards.",
+    "probes": {
+      "1": {
+        "binary": "target/lake-reader-count-experiment/probe-1-d37b886df002cb70",
+        "sha256": "d37b886df002cb70b9624f58476a30f032a1ebe3447b3e1a5a7b1c3d3c085dc3",
+        "script_sha256": "be873ce3dbf0a1c41c7976a597cb1e8026b6b35d368a738e1d22ff72ce892262"
+      },
+      "2": {
+        "binary": "target/lake-reader-count-experiment/probe-2-9d8ed57ecf3e8b35",
+        "sha256": "9d8ed57ecf3e8b357740faa662022d2b747ca92696820cdec9789db571e2a34f",
+        "script_sha256": "2bfccec078e2c24e8194c58228c29a4d30bda26f77cafd0602659ce08e32bdf0"
+      },
+      "4": {
+        "binary": "target/lake-reader-count-experiment/probe-4-a356986f02b543a5",
+        "sha256": "a356986f02b543a51712ba794a8ef995f483e5e298f137cec8b05c4423aec47d",
+        "script_sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+      }
+    },
+    "rows": [
+      {
+        "order": 0,
+        "readers": 4,
+        "warmup": true,
+        "elapsed_ms": 15019.600358,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 8963258,
+            "thread_cpu_us": 41764
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 5997230,
+            "thread_cpu_us": 26729
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.556s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 5.248s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 1,
+        "readers": 2,
+        "warmup": true,
+        "elapsed_ms": 7821.404794,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3581398,
+            "thread_cpu_us": 29617
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 4185467,
+            "thread_cpu_us": 21059
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.566s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 3.436s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 2,
+        "readers": 1,
+        "warmup": true,
+        "elapsed_ms": 10201.385111,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3551688,
+            "thread_cpu_us": 29003
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 6598557,
+            "thread_cpu_us": 30712
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.576s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 5.752s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 3,
+        "readers": 4,
+        "warmup": false,
+        "elapsed_ms": 6702.984246,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3298592,
+            "thread_cpu_us": 41989
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 3353879,
+            "thread_cpu_us": 19422
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.576s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 2.592s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 4,
+        "readers": 2,
+        "warmup": false,
+        "elapsed_ms": 7375.821216,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3298537,
+            "thread_cpu_us": 24435
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 4025916,
+            "thread_cpu_us": 19488
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.568s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 3.271s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 5,
+        "readers": 1,
+        "warmup": false,
+        "elapsed_ms": 9660.802708000001,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3241823,
+            "thread_cpu_us": 24496
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 6362563,
+            "thread_cpu_us": 27879
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.568s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 5.592s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 6,
+        "readers": 1,
+        "warmup": false,
+        "elapsed_ms": 9804.089016,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3324225,
+            "thread_cpu_us": 33765
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 6429796,
+            "thread_cpu_us": 29282
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.561s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 5.649s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 7,
+        "readers": 2,
+        "warmup": false,
+        "elapsed_ms": 7473.345066,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3453636,
+            "thread_cpu_us": 29076
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 3959716,
+            "thread_cpu_us": 25885
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.558s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 3.156s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 8,
+        "readers": 4,
+        "warmup": false,
+        "elapsed_ms": 6745.534891,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3508770,
+            "thread_cpu_us": 30575
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 3187522,
+            "thread_cpu_us": 18932
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.557s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 2.451s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 9,
+        "readers": 2,
+        "warmup": false,
+        "elapsed_ms": 7241.660419,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3186753,
+            "thread_cpu_us": 32679
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 4006216,
+            "thread_cpu_us": 25813
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.554s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 3.186s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 10,
+        "readers": 4,
+        "warmup": false,
+        "elapsed_ms": 6548.681842999999,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3329058,
+            "thread_cpu_us": 37103
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 3167887,
+            "thread_cpu_us": 21976
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.568s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 2.370s.\n",
+          "truncated": false
+        }
+      },
+      {
+        "order": 11,
+        "readers": 1,
+        "warmup": false,
+        "elapsed_ms": 9821.683543000001,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resources_revision": "0aaa668ed5db484b52a1780fa05d8bec08d35096a926f095b2df02599750b848",
+        "public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+        "stages": [
+          {
+            "name": "atlas.project.query",
+            "wall_us": 3470199,
+            "thread_cpu_us": 29880
+          },
+          {
+            "name": "atlas.project.fingerprint",
+            "wall_us": 6295686,
+            "thread_cpu_us": 27939
+          }
+        ],
+        "diagnostic": {
+          "stdout": "",
+          "stderr": "Query decoding and input resolution completed in 0.555s.\nValidating 43477 compiled input files…\nValidated 5000/43477 files\nValidated 10000/43477 files\nValidated 15000/43477 files\nValidated 20000/43477 files\nValidated 25000/43477 files\nValidated 30000/43477 files\nValidated 35000/43477 files\nValidated 40000/43477 files\nValidated 43477 files / 5992114707 bytes in 5.511s.\n",
+          "truncated": false
+        }
+      }
+    ],
+    "medians_ms": {
+      "1": {
+        "samples": 3,
+        "elapsed_ms": 9804.089016,
+        "query_ms": 3324.225,
+        "fingerprint_ms": 6362.563,
+        "hash_ms": 5592,
+        "resolution_ms": 561
+      },
+      "2": {
+        "samples": 3,
+        "elapsed_ms": 7375.821216,
+        "query_ms": 3298.537,
+        "fingerprint_ms": 4006.216,
+        "hash_ms": 3186,
+        "resolution_ms": 558
+      },
+      "4": {
+        "samples": 3,
+        "elapsed_ms": 6702.984246,
+        "query_ms": 3329.058,
+        "fingerprint_ms": 3187.522,
+        "hash_ms": 2451,
+        "resolution_ms": 568
+      }
+    },
+    "decision": "Keep four readers. One and two are slower in all corresponding measured metadata/content intervals. Eight readers were rejected in a separate prior record; not measured again here."
+  },
+  "validation": {
+    "architecture_checks_passed": 64,
+    "format_check": true,
+    "gates": [
+      {
+        "name": "restore-diagnostic",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "input-protocol",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "public-tui",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "input_worker_protocol": {
+      "passed": 29,
+      "skipped": 0
+    },
+    "public_tui": {
+      "passed": 37,
+      "skipped": 0,
+      "inference": "scripted fixtures; no live-model validation",
+      "binary_sha256": "df37370508ff564a3bdffb7998eceef56b06f6444dadcd666f971cbed3be0a7f",
+      "summary_sha256": "2fdb64173ebfd9129ea478114621b18c322ccc6759b025d960719cce9dffbff8",
+      "inspected_decoded_screens": [
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 819,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Workspace source inventory changed",
+              "seconds": 76.073,
+              "screen_sha256": "674f41ca26c8736a4e89c8da6cc1090e720b7ba059243d3ecd0255b872446743"
+            },
+            {
+              "label": "Source graph ready: 5 files",
+              "seconds": 75.85,
+              "screen_sha256": "21f7bc9e42562914a83b4fa5c4952d63f78ad9d2dbb68caa8dcf824d61f9589e"
+            },
+            {
+              "label": "Choose a model connection",
+              "seconds": 76.057,
+              "screen_sha256": "918b720ad8aefd7585a0eaabf65d4da16e8373ef329f20a86476e62972288752"
+            }
+          ]
+        },
+        {
+          "label": "repair",
+          "journey": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "frames": 85,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "LEAN-MODEL-REPAIRED",
+              "seconds": 4.988,
+              "screen_sha256": "e75ed17f5210b261c19072370babf8fcb29bd3caa87b3ddbf33cd3e662e6497b"
+            }
+          ]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 147,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Portable work stopped:",
+              "seconds": 13.565,
+              "screen_sha256": "69c50812cc6334ba5a2d2085c5d1011867c2ee505b40be1e2b0af3eb4843c1cf"
+            }
+          ]
+        },
+        {
+          "label": "plain-source",
+          "journey": "test_plain_source_formats_fail_recover_and_reopen_without_model_approv-c664112a7f",
+          "frames": 38,
+          "trace_truncated": false,
+          "observations": [
+            {
+              "label": "Source observation failed for missing.smt2",
+              "seconds": 0.486,
+              "screen_sha256": "99012a0a0b0dae4f078485a193484c3e5ef895052b546d2e2ad8b1143d840329"
+            },
+            {
+              "label": "Sources ready: 3 files",
+              "seconds": 0.853,
+              "screen_sha256": "decc5f399fc4b2a41bf0c2bbdcd4db8780b823cf7a3ce498592c14faa6a26619"
+            }
+          ]
+        }
+      ]
+    },
+    "actual_gui_views": [
+      {
+        "project": "riemann",
+        "running": false,
+        "authorized": false,
+        "original_history_candidates_equal": true,
+        "views": [
+          {
+            "name": "source",
+            "bytes": 68496,
+            "sha256": "03cdd6236331b83fcf1f7844fdc5355c6b6da5ea17dec0fefa1d46174b01b2bb",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "reader",
+            "bytes": 10780,
+            "sha256": "09d8324f12eb501b9fa1e8f413d01cb9185579c55836326561dfa483193325b9",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "inventory",
+            "bytes": 25017634,
+            "sha256": "4a19276b22c783abfb7bfc644fe457dfbf5227ba2901329503b1c3d78da7bfaa",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "nav",
+            "bytes": 13881,
+            "sha256": "5b3eb0d86548a422f36d7bd9c7fca3556e21e28a022b17dabdf0d5a7b6e6d8af",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "original_bytes_equal": true
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "running": false,
+        "authorized": false,
+        "original_history_candidates_equal": true,
+        "views": [
+          {
+            "name": "source",
+            "bytes": 146985,
+            "sha256": "7b120d8f184d3f769586f05582ecdfc9a4f8ea9fd3dce8a4c516bb0c043d7390",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "reader",
+            "bytes": 3034,
+            "sha256": "dfb1bf698faa34171b6c9de6fc5323dd80f2a402cd63581dd1911805029e66d4",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "inventory",
+            "bytes": 7343437,
+            "sha256": "477cdb314263c3db7d19a6681b3727356ab382ec4da5eb5b71a3c4b9c652aac0",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "nav",
+            "bytes": 1530,
+            "sha256": "ddf16c2543f96c021412147a095c3285f861a8bc5b052a083dabd69593ccd929",
+            "original_bytes_equal": true
+          },
+          {
+            "name": "evidence",
+            "bytes": 111,
+            "sha256": "42911ee80bf761adafbadf892b7862d6118a31c0b3f58baea7d8a3c44b3b1479",
+            "original_bytes_equal": true
+          }
+        ]
+      }
+    ],
+    "gui_scope": "Read-only native API checks only: all ten complete original DTO byte bodies match the previous deployed captures; history/candidates remain equal and both hosts remain idle/unapproved. No fresh browser/paint/physical-presentation claim; services not restarted."
+  },
+  "artifacts": [
+    {
+      "path": "target/lake-reader-count-experiment/build.mjs",
+      "bytes": 1521,
+      "sha256": "65ba60caf7e4a9634f5c57b0d6c4fdceed366bc5874770e4b9ce747df4f6d5f4"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/compare.mjs",
+      "bytes": 2917,
+      "sha256": "74cf9564840ed946afd481989d51eb3bd289a017853afeb559bca36d86cf5db1"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/gates.mjs",
+      "bytes": 1602,
+      "sha256": "3c3f0296d0c428c7415e57b53565631302f0465df3a29013c6b2b7a7573267e5"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/views.mjs",
+      "bytes": 2234,
+      "sha256": "f9bba5c143d5c74c52de7d14a14a870bcf446d8d390f20290192b2e4a4df4628"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/inspect.mjs",
+      "bytes": 1514,
+      "sha256": "28a7787bd587bf3463318b1bfec1efd529c61dcb52ecc9f02767eee7a15e6ca3"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/record.mjs",
+      "bytes": 5747,
+      "sha256": "d51f1f3bc39266ae1cde45e469becb19c11185d4d5d18ca628e406799ac77ec3"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/probes.json",
+      "bytes": 872,
+      "sha256": "09c4d015a6afe9678589b862f653c2801af6e6d2e0c79bdf643056db28a0e78b"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/state.json",
+      "bytes": 15073,
+      "sha256": "28cf930cab526cd3ae98c11b354a3eabe8b2a041c67fa36810848ef1c795b543"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/medians.json",
+      "bytes": 503,
+      "sha256": "ab56b21d378c2c60f5a41a79e25996fdab34368ff5184fd862d000ff496de437"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/gates-state.json",
+      "bytes": 176,
+      "sha256": "5a986ad8756882b9a723d12fd7f19e507c4976c16838c8ecf9e81983ebc3d9f8"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/views.json",
+      "bytes": 2203,
+      "sha256": "597f884e375c22920f85636a0a51bcdcae7d8f16a2a467e70074a9a0e1a9561b"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/decoded-screens.json",
+      "bytes": 2103,
+      "sha256": "8583572d6b5fc9da23f7d2f9b0c00f811f25dc96a7fd1f5af4815f0773939b45"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-0-4.json",
+      "bytes": 5887,
+      "sha256": "2c5e881874b68be9e0f65200f37d044bdd29c5236f3054cb6351ad23e7a0f912"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-1-2.json",
+      "bytes": 5886,
+      "sha256": "98b3546049328fd8b97e9d5b46e25c8396590ed22d2715e2d16a7169086b3a41"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-2-1.json",
+      "bytes": 5888,
+      "sha256": "33ce7991cbd0c949502a72a581f2897fa6529527fc6a5b14284a4693e154fa08"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-3-4.json",
+      "bytes": 5874,
+      "sha256": "c72fc988b4394b9c9e48d894f0becf572333c6ca6f4c9c6d89be575e28bfc2a9"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-4-2.json",
+      "bytes": 5875,
+      "sha256": "b00203189948348b00bf5b5da09533a558673aa36e5c1bb6442b0ebb8941adc1"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-5-1.json",
+      "bytes": 5882,
+      "sha256": "edfc6347ddd5debfcb8bb2b9ca97d083bbf0c0cb76ae635957595875b14e579b"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-6-1.json",
+      "bytes": 5879,
+      "sha256": "8b08a2b780b0e33f192f4bd479d683932cdedb80930d13064b2c72b2a2955aa8"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-7-2.json",
+      "bytes": 5879,
+      "sha256": "0db34026821650fe159601db48fd0e0696ffeb4c96828c04fd6eb2401fe50d50"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-8-4.json",
+      "bytes": 5876,
+      "sha256": "180c555f0dd25bda798dc162c660072f19a7635f406c4820c4da1bff073356f1"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-9-2.json",
+      "bytes": 5878,
+      "sha256": "3504683233a16fbc6c23481b43ac92e9f46537476b4425d1c5108f967ffd27c7"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-10-4.json",
+      "bytes": 5884,
+      "sha256": "f5a14217aa5ca63bede48108d3f2013480f01bc5cc04c2ec103158192b04c186"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-11-1.json",
+      "bytes": 5883,
+      "sha256": "5b6245fbfce49eb3035add5c9cf11c993b1cbb33020203f3718ab08e50f89c07"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-0-4.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-1-2.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-2-1.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-3-4.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-4-2.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-5-1.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-6-1.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-7-2.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-8-4.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-9-2.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-10-4.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/run-11-1.log",
+      "bytes": 81,
+      "sha256": "db4cd4e2bffd3dfc92eccfe2b9641e7960102497eb4acd5060bc0e2f29d88ded"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/architecture-check.log",
+      "bytes": 13734,
+      "sha256": "c02b94a6c18c85ac31633e5638a6d64d928f5407c738a0dbe0672424d20a80ce"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/format-check.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/gate-restore-diagnostic.log",
+      "bytes": 149,
+      "sha256": "7b8c3eaf46865715b254e5e9086371db0b8dc50289aa546d62fc5ef3cac34517"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/gate-input-protocol.log",
+      "bytes": 99,
+      "sha256": "72702b06c8744310caba54555e97e7a4c2855d66097ca9a62f24ad25ed6da2ec"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/gate-public-tui.log",
+      "bytes": 188,
+      "sha256": "49eb72df39a2d8087da134bdc19c98ba9e366599017bbc09843b9701216916c6"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/script-4.py",
+      "bytes": 8111,
+      "sha256": "2ea535ebfdf3d006e856fb0c197d430c99aa36ff7f323f8eca8f2c3cf2c7d9a9"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/script-2.py",
+      "bytes": 8111,
+      "sha256": "2bfccec078e2c24e8194c58228c29a4d30bda26f77cafd0602659ce08e32bdf0"
+    },
+    {
+      "path": "target/lake-reader-count-experiment/script-1.py",
+      "bytes": 8111,
+      "sha256": "be873ce3dbf0a1c41c7976a597cb1e8026b6b35d368a738e1d22ff72ce892262"
+    }
+  ],
+  "limits": [
+    "Three measured samples per variant on one existing warm project; no universal optimal-concurrency claim.",
+    "First warmup differs substantially; its difference from warm runs is not an optimization gain.",
+    "Diagnostic timing is not GUI input-to-paint or request-to-prepared latency. Existing saved presentation can appear before current-input validation.",
+    "Nested worker/helper intervals and independently computed medians must not be summed as exclusive work. Host thread CPU excludes child workers; kernel wait and full child CPU attribution are not measured.",
+    "Installed-tool/scripted-provider tests are not live-model, cold-install, large/local-model or confidentiality validation.",
+    "All complete-byte, path, size, concurrency and cancellation/admission checks remain. No cached input list is treated as proof of a current full closure.",
+    "Inspected decoded cancellation output still includes a checking spinner; some composer cells contain sampled decoder fragments. No every-frame settled-rendering or display-authenticity claim.",
+    "Prepared-input waits, first-detail rendering stalls and the full five-exit migration remain open."
+  ]
+}

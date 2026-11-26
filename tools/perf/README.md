@@ -430,6 +430,12 @@ negative control.
 
 ## Isolate prepared-input work
 
+The [one/two/four-reader comparison](../../docs/performance/lake-reader-count.md)
+retains complete actual results and separates query, metadata-worker, resolution
+and hashing intervals. One and two readers are slower than the current four;
+the earlier eight-reader trial was also rejected. Its first warmup is retained
+separately, rather than compared with warm runs as a claimed speedup.
+
 ```sh
 cargo build -p meden-app --example profile-prepared-inputs
 target/debug/examples/profile-prepared-inputs /absolute/project \
